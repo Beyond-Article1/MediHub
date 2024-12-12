@@ -1,6 +1,6 @@
 <script setup>
 import axios from "axios";
-import { onMounted, ref, computed } from "vue";
+import {computed, onMounted, ref} from "vue";
 import DropBox from "@/components/common/DropBox.vue";
 
 const authStore = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxMjM0NSIsInVzZXJTZXEiOjQsInVzZXJOYW1lIjoiMTIzNDUiLCJhdXRoIjpbIlVTRVIiXSwiZXhwIjoxNzM0MDAxMzc0fQ.SApTOTHaBDihNtQ9N7mJovnq4u6p3kHekX48gKi2TQfR7BOI9AT4B9BP3o0boE5AxDz3tmKYEDUziOtPLxShJQ";
@@ -88,7 +88,4 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.dropdown-container {
-  margin-bottom: 10px; /* 드롭박스 간의 간격을 조정 */
-}
 </style>
