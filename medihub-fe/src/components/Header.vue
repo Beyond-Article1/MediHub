@@ -1,31 +1,17 @@
 <script setup>
-import {computed, nextTick} from 'vue';
+import { ref, computed, nextTick } from 'vue';
 import router from "@/router/index.js";
-import {useAuthStore} from "@/store/authStore.js";
+import { useAuthStore } from "@/store/authStore.js";
 
-// 상태관리
 const store = useAuthStore();
+const isLogIn = 123; // 디자인 확인을 위해 임시값
+const isAdmin = computed(() => store.userRole === 'ADMIN');
+const selectedItem = ref(''); // 선택된 아이템
 
-// 로그인 유무
-const isLogIn = computed(() => store.accessToken !== null);
-
-// 관리자 권한 여부
-const isAdmin = computed(() => {
-  if (!store.isInitialized) {
-    console.log("[Header] Store not initialized yet."); // 초기화 대기
-    return false;
-  }
-  console.log("[Header] Current user role:", store.userRole); // 디버깅 로그
-  return store.userRole === 'ADMIN';
-});
-
-
-// 로그아웃 후 메인페이지로 이동
 const logout = async () => {
-  console.log("logout 호출");
   await store.logout();
-  deleteCookie('token'); // 쿠키 삭제
-  await nextTick(); // 상태가 반영된 후 페이지 이동
+  deleteCookie('token');
+  await nextTick();
   router.push('/');
 };
 
@@ -36,28 +22,28 @@ function deleteCookie(name) {
   }
 }
 
-// 메뉴 이동
 function moveToItem(move) {
-  console.log("[Header] Moving to menu:", move);
+  selectedItem.value = move; // 선택된 아이템 업데이트
   let item;
   switch (move) {
-    case 'outfit':
-      item = '/map';
-      break;
-    case 'review':
-      item = isAdmin.value ? '/admin/review' : '/review';
-      break;
     case 'board':
-      item = '/board';
+      alert("개발중입니다.");
+      item = '/';
       break;
-    case 'mypage':
-      item = '/mypage/detail';
+    case 'cp':
+      item = '/cp';
       break;
-    case 'blame':
-      item = '/blame';
+    case 'journal':
+      alert("개발중입니다.");
+      item = '/';
       break;
-    case 'user':
-      item = '/admin/user';
+    case 'member':
+      alert("개발중입니다.");
+      item = '/';
+      break;
+    case 'admin':
+      alert("개발중입니다.");
+      item = '/';
       break;
     default:
       item = '/';
@@ -65,56 +51,58 @@ function moveToItem(move) {
   }
   router.push(`${item}`);
 }
-</script>
 
+// 로고 클릭 시 실행
+function goToHome() {
+  selectedItem.value = ''; // 선택 초기화
+  router.push('/');
+}
+</script>
 
 <template>
   <div class="header-content">
-
-    <div class="logo" @click="router.push('/')">
+    <div class="logo" @click="goToHome">
       <img src="@/assets/images/MEDIHUB.png" width="158" alt="어라라...?">
     </div>
 
     <!-- 로그인 상태일 때만 메뉴 항목 표시 -->
     <div class="menu-list" v-if="isLogIn">
       <ul>
-        <li @click="moveToItem('board')">BOARDS</li>
-        <li @click="moveToItem('cp')">CP</li>
-        <li @click="moveToItem('journal')">JOURNAL</li>
-        <li v-if="!isAdmin" @click="moveToItem('member')">MEMBER</li>
-        <!-- 관리자 권한 -->
-        <li v-if="isAdmin" @click="moveToItem('admin')">ADMIN</li>
+        <li
+            v-for="menu in ['board', 'cp', 'journal', 'member', 'admin']"
+            :key="menu"
+            :class="{ active: selectedItem === menu }"
+            @click="moveToItem(menu)"
+        >
+          {{ menu.toUpperCase() }}
+        </li>
       </ul>
     </div>
 
     <!-- 로그인/로그아웃 버튼 -->
     <div class="login-logout">
       <template v-if="isLogIn">
-        <!-- 로그아웃 버튼 -->
         <button @click="logout" class="logout-btn">LOGOUT</button>
       </template>
       <template v-else>
-        <!-- 로그인 버튼 -->
         <button @click="router.push('/login')" class="login-btn">LOGIN</button>
       </template>
     </div>
   </div>
 </template>
 
+
 <style scoped>
 .header-content {
   display: flex;
   justify-content: space-between;
   font-weight: bold;
+  background: linear-gradient(to bottom, #1A2F69, #3A4F89, #5A6FA9);
+  align-items: center;
 }
 
 .logo {
   margin-left: 2%;
-}
-
-.logo:hover {
-  cursor: pointer;
-  scale: 120%;
 }
 
 .menu-list {
@@ -134,17 +122,26 @@ li {
   align-content: center;
   text-align: center;
   list-style: none;
+  color: white;
+  font-size: 1.2em;
+  cursor: pointer;
 }
 
-li:hover {
+li.active {
+  margin: 0 auto;
+  align-content: center;
+  text-align: center;
+  list-style: none;
+  color: #FFC653;
+  font-size: 1.2em;
   cursor: pointer;
-  scale: 120%;
 }
 
 .login-logout {
   margin-right: 2%;
   align-content: center;
   font-size: 1.2em;
+  color: white;
 }
 
 .login-logout button {
@@ -152,10 +149,6 @@ li:hover {
   background-color: rgb(0, 0, 0, 0);
   font-size: 1.2em;
   font-weight: bold;
-}
-
-.login-logout button:hover {
-  cursor: pointer;
-  scale: 120%;
+  color: white;
 }
 </style>
