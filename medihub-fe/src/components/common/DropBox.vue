@@ -13,18 +13,17 @@ const props = defineProps({
   modelValue: {
     type: Array,
     default: () => []
+  },
+  isOpen: { // 부모에서 전달받은 열림 상태
+    type: Boolean,
+    default: false
   }
 });
 
-const emit = defineEmits(['update:modelValue']);
-
-const isOpen = ref(false);
-const selectedLabels = ref(props.modelValue.map(value =>
-    props.options.find(option => option.value === value)?.text || ''
-).filter(Boolean));
+const emit = defineEmits(['update:modelValue', 'update:isOpen']);
 
 const toggleDropdown = () => {
-  isOpen.value = !isOpen.value;
+  emit('update:isOpen', !props.isOpen); // 부모에게 열림 상태 업데이트
 };
 
 const toggleOption = (option) => {
@@ -39,9 +38,6 @@ const toggleOption = (option) => {
   }
 
   emit('update:modelValue', props.modelValue);
-  selectedLabels.value = props.modelValue.map(value =>
-      props.options.find(opt => opt.value === value)?.text || ''
-  ).filter(Boolean);
 };
 
 const isSelected = (option) => {
@@ -50,25 +46,29 @@ const isSelected = (option) => {
 </script>
 
 <template>
-  <div class="dropdown" @click="toggleDropdown">
-    <div class="dropdown-selected" :class="{ 'selected': isOpen }">
-      {{ label }}
+  <div class="dropdown">
+    <div
+        class="dropdown-selected"
+        @click="toggleDropdown"
+        :class="{ 'active': isOpen }"
+    >
+    {{ label }}
+  </div>
+  <div v-if="isOpen" class="dropdown-options">
+    <div
+        v-for="option in options"
+        :key="option.value"
+        class="dropdown-option"
+        @click.stop="toggleOption(option)"
+    >
+      <input
+          type="checkbox"
+          :checked="isSelected(option)"
+          @change.stop="toggleOption(option)"
+      />
+      {{ option.text }}
     </div>
-    <div v-if="isOpen" class="dropdown-options">
-      <div
-          v-for="option in options"
-          :key="option.value"
-          class="dropdown-option"
-          @click.stop="toggleOption(option)"
-      >
-        <input
-            type="checkbox"
-            :checked="isSelected(option)"
-            @change.stop="toggleOption(option)"
-        />
-        {{ option.text }}
-      </div>
-    </div>
+  </div>
   </div>
 </template>
 
@@ -78,6 +78,7 @@ const isSelected = (option) => {
   width: 100%;
   max-width: 300px; /* 최대 너비 설정 */
   cursor: pointer;
+  margin-bottom: 10px; /* 드롭박스 간의 간격을 조정 */
 }
 
 .dropdown-selected {
@@ -89,16 +90,12 @@ const isSelected = (option) => {
   transition: background-color 0.3s, color 0.3s; /* 부드러운 전환 효과 */
 }
 
-.dropdown-selected.selected {
+.dropdown-selected.active {
   background-color: #1C306A; /* 드롭박스가 열렸을 때 배경색 */
   color: white; /* 드롭박스가 열렸을 때 폰트 색상 */
 }
 
 .dropdown-options {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
   border: 1px solid #ccc;
   border-radius: 4px;
   background-color: #fff;
