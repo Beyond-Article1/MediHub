@@ -1,7 +1,7 @@
 <script setup>
-import { ref, computed, nextTick } from 'vue';
+import {computed, nextTick, ref} from 'vue';
 import router from "@/router/index.js";
-import { useAuthStore } from "@/store/authStore.js";
+import {useAuthStore} from "@/store/authStore.js";
 
 const store = useAuthStore();
 const isLogIn = 123; // 디자인 확인을 위해 임시값
@@ -62,7 +62,7 @@ function goToHome() {
 <template>
   <div class="header-content">
     <div class="logo" @click="goToHome">
-      <img src="@/assets/images/MEDIHUB.png" width="158" alt="어라라...?">
+      <img src="../../assets/images/MEDIHUB.png" width="158" alt="어라라...?">
     </div>
 
     <!-- 로그인 상태일 때만 메뉴 항목 표시 -->
@@ -90,7 +90,6 @@ function goToHome() {
     </div>
   </div>
 </template>
-
 
 <style scoped>
 .header-content {

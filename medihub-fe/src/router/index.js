@@ -1,8 +1,10 @@
 import {createRouter, createWebHistory} from "vue-router";
 
+import cpRouter from "@/router/cpRouter.js";
+
 const routes = [
-
-
+    // CP 라우터
+    ...cpRouter
 ]
 
 const router = createRouter({
