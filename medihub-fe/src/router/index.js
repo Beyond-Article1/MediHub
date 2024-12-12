@@ -1,8 +1,9 @@
 import {createRouter, createWebHistory} from "vue-router";
+import journalRouter from "@/router/journalRouter.js";
 
 const routes = [
-
-
+    // 논문 라우터
+    ...journalRouter,
 ]
 
 const router = createRouter({

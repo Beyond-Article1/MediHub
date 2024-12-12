@@ -3,13 +3,11 @@
 </script>
 
 <template>
-  <header>
 
-  </header>
+  <div id="app">
+    <RouterView :key="$route.fullPath"/>
+  </div>
 
-  <main>
-
-  </main>
 </template>
 
 <style scoped>
