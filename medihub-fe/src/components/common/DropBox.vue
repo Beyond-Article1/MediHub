@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineProps, defineEmits } from 'vue';
+import {ref, defineProps, defineEmits} from 'vue';
 
 const props = defineProps({
   options: {
@@ -27,17 +27,21 @@ const toggleDropdown = () => {
 };
 
 const toggleOption = (option) => {
-  const index = props.modelValue.indexOf(option.value);
+  const newValue = [...props.modelValue]; // 기존 값을 복사
+  const index = newValue.indexOf(option.value);
 
   if (index === -1) {
     // 선택되지 않은 경우, 추가
-    props.modelValue.push(option.value);
+    newValue.push(option.value);
   } else {
     // 이미 선택된 경우, 제거
-    props.modelValue.splice(index, 1);
+    newValue.splice(index, 1);
   }
 
-  emit('update:modelValue', props.modelValue);
+  // 중복 제거 후 새로운 배열을 부모에게 전달
+  const uniqueValues = [...new Set(newValue)];
+  emit('update:modelValue', uniqueValues);
+
 };
 
 const isSelected = (option) => {
