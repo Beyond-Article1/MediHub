@@ -1,5 +1,5 @@
 <script setup>
-import {ref, defineProps, defineEmits} from 'vue';
+import {defineEmits, defineProps} from 'vue';
 
 const props = defineProps({
   options: {
@@ -56,23 +56,23 @@ const isSelected = (option) => {
         @click="toggleDropdown"
         :class="{ 'active': isOpen }"
     >
-    {{ label }}
-  </div>
-  <div v-if="isOpen" class="dropdown-options">
-    <div
-        v-for="option in options"
-        :key="option.value"
-        class="dropdown-option"
-        @click.stop="toggleOption(option)"
-    >
-      <input
-          type="checkbox"
-          :checked="isSelected(option)"
-          @change.stop="toggleOption(option)"
-      />
-      {{ option.text }}
+      {{ label }}
     </div>
-  </div>
+    <div v-if="isOpen" class="dropdown-options">
+      <div
+          v-for="option in options"
+          :key="option.value"
+          class="dropdown-option"
+          @click.stop="toggleOption(option)"
+      >
+        <input
+            type="checkbox"
+            :checked="isSelected(option)"
+            @change.stop="toggleOption(option)"
+        />
+        {{ option.text }}
+      </div>
+    </div>
   </div>
 </template>
 
