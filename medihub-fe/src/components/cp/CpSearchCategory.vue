@@ -10,7 +10,7 @@ const openDropdown = ref(null); // 현재 펼쳐진 드롭박스의 인덱스를
 
 async function fetchData() {
   try {
-    const response = await axios.get("http://localhost:8088/cp/cpSearchCategory/cpSearchCategoryData", {
+    const response = await axios.get("cp/cpSearchCategory/cpSearchCategoryData", {
       headers: {
         Authorization: `Bearer ${authStore}`
       }
