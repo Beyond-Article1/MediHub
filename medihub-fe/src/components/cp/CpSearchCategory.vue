@@ -82,8 +82,6 @@ onMounted(() => {
           :isOpen="openDropdown === index"
       />
     </div>
-    <p>모든 선택된 옵션: {{ selectedCategoyDataSeq }}</p> <!-- 모든 선택된 옵션을 출력 -->
-    <p>선택된 카테고리 번호 배열: {{ selectedCategorySeq }}</p> <!-- 선택된 카테고리 번호 배열 출력 -->
   </div>
 </template>
 
