@@ -1,6 +1,6 @@
 <script setup>
 import axios from "axios";
-import {computed, onMounted, ref} from "vue";
+import { onMounted, ref, computed } from "vue";
 import DropBox from "@/components/common/DropBox.vue";
 
 const authStore = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxMjM0NSIsInVzZXJTZXEiOjQsInVzZXJOYW1lIjoiMTIzNDUiLCJhdXRoIjpbIlVTRVIiXSwiZXhwIjoxNzM0MDAxMzc0fQ.SApTOTHaBDihNtQ9N7mJovnq4u6p3kHekX48gKi2TQfR7BOI9AT4B9BP3o0boE5AxDz3tmKYEDUziOtPLxShJQ";
@@ -41,8 +41,29 @@ const toggleDropdown = (index) => {
 };
 
 // 선택된 모든 옵션을 통합하여 하나의 배열로 저장하는 계산된 속성
-const allSelectedOptions = computed(() => {
+const selectedCategoyDataSeq = computed(() => {
   return selectedDataList.value.flat(); // 중첩 배열을 평탄화하여 하나의 배열로 만듭니다.
+});
+
+// 선택된 카테고리 번호와 옵션을 함께 출력하는 계산된 속성
+const selectedCategoriesWithOptions = computed(() => {
+  return cpSearchCategoryList.value.map((category, index) => ({
+    categoryNumber: category.cpSearchCategorySeq, // 카테고리 번호
+    selectedOptions: selectedDataList.value[index] // 해당 카테고리에서 선택된 옵션
+  })).filter(item => item.selectedOptions.length > 0); // 선택된 옵션이 있는 카테고리만 필터링
+});
+
+// 선택된 카테고리 번호를 하나의 배열로 저장하는 계산된 속성
+const selectedCategorySeq = computed(() => {
+  return selectedCategoriesWithOptions.value.map(item => item.categoryNumber); // 선택된 카테고리 번호만 추출
+});
+
+// 선택된 카테고리 번호와 옵션을 하나의 배열로 저장하는 계산된 속성
+const combinedSelectedData = computed(() => {
+  return selectedCategoriesWithOptions.value.map(item => ({
+    categoryNumber: item.categoryNumber,
+    selectedOptions: item.selectedOptions
+  }));
 });
 
 onMounted(() => {
@@ -61,7 +82,8 @@ onMounted(() => {
           :isOpen="openDropdown === index"
       />
     </div>
-    <p>선택된 옵션: {{ allSelectedOptions }}</p> <!-- 모든 선택된 옵션을 출력 -->
+    <p>모든 선택된 옵션: {{ selectedCategoyDataSeq }}</p> <!-- 모든 선택된 옵션을 출력 -->
+    <p>선택된 카테고리 번호 배열: {{ selectedCategorySeq }}</p> <!-- 선택된 카테고리 번호 배열 출력 -->
   </div>
 </template>
 
