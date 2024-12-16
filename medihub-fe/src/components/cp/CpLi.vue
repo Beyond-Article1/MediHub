@@ -1,10 +1,11 @@
 <script setup>
-import { defineEmits, defineProps } from "vue";
-import { useAuthStore } from "@/store/authStore.js";
+import {defineEmits, defineProps} from "vue";
+import {useAuthStore} from "@/store/authStore.js";
 import LocalDateTimeFormat from "@/components/common/LocalDateTimeFormat.vue";
 import BookmarkButton from "@/components/common/BookmarkButton.vue";
 import axios from 'axios';
 
+// Props 정의
 const props = defineProps({
   data: {
     type: Object,
@@ -12,9 +13,13 @@ const props = defineProps({
   }
 });
 
+// 이벤트 정의
 const emit = defineEmits();
 
-// 다운로드 함수
+// 인증 스토어 사용
+const useAuth = useAuthStore();
+
+// 파일 다운로드 함수
 const downloadFile = () => {
   const link = document.createElement('a');
   link.href = props.data.cpUrl; // 데이터 파일의 URL
@@ -23,8 +28,6 @@ const downloadFile = () => {
   link.click();
   document.body.removeChild(link);
 };
-
-const useAuth = useAuthStore();
 
 // 북마크 토글 처리 함수
 async function updateBookmark(cpVersionSeq) {
@@ -64,7 +67,7 @@ const handleMovePage = () => {
       </span>
     </div>
     <div class="date">
-      <LocalDateTimeFormat :data="data.createdAt" />
+      <LocalDateTimeFormat :data="data.createdAt"/>
     </div>
     <div class="view-count">
       <span>{{ data.cpViewCount }}</span>
