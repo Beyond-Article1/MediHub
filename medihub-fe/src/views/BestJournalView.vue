@@ -4,6 +4,8 @@ import {onMounted, ref} from "vue";
 import axios from "axios";
 import afterBookmark from '@/assets/images/after-bookmark.png';
 import beforeBookmark from '@/assets/images/before-bookmark.png';
+import SortButtonGroup from "@/components/JournalSortButtonGroup.vue";
+import SortButton from '@/components/SortButton.vue';
 
 // 논문 데이터
 const journalData = ref([]);
@@ -77,6 +79,7 @@ function sortedJournals(){
 
 // 조회 조건 변경
 function changeCondition(condition){
+
   if (condition === sortByValue.value){
     sortedJournals();
   } else {
@@ -94,14 +97,12 @@ function changeCondition(condition){
       <div class="text">
         <span>논문 BEST 100</span>
       </div>
-      <div class="btn-box">
-        <button class="bookmark top-btn"
-                :class="{ 'click-top-btn': sortByValue === 'bookmark'}"
-                @click="changeCondition('bookmark')">북마크순</button>
-        <button class="search top-btn"
-                :class="{ 'click-top-btn': sortByValue === 'select'}"
-                @click="changeCondition('select')">조회순</button>
-      </div>
+
+      <SortButtonGroup
+          :currentSort="sortByValue"
+          @updateSort="changeCondition"
+      />
+
     </div>
 
     <div class="journal-box" v-for="(journal, index) in journalData" :key="journal.journalSeq">
