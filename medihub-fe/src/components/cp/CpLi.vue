@@ -53,20 +53,30 @@ const handleMovePage = () => {
 </script>
 
 <template>
-  <div class="list-item" @click="handleMovePage"> <!-- CpLi 전체 클릭 시 페이지 이동 -->
-    <span class="version">{{ data.cpVersionSeq }}</span>
-    <span class="name">
-      {{ data.cpName }}
-      <i class="bi bi-file-earmark-arrow-down" @click="downloadFile" style="cursor: pointer; margin-left: 5px;"></i>
-    </span>
-    <LocalDateTimeFormat :data="data.createdAt" class="date"/>
-    <span class="view-count">{{ data.cpViewCount }}</span>
-    <span>
-      <BookmarkButton
-          :current-is-bookmark="data.bookmarked"
-          @updateBookmark="updateBookmark(data.cpVersionSeq)"
-      />
-    </span>
+  <div class="list-item" @click="handleMovePage">
+    <div class="version">
+      <span>{{ data.cpVersionSeq }}</span>
+    </div>
+    <div class="name">
+      <span>
+        {{ data.cpName }}
+        <i class="bi bi-file-earmark-arrow-down" @click="downloadFile" style="cursor: pointer; margin-left: 5px;"></i>
+      </span>
+    </div>
+    <div class="date">
+      <LocalDateTimeFormat :data="data.createdAt" />
+    </div>
+    <div class="view-count">
+      <span class="centered">{{ data.cpViewCount }}</span>
+    </div>
+    <div class="bookmark">
+      <span class="centered">
+        <BookmarkButton
+            :current-is-bookmark="data.bookmarked"
+            @updateBookmark="updateBookmark(data.cpVersionSeq)"
+        />
+      </span>
+    </div>
   </div>
 </template>
 
@@ -90,28 +100,37 @@ const handleMovePage = () => {
 }
 
 .version {
+  flex: 0 0 100px; /* 고정 너비 100px */
   font-weight: bold;
   margin-right: 20px;
 }
 
 .name {
-  flex: 1;
+  flex: 1; /* 나머지 공간을 차지 */
   font-size: 16px;
   margin-right: 30px;
 }
 
 .date {
+  flex: 0 0 150px; /* 고정 너비 150px */
   margin-right: 30px;
 }
 
 .view-count {
+  flex: 0 0 80px; /* 고정 너비 80px */
   color: #555;
   font-size: 14px;
   margin-right: 20px;
+  text-align: center; /* 가운데 정렬 */
 }
 
-.bookmark-icon {
-  margin-left: 5px;
-  cursor: pointer;
+.bookmark {
+  flex: 0 0 50px; /* 고정 너비 50px */
+}
+
+.centered {
+  display: flex;
+  justify-content: center; /* 가운데 정렬 */
+  width: 100%; /* 전체 너비 사용 */
 }
 </style>

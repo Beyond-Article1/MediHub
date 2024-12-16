@@ -4,6 +4,7 @@ import {useRouter} from "vue-router";
 import {useAuthStore} from "@/store/authStore.js";
 import axios from "axios";
 import CpLi from "@/components/cp/CpLi.vue";
+import CpLiInfo from "@/components/cp/CpLiInfo.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -21,8 +22,9 @@ async function fetchData() {
     if (response.status === 200) {
       console.log("CP 리스트 조회 성공");
       cpList.value = response.data.data;
+      console.log(cpList.value);
     } else {
-      console.log("CP 조회 실패");
+      console.log("CP 리스트 조회 실패");
     }
   } catch (error) {
     console.error("예기치 못한 오류가 발생했습니다. 에러: \n", error);
@@ -42,6 +44,7 @@ onMounted(() => {
 <template>
   <div>
     <div>
+      <CpLiInfo/>
       <CpLi
           v-for="cp in cpList"
           :key="cp.cpVersionSeq"
