@@ -11,5 +11,14 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 const app = createApp(App);
 const pinia = createPinia();
 
+axios.interceptors.request.use((config)=>{
+    const accessToken = localStorage.getItem('accessToken');
+    if(accessToken){
+        config.headers.Authorization=`Bearer ${accessToken}`
+    }
+    return config;
+});
+
 axios.defaults.baseURL = 'http://localhost:8088';
+app.config.globalProperties.axios = axios;
 app.use(router).use(pinia).mount("#app");
