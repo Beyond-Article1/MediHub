@@ -2,8 +2,9 @@
 
 import {onMounted, ref} from "vue";
 import axios from "axios";
-import SortButtonGroup from "@/components/JournalSortButtonGroup.vue";
-import BookmarkButton from "@/components/BookmarkButton.vue";
+import SortButtonGroup from "@/components/button/JournalSortButtonGroup.vue";
+import BookmarkButton from "@/components/button/BookmarkButton.vue";
+import LikeButton from "@/components/button/HeartButton.vue";
 
 // 논문 데이터
 const journalData = ref([]);
@@ -87,12 +88,11 @@ function changeCondition(condition){
 }
 
 // 북마크 상태 업데이트 함수
-function updateBookmark(newState, journalSeq) {
+function updateBookmark(journalSeq) {
   // journalSeq를 찾아 해당 항목의 isBookmark 상태를 업데이트
   const journal = journalData.value.find((j) => j.journalSeq === journalSeq);
   if (journal) {
     bookmarkMethod(journal);
-
   }
 }
 
@@ -114,7 +114,7 @@ function updateBookmark(newState, journalSeq) {
     </div>
 
     <div class="journal-box" v-for="(journal, index) in journalData" :key="journal.journalSeq">
-      <div class="journal-rank align-mid">{{ index + 1}}</div>
+      <div class="journal-rank align-mid">  {{ (index + 1).toString().padStart(2, '0') }}</div>
       <div class="journal-info align-mid">
         <div class="journal-title">{{journal.title}}</div>
         <div class="journal-detail">{{journal.authors.join(', ')}} | {{journal.source}} | {{journal.pubDate}} | {{journal.size}}</div>
@@ -124,7 +124,7 @@ function updateBookmark(newState, journalSeq) {
 
         <BookmarkButton
             :currentIsBookmark="journal.isBookmark"
-            @updateBookmark="(newState) => updateBookmark(newState, journal.journalSeq)"
+            @updateBookmark="() => updateBookmark(journal.journalSeq)"
         />
 
       </div>
@@ -185,6 +185,7 @@ function updateBookmark(newState, journalSeq) {
     display: flex;
     justify-content: space-between;
     height: 70px;
+    border-bottom: 1px solid grey;
   }
 
   /* == 논문 순위 == */
@@ -197,6 +198,7 @@ function updateBookmark(newState, journalSeq) {
   /* == 논문 정보들 == */
   .journal-info{
     width: 700px;
+    margin-left: 15px;
   }
   .journal-title{
     font-size: 24px;

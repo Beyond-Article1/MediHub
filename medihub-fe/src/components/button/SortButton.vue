@@ -1,7 +1,7 @@
 <script setup>
 import {defineProps, defineEmits, ref} from 'vue';
-import dropArrow from '@/assets/images/drop-arrow.png';
-import upArrow from '@/assets/images/up-arrow.png';
+import dropArrow from '@/assets/images/arrow/drop-arrow.png';
+import upArrow from '@/assets/images/arrow/up-arrow.png';
 
 // 부모 컴포넌트로부터 전달받는 props
 const props = defineProps({
