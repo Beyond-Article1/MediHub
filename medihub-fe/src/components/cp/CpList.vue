@@ -54,5 +54,5 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* 스타일 추가 */
+
 </style>
