@@ -3,6 +3,7 @@ import axios from "axios";
 import {onMounted, ref} from "vue";
 import {useAuthStore} from "@/store/authStore.js";
 import {useRoute} from "vue-router";
+import PdfViewer from "@/components/common/PdfViewer.vue";
 
 // 조회된 CP 정보
 const cp = ref({
@@ -19,6 +20,7 @@ const cp = ref({
   isBookmarked: ''
 });
 
+// 인증 스토어 및 라우터 초기화
 const authStore = useAuthStore();
 const route = useRoute();
 
@@ -50,7 +52,7 @@ onMounted(() => {
 </script>
 
 <template>
-
+  <PdfViewer :data="cp"/>
 </template>
 
 <style scoped>
