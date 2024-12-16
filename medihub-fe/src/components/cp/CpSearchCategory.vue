@@ -6,9 +6,7 @@ import DropBox from "@/components/common/DropBox.vue";
 
 // 인증 스토어 초기화
 const authStore = useAuthStore();
-
-// 상태 관리
-const cpSearchCategoryList = ref([]); // 검색 카테고리 리스트
+const cpSearchCategoryList = ref([]);
 const selectedDataList = ref([]); // 선택된 옵션을 저장할 배열
 const openDropdown = ref(null); // 현재 펼쳐진 드롭박스의 인덱스
 
@@ -17,7 +15,7 @@ async function fetchData() {
   try {
     const response = await axios.get("cp/cpSearchCategory/cpSearchCategoryData", {
       headers: {
-        Authorization: `Bearer ${authStore}`
+        Authorization: `Bearer ${authStore.accessToken}` // accessToken 사용
       }
     });
 
@@ -81,16 +79,17 @@ onMounted(() => {
 
 <template>
   <div>
-    <DropBox
-        v-for="(category, index) in cpSearchCategoryList"
-        :key="category.cpSearchCategorySeq"
-        :options="getDropOptions(category)"
-        :selected="selectedDataList[index]"
-        @toggle="toggleDropdown(index)"
-    />
+    <div v-for="(category, index) in cpSearchCategoryList" :key="category.cpSearchCategorySeq">
+      <DropBox
+          :options="getDropOptions(category)"
+          :label="category.cpSearchCategoryName"
+          v-model="selectedDataList[index]"
+          @update:isOpen="toggleDropdown(index)"
+          :isOpen="openDropdown === index"
+      />
+    </div>
   </div>
 </template>
 
 <style scoped>
-/* 필요한 스타일 추가 */
 </style>
