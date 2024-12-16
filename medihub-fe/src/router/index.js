@@ -1,8 +1,10 @@
 import {createRouter, createWebHistory} from "vue-router";
-import journalRouter from "@/router/journalRouter.js";
 
+import journalRouter from "@/router/journalRouter.js";
 import cpRouter from "@/router/cpRouter.js";
 import caseSharingRouter from "@/router/caseShairngRouter.js";
+import loginRouter from "@/router/loginRouter.js";
+import mainRouter from "@/router/mainRouter.js";
 
 const routes = [
 
@@ -14,7 +16,6 @@ const routes = [
     // CP 라우터
     ...cpRouter,
     ...caseSharingRouter,
-    ...cpRouter,
     // 논문 라우터
     ...journalRouter,
 
