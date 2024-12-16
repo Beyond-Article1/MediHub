@@ -1,6 +1,6 @@
 <script setup>
 
-import {onMounted, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import axios from "axios";
 import SortButtonGroup from "@/components/common/button/JournalSortButtonGroup.vue";
 import BookmarkButton from "@/components/common/button/BookmarkButton.vue";
@@ -14,6 +14,10 @@ const sortByValue = ref("bookmark");
 
 // 논문 내림차순(true), 오름차순(false)
 const isSorted = ref(true);
+
+// 페이지네이션 관련 데이터
+const currentPage = ref(1); // 현재 페이지
+const pageSize = 5; // 페이지당 데이터 개수
 
 onMounted(() => {
   check(sortByValue.value);
@@ -38,14 +42,6 @@ async function check(sortValue){
       .catch(err => {
         console.error('에러 발생: ', err);
       })
-}
-
-// 북마크 해제 또는 취소
-function onClickBookmark(journal){
-
-  journal.isBookmark = !journal.isBookmark;
-
-  bookmarkMethod(journal);
 }
 
 // 북마크 통신
@@ -96,13 +92,18 @@ function updateBookmark(journalSeq) {
   }
 }
 
-const currentPage = ref(1);
-
 // 페이지 변경 핸들러
 const handlePageChange = (page) => {
   currentPage.value = page;
   console.log("현재 페이지: ", page);
 };
+
+// 현재 페이지에 맞는 데이터 반환
+const paginatedData = computed(() => {
+  const start = (currentPage.value - 1) * pageSize;
+  const end = start + pageSize;
+  return journalData.value.slice(start, end);
+});
 
 // 조회순 조회
 </script>
@@ -121,8 +122,15 @@ const handlePageChange = (page) => {
 
     </div>
 
-    <div class="journal-box" v-for="(journal, index) in journalData" :key="journal.journalSeq">
-      <div class="journal-rank align-mid">  {{ (index + 1).toString().padStart(2, '0') }}</div>
+    <!-- 페이지에 맞는 데이터 출력 -->
+    <div
+        class="journal-box"
+        v-for="(journal, index) in paginatedData"
+        :key="journal.journalSeq"
+    >
+      <div class="journal-rank align-mid">
+        {{ ((currentPage - 1) * pageSize + index + 1).toString().padStart(2, '0') }}
+      </div>
       <div class="journal-info align-mid">
         <div class="journal-title">{{journal.title}}</div>
         <div class="journal-detail">{{journal.authors.join(', ')}} | {{journal.source}} | {{journal.pubDate}} | {{journal.size}}</div>
@@ -137,13 +145,11 @@ const handlePageChange = (page) => {
 
       </div>
 
-
-
     </div>
 
     <Pagenation
-        :totalData="50"
-        :limitPage="5"
+        :totalData=journalData.length
+        :limitPage=pageSize
         :page="currentPage"
         @updatePage="handlePageChange"
     />
