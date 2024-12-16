@@ -2,8 +2,8 @@
 
 import {onMounted, ref} from "vue";
 import axios from "axios";
-import SortButtonGroup from "@/components/JournalSortButtonGroup.vue";
-import BookmarkButton from "@/components/BookmarkButton.vue";
+import SortButtonGroup from "@/components/common/JournalSortButtonGroup.vue";
+import BookmarkButton from "@/components/common/BookmarkButton.vue";
 
 // 논문 데이터
 const journalData = ref([]);
