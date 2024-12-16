@@ -26,10 +26,15 @@ const toggleBookmark = (event) => {
   event.stopPropagation(); // 부모 이벤트 전파 방지
   emit('toggle-bookmark', props.data.cpVersionSeq);
 };
+
+// 페이지 이동 이벤트를 부모에게 전달하는 함수
+const handleMovePage = () => {
+  emit('move', props.data.cpVersionSeq); // 이벤트 발생
+};
 </script>
 
 <template>
-  <div class="list-item">
+  <div class="list-item" @click="handleMovePage"> <!-- CpLi 전체 클릭 시 페이지 이동 -->
     <span class="version">{{ data.cpVersionSeq }}</span>
     <span class="name">
       {{ data.cpName }}
@@ -38,10 +43,10 @@ const toggleBookmark = (event) => {
     <LocalDateTimeFormat :data="data.createdAt" class="date"/>
     <span class="view-count">{{ data.cpViewCount }}</span>
     <span v-if="data.bookmarked">
-      <i class="bi bi-bookmark bookmark-icon" style="color: var(--yellow);" @click="toggleBookmark"></i>
+      <i class="bi bi-bookmark bookmark-icon" style="color: var(--yellow);" @click.stop="toggleBookmark"></i> <!-- @click.stop으로 북마크 클릭 시 부모 이벤트 전파 방지 -->
     </span>
     <span v-else>
-      <i class="bi bi-bookmark bookmark-icon" @click="toggleBookmark"></i>
+      <i class="bi bi-bookmark bookmark-icon" @click.stop="toggleBookmark"></i> <!-- @click.stop으로 북마크 클릭 시 부모 이벤트 전파 방지 -->
     </span>
   </div>
 </template>

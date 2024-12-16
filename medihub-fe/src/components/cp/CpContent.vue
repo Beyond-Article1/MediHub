@@ -1,10 +1,9 @@
 <script setup>
 
-import CpContent from "@/components/cp/CpContent.vue";
 </script>
 
 <template>
-  <CpContent/>
+<h1>CP Detail Page</h1>
 </template>
 
 <style scoped>
