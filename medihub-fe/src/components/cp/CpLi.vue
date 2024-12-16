@@ -1,6 +1,9 @@
 <script setup>
 import { defineEmits, defineProps } from "vue";
+import { useAuthStore } from "@/store/authStore.js";
 import LocalDateTimeFormat from "@/components/common/LocalDateTimeFormat.vue";
+import BookmarkButton from "@/components/common/BookmarkButton.vue";
+import axios from 'axios';
 
 const props = defineProps({
   data: {
@@ -21,11 +24,27 @@ const downloadFile = () => {
   document.body.removeChild(link);
 };
 
-// 북마크 토글 함수
-const toggleBookmark = (event) => {
-  event.stopPropagation(); // 부모 이벤트 전파 방지
-  emit('toggle-bookmark', props.data.cpVersionSeq);
-};
+const useAuth = useAuthStore();
+
+// 북마크 토글 처리 함수
+async function updateBookmark(cpVersionSeq) {
+  try {
+    const response = await axios.post(`cp/bookmark/${cpVersionSeq}`, {}, {
+      headers: {
+        Authorization: `Bearer ${useAuth}`
+      }
+    });
+
+    if (response.status === 200) {
+      console.log("북마크 토글 성공");
+      emit('update'); // 데이터 새로고침을 위한 이벤트 발생
+    } else {
+      console.log("북마크 토글 실패");
+    }
+  } catch (error) {
+    console.error("북마크 요청 중 오류 발생: ", error);
+  }
+}
 
 // 페이지 이동 이벤트를 부모에게 전달하는 함수
 const handleMovePage = () => {
@@ -42,11 +61,11 @@ const handleMovePage = () => {
     </span>
     <LocalDateTimeFormat :data="data.createdAt" class="date"/>
     <span class="view-count">{{ data.cpViewCount }}</span>
-    <span v-if="data.bookmarked">
-      <i class="bi bi-bookmark bookmark-icon" style="color: var(--yellow);" @click.stop="toggleBookmark"></i> <!-- @click.stop으로 북마크 클릭 시 부모 이벤트 전파 방지 -->
-    </span>
-    <span v-else>
-      <i class="bi bi-bookmark bookmark-icon" @click.stop="toggleBookmark"></i> <!-- @click.stop으로 북마크 클릭 시 부모 이벤트 전파 방지 -->
+    <span>
+      <BookmarkButton
+          :current-is-bookmark="data.bookmarked"
+          @updateBookmark="updateBookmark(data.cpVersionSeq)"
+      />
     </span>
   </div>
 </template>
@@ -54,15 +73,15 @@ const handleMovePage = () => {
 <style scoped>
 .list-item {
   display: flex;
-  align-items: center; /* 수직 정렬 */
-  padding: 15px; /* 내부 여백을 늘림 */
-  margin: 10px 0; /* 항목 간 간격을 늘림 */
-  transition: background-color 0.3s; /* 배경색 전환 효과 */
-  border-bottom: 1px solid var(--gray); /* 하단 경계선 추가 */
+  align-items: center;
+  padding: 15px;
+  margin: 10px 0;
+  transition: background-color 0.3s;
+  border-bottom: 1px solid var(--gray);
 }
 
 .list-item:last-child {
-  border-bottom: none; /* 마지막 항목은 밑줄 제거 */
+  border-bottom: none;
 }
 
 .list-item:hover {
@@ -71,28 +90,28 @@ const handleMovePage = () => {
 }
 
 .version {
-  font-weight: bold; /* 굵은 글씨 */
-  margin-right: 20px; /* 오른쪽 여백을 늘림 */
+  font-weight: bold;
+  margin-right: 20px;
 }
 
 .name {
-  flex: 1; /* 이름이 가능한 공간을 모두 차지 */
-  font-size: 16px; /* 글자 크기 */
-  margin-right: 30px; /* 이름과 다음 요소 간의 여백 추가 */
+  flex: 1;
+  font-size: 16px;
+  margin-right: 30px;
 }
 
 .date {
-  margin-right: 30px; /* 오른쪽 여백을 늘림 */
+  margin-right: 30px;
 }
 
 .view-count {
-  color: #555; /* 색상 */
-  font-size: 14px; /* 글자 크기 */
-  margin-right: 20px; /* 조회수와 북마크 간의 여백 추가 */
+  color: #555;
+  font-size: 14px;
+  margin-right: 20px;
 }
 
 .bookmark-icon {
-  margin-left: 5px; /* 북마크 아이콘의 여백 */
-  cursor: pointer; /* 클릭 가능함을 나타내는 커서 */
+  margin-left: 5px;
+  cursor: pointer;
 }
 </style>
