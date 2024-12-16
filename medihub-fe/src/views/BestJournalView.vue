@@ -2,10 +2,8 @@
 
 import {onMounted, ref} from "vue";
 import axios from "axios";
-import afterBookmark from '@/assets/images/after-bookmark.png';
-import beforeBookmark from '@/assets/images/before-bookmark.png';
 import SortButtonGroup from "@/components/JournalSortButtonGroup.vue";
-import SortButton from '@/components/SortButton.vue';
+import BookmarkButton from "@/components/BookmarkButton.vue";
 
 // 논문 데이터
 const journalData = ref([]);
@@ -88,6 +86,16 @@ function changeCondition(condition){
   }
 }
 
+// 북마크 상태 업데이트 함수
+function updateBookmark(newState, journalSeq) {
+  // journalSeq를 찾아 해당 항목의 isBookmark 상태를 업데이트
+  const journal = journalData.value.find((j) => j.journalSeq === journalSeq);
+  if (journal) {
+    bookmarkMethod(journal);
+
+  }
+}
+
 // 조회순 조회
 </script>
 
@@ -113,10 +121,12 @@ function changeCondition(condition){
       </div>
       <div class="journal-bookmark">
         <div class="bookmark-count align-mid">{{sortByValue === 'bookmark' ? '북마크순' : '조회순'}}: {{journal.count}}</div>
-        <div class="bookmark-btn align-mid" @click="onClickBookmark(journal)">
-          <img :src="journal.isBookmark ? afterBookmark : beforeBookmark"
-               :alt="journal.isBookmark ? 'After' : 'Before'" />
-        </div>
+
+        <BookmarkButton
+            :currentIsBookmark="journal.isBookmark"
+            @updateBookmark="(newState) => updateBookmark(newState, journal.journalSeq)"
+        />
+
       </div>
     </div>
 
