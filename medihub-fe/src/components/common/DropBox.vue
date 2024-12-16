@@ -89,14 +89,14 @@ const isSelected = (option) => {
   padding: 12px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  background-color: #fff; /* 기본 배경색 */
-  color: #000; /* 기본 폰트 색상 */
-  transition: background-color 0.3s, color 0.3s; /* 부드러운 전환 효과 */
+  background-color: #fff;
+  color: #000;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 .dropdown-selected.active {
-  background-color: #1C306A; /* 드롭박스가 열렸을 때 배경색 */
-  color: white; /* 드롭박스가 열렸을 때 폰트 색상 */
+  background-color: var(--symbol-blue);
+  color: white;
 }
 
 .dropdown-options {
@@ -109,7 +109,7 @@ const isSelected = (option) => {
 .dropdown-option {
   padding: 12px;
   display: flex;
-  align-items: center; /* 체크박스와 텍스트를 수직 정렬 */
+  align-items: center;
 }
 
 .dropdown-option input {
@@ -117,6 +117,6 @@ const isSelected = (option) => {
 }
 
 .dropdown-option:hover {
-  background-color: #f0f0f0; /* 옵션에 마우스를 올렸을 때 색상 변경 */
+  background-color: #f0f0f0;
 }
 </style>
