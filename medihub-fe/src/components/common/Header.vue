@@ -62,7 +62,7 @@ function goToHome() {
 <template>
   <div class="header-content">
     <div class="logo" @click="goToHome">
-      <img src="../../assets/images/MEDIHUB.png" width="158" alt="어라라...?">
+      <img src="../../assets/images/medihub2.png"  alt="어라라...?">
     </div>
 
     <!-- 로그인 상태일 때만 메뉴 항목 표시 -->
@@ -94,48 +94,45 @@ function goToHome() {
 <style scoped>
 .header-content {
   display: flex;
-  justify-content: space-between;
-  font-weight: bold;
+  justify-content: space-between; /* 양쪽 끝 정렬 */
+  align-items: center; /* 세로 중앙 정렬 */
   background: linear-gradient(to bottom, #1A2F69, #3A4F89, #5A6FA9);
-  align-items: center;
+  height: 100px; /* 헤더 높이 */
+  padding: 0 20px; /* 좌우 여백 */
 }
 
-.logo {
-  margin-left: 2%;
+/* 로고 스타일 */
+.logo img {
+  cursor: pointer;
+  height: 100px; /* 로고 높이 */
 }
 
-.menu-list {
-  width: 40%;
-  align-content: center;
-}
-
-ul {
-  padding: 0;
+/* 메뉴 리스트 */
+.menu-list ul {
   display: flex;
-  flex-direction: row;
-  justify-content: space-around;
+  gap: 100px; /* 메뉴 간격 */
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-li {
-  margin: 0 auto;
-  align-content: center;
-  text-align: center;
-  list-style: none;
+.menu-list li {
   color: white;
-  font-size: 1.2em;
+  font-size: 1.4em; /* 텍스트 크기 증가 */
+  font-weight: bold;
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 
-li.active {
-  margin: 0 auto;
-  align-content: center;
-  text-align: center;
-  list-style: none;
-  color: #FFC653;
-  font-size: 1.2em;
-  cursor: pointer;
+.menu-list li.active {
+  color: #FFC653; /* 활성 메뉴 색상 */
 }
 
+.menu-list li:hover {
+  color: #FFC653; /* 호버 시 색상 변경 */
+}
+
+/* 로그인/로그아웃 버튼 */
 .login-logout {
   margin-right: 2%;
   align-content: center;
