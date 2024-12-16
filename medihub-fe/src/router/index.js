@@ -15,8 +15,7 @@ const routes = [
     ...cpRouter,
     // 논문 라우터
     ...journalRouter,
-    ...cpRouter,
-
+    
     ...mainRouter,
 
 ]
