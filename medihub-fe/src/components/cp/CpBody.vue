@@ -17,7 +17,8 @@ import CpList from "@/components/cp/CpList.vue";
 <style scoped>
 .container {
   display: flex;
-  margin: 0 8%; /* 양 옆에 20px의 마진 추가 */
+  margin: 0 auto; /* 수평 중앙 정렬을 위해 자동 마진 사용 */
+  max-width: 1200px; /* 최대 너비 설정 (필요에 따라 조정) */
 }
 
 .search-category {

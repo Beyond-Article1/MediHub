@@ -31,7 +31,7 @@ async function updateBookmark(cpVersionSeq) {
   try {
     const response = await axios.post(`cp/bookmark/${cpVersionSeq}`, {}, {
       headers: {
-        Authorization: `Bearer ${useAuth}`
+        Authorization: `Bearer ${useAuth.accessToken}`
       }
     });
 
@@ -67,10 +67,10 @@ const handleMovePage = () => {
       <LocalDateTimeFormat :data="data.createdAt" />
     </div>
     <div class="view-count">
-      <span class="centered">{{ data.cpViewCount }}</span>
+      <span>{{ data.cpViewCount }}</span>
     </div>
     <div class="bookmark">
-      <span class="centered">
+      <span>
         <BookmarkButton
             :current-is-bookmark="data.bookmarked"
             @updateBookmark="updateBookmark(data.cpVersionSeq)"
@@ -83,54 +83,40 @@ const handleMovePage = () => {
 <style scoped>
 .list-item {
   display: flex;
-  align-items: center;
-  padding: 15px;
-  margin: 10px 0;
-  transition: background-color 0.3s;
+  align-items: center; /* 아이템을 수직으로 정렬 */
+  padding: 15px 0; /* 위아래 패딩만 설정하여 여백 조정 */
+  margin: 10px 0; /* 항목 사이의 여백 */
   border-bottom: 1px solid var(--gray);
-}
-
-.list-item:last-child {
-  border-bottom: none;
+  transition: background-color 0.3s, color 0.3s; /* 부드러운 전환 효과 */
 }
 
 .list-item:hover {
-  background-color: var(--symbol-blue);
-  color: white;
+  background-color: var(--symbol-blue); /* hover 시 배경색 변경 */
+  color: white; /* hover 시 텍스트 색상 변경 */
 }
 
 .version {
-  flex: 0 0 100px; /* 고정 너비 100px */
-  font-weight: bold;
-  margin-right: 20px;
+  flex: 0 0 10%; /* 1/10 비율 */
+  text-align: center; /* 텍스트 가운데 정렬 */
 }
 
 .name {
-  flex: 1; /* 나머지 공간을 차지 */
-  font-size: 16px;
-  margin-right: 30px;
+  flex: 0 0 40%; /* 3/10 비율 */
+  text-align: center; /* 텍스트 가운데 정렬 */
 }
 
 .date {
-  flex: 0 0 150px; /* 고정 너비 150px */
-  margin-right: 30px;
+  flex: 0 0 30%; /* 2/10 비율 */
+  text-align: center; /* 텍스트 가운데 정렬 */
 }
 
 .view-count {
-  flex: 0 0 80px; /* 고정 너비 80px */
-  color: #555;
-  font-size: 14px;
-  margin-right: 20px;
-  text-align: center; /* 가운데 정렬 */
+  flex: 0 0 10%; /* 1/10 비율 */
+  text-align: center; /* 텍스트 가운데 정렬 */
 }
 
 .bookmark {
-  flex: 0 0 50px; /* 고정 너비 50px */
-}
-
-.centered {
-  display: flex;
-  justify-content: center; /* 가운데 정렬 */
-  width: 100%; /* 전체 너비 사용 */
+  flex: 0 0 10%; /* 1/10 비율 */
+  text-align: center; /* 텍스트 가운데 정렬 */
 }
 </style>

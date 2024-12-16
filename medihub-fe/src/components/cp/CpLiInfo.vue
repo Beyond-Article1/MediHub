@@ -5,7 +5,7 @@
   <div class="cp-li-info">
     <div class="info-header">
       <div class="version">
-        <span class="version-header">버전</span>
+        <span class="version-header">번호</span>
       </div>
       <div class="name">
         <span class="name-header">CP 명</span>
@@ -16,8 +16,8 @@
       <div class="view-count">
         <span class="view-count-header">조회수</span>
       </div>
-      <div class="bookmark">
-        <span class="bookmark-header">북마크</span>
+      <div class="empty-div">
+        <span class="empty-header"></span> <!-- 빈 헤더 -->
       </div>
     </div>
   </div>
@@ -32,35 +32,32 @@
   display: flex; /* 플렉스 박스를 사용하여 가로 배치 */
   font-weight: bold;
   border-bottom: 1px solid var(--gray); /* 하단 경계선 */
-  padding-bottom: 10px; /* 하단 여백 */
+  padding: 10px 0; /* 여백 조정 */
 }
 
 .version {
-  flex: 0 0 100px; /* 고정 너비 100px */
-  text-align: left; /* 왼쪽 정렬 */
-  margin-right: 20px; /* 오른쪽 여백 */
+  flex: 0 0 10%; /* 1/10 비율 */
+  text-align: center; /* 텍스트 가운데 정렬 */
 }
 
 .name {
-  flex: 1; /* 나머지 공간을 차지 */
-  text-align: left; /* 왼쪽 정렬 */
-  margin-right: 30px; /* 오른쪽 여백 */
+  flex: 0 0 40%; /* 3/10 비율 */
+  text-align: center; /* 텍스트 가운데 정렬 */
 }
 
 .date {
-  flex: 0 0 150px; /* 고정 너비 150px */
-  text-align: left; /* 왼쪽 정렬 */
-  margin-right: 30px; /* 오른쪽 여백 */
+  flex: 0 0 30%; /* 2/10 비율 */
+  text-align: center; /* 텍스트 가운데 정렬 */
 }
 
 .view-count {
-  flex: 0 0 80px; /* 고정 너비 80px */
-  text-align: left; /* 왼쪽 정렬 */
-  margin-right: 20px; /* 오른쪽 여백 */
+  flex: 0 0 10%; /* 1/10 비율 */
+  text-align: center; /* 텍스트 가운데 정렬 */
 }
 
-.bookmark {
-  flex: 0 0 50px; /* 고정 너비 50px */
-  text-align: left; /* 왼쪽 정렬 */
+.empty-div {
+  flex: 0 0 10%; /* 1/10 비율 */
+  text-align: left; /* 좌측 정렬 */
 }
 </style>
+

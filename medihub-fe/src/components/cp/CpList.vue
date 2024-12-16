@@ -1,7 +1,7 @@
 <script setup>
-import {onMounted, ref} from "vue";
-import {useRouter} from "vue-router";
-import {useAuthStore} from "@/store/authStore.js";
+import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/store/authStore.js";
 import axios from "axios";
 import CpLi from "@/components/cp/CpLi.vue";
 import CpLiInfo from "@/components/cp/CpLiInfo.vue";
@@ -42,20 +42,23 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <div>
-      <CpLiInfo/>
-      <CpLi
-          v-for="cp in cpList"
-          :key="cp.cpVersionSeq"
-          :data="cp"
-          @update="fetchData"
-          @move="moveCpVersionPage"
-      />
-    </div>
+  <div class="cp-container">
+    <CpLiInfo />
+    <CpLi
+        v-for="cp in cpList"
+        :key="cp.cpVersionSeq"
+        :data="cp"
+        @update="fetchData"
+        @move="moveCpVersionPage"
+    />
   </div>
 </template>
 
 <style scoped>
-
+.cp-container {
+  display: flex;
+  flex-direction: column; /* 자식 요소를 세로로 배치 */
+  align-items: stretch; /* 자식 요소가 부모 요소의 너비를 채우도록 */
+  width: 100%; /* 부모 요소의 너비를 100%로 설정 */
+}
 </style>
