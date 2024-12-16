@@ -14,11 +14,7 @@ const cpList = ref([]); // CP 리스트를 저장할 ref
 // 데이터 호출 함수
 async function fetchData() {
   try {
-    const response = await axios.get("cp", {
-      headers: {
-        Authorization: `Bearer ${authStore.accessToken}` // Access token을 사용
-      }
-    });
+    const response = await axios.get("cp");
 
     if (response.status === 200) {
       console.log("CP 리스트 조회 성공");

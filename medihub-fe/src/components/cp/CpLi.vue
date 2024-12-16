@@ -32,11 +32,7 @@ const downloadFile = () => {
 // 북마크 토글 처리 함수
 async function updateBookmark(cpVersionSeq) {
   try {
-    const response = await axios.post(`cp/bookmark/${cpVersionSeq}`, {}, {
-      headers: {
-        Authorization: `Bearer ${useAuth.accessToken}`
-      }
-    });
+    const response = await axios.post(`cp/bookmark/${cpVersionSeq}`, {});
 
     if (response.status === 200) {
       console.log("북마크 토글 성공");

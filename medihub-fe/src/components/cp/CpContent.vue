@@ -28,11 +28,7 @@ const route = useRoute();
 async function fetchData() {
   try {
     const cpVersionSeq = route.params.cpVersionSeq;
-    const response = await axios.get(`cp/${cpVersionSeq}`, {
-      headers: {
-        Authorization: `Bearer ${authStore.accessToken}`
-      }
-    });
+    const response = await axios.get(`cp/${cpVersionSeq}`);
 
     if (response.status === 200) {
       console.log("CP 조회 성공");

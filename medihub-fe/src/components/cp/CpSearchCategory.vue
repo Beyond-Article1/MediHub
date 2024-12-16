@@ -13,11 +13,7 @@ const openDropdown = ref(null); // 현재 펼쳐진 드롭박스의 인덱스
 // 데이터 호출 함수
 async function fetchData() {
   try {
-    const response = await axios.get("cp/cpSearchCategory/cpSearchCategoryData", {
-      headers: {
-        Authorization: `Bearer ${authStore.accessToken}` // accessToken 사용
-      }
-    });
+    const response = await axios.get("cp/cpSearchCategory/cpSearchCategoryData");
 
     if (response.status === 200) {
       console.log("CP 검색 카테고리 조회 성공");

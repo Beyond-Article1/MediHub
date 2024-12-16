@@ -2,7 +2,6 @@
 import axios from "axios";
 import {onMounted, ref} from "vue";
 import {useRoute} from "vue-router";
-import {useAuthStore} from "@/store/authStore.js";
 import CpTitleComponent from "@/components/cp/CpTitle.vue";
 import SearchBox from "@/components/common/SearchBox.vue";
 import LineDivider from "@/components/common/LineDivider.vue";
@@ -29,11 +28,7 @@ async function fetchData() {
     const cpVersionSeq = route.params.cpVersionSeq || null;
 
     if (cpVersionSeq) {
-      const response = await axios.get(`cp/${cpVersionSeq}`, {
-        headers: {
-          Authorization: `Bearer ${useAuthStore().accessToken}`
-        }
-      });
+      const response = await axios.get(`cp/${cpVersionSeq}`);
 
       if (response.status === 200) {
         console.log("CP 조회 성공");
