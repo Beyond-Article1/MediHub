@@ -6,10 +6,10 @@ import CpList from "@/components/cp/CpList.vue";
 <template>
   <div class="container">
     <div class="search-category">
-      <CpSearchCategory />
+      <CpSearchCategory/>
     </div>
     <div class="cp-list">
-      <CpList />
+      <CpList/>
     </div>
   </div>
 </template>
