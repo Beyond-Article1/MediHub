@@ -6,17 +6,11 @@ export default [
         path: '/cp/',
         name: 'CpMainPage',
         component: CpMain,
-        // children: [
-        //     {
-        //         path: '/:cpVersionSeq',
-        //         name: 'CpDetailPage',
-        //         component: CpDetail
-        //     }
-        // ]
     },
     {
         path: '/cp/:cpVersionSeq',
         name: 'CpDetailPage',
-        component: CpDetail
+        component: CpDetail,
+        props: true
     }
 ]
