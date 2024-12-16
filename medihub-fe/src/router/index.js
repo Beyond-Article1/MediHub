@@ -1,10 +1,21 @@
 import {createRouter, createWebHistory} from "vue-router";
 
 import cpRouter from "@/router/cpRouter.js";
+import loginRouter from "@/router/loginRouter.js";
+import mainRouter from "@/router/mainRouter.js";
 
 const routes = [
+
+    {
+        path: "/", // 기본 경로
+        redirect: "/login",
+    },
+    ...loginRouter,
     // CP 라우터
-    ...cpRouter
+    ...cpRouter,
+
+    ...mainRouter,
+
 ]
 
 const router = createRouter({
