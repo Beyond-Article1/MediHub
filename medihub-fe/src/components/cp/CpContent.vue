@@ -4,6 +4,7 @@ import {onMounted, ref} from "vue";
 import {useAuthStore} from "@/store/authStore.js";
 import {useRoute} from "vue-router";
 
+// 조회된 CP 정보
 const cp = ref({
   cpName: '',
   cpDescription: '',
@@ -34,6 +35,7 @@ async function fetchData() {
     if (response.status === 200) {
       console.log("CP 조회 성공");
       cp.value = response.data.data;
+      console.log(cp.value);
     } else {
       console.log("CP 조회 실패");
     }
@@ -48,7 +50,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <h1>CP Detail Page</h1>
+
 </template>
 
 <style scoped>
