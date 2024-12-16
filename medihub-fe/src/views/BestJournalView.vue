@@ -2,9 +2,9 @@
 
 import {onMounted, ref} from "vue";
 import axios from "axios";
-import SortButtonGroup from "@/components/button/JournalSortButtonGroup.vue";
-import BookmarkButton from "@/components/button/BookmarkButton.vue";
-import LikeButton from "@/components/button/HeartButton.vue";
+import SortButtonGroup from "@/components/common/button/JournalSortButtonGroup.vue";
+import BookmarkButton from "@/components/common/button/BookmarkButton.vue";
+import Pagenation from "@/components/common/Pagenation.vue";
 
 // 논문 데이터
 const journalData = ref([]);
@@ -96,6 +96,14 @@ function updateBookmark(journalSeq) {
   }
 }
 
+const currentPage = ref(1);
+
+// 페이지 변경 핸들러
+const handlePageChange = (page) => {
+  currentPage.value = page;
+  console.log("현재 페이지: ", page);
+};
+
 // 조회순 조회
 </script>
 
@@ -128,8 +136,17 @@ function updateBookmark(journalSeq) {
         />
 
       </div>
+
+
+
     </div>
 
+    <Pagenation
+        :totalData="50"
+        :limitPage="5"
+        :page="currentPage"
+        @updatePage="handlePageChange"
+    />
   </div>
 </template>
 

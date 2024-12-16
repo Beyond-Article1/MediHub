@@ -7,6 +7,13 @@ export const useAuthStore = defineStore('auth', () => {
     const userRole = ref(null);
     const isLogined = ref(false);
 
+    onMounted(() => {
+        let item = localStorage.getItem('accessToken');
+        if (item){
+            accessToken.value = item;
+        }
+    })
+
     // JWT 토큰 디코딩 유틸리티 함수
     function decodeToken(token) {
         try {
