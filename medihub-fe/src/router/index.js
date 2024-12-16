@@ -1,10 +1,12 @@
 import {createRouter, createWebHistory} from "vue-router";
 
 import cpRouter from "@/router/cpRouter.js";
+import caseSharingRouter from "@/router/caseShairngRouter.js";
 
 const routes = [
     // CP 라우터
-    ...cpRouter
+    ...cpRouter,
+    ...caseSharingRouter,
 ]
 
 const router = createRouter({
