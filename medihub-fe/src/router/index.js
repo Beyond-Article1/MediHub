@@ -1,16 +1,26 @@
 import {createRouter, createWebHistory} from "vue-router";
-import journalRouter from "@/router/journalRouter.js";
 
+import journalRouter from "@/router/journalRouter.js";
 import cpRouter from "@/router/cpRouter.js";
 import caseSharingRouter from "@/router/caseShairngRouter.js";
+import loginRouter from "@/router/loginRouter.js";
+import mainRouter from "@/router/mainRouter.js";
 
 const routes = [
+
+    {
+        path: "/", // 기본 경로
+        redirect: "/login",
+    },
+    ...loginRouter,
     // CP 라우터
     ...cpRouter,
     ...caseSharingRouter,
-    ...cpRouter,
     // 논문 라우터
     ...journalRouter,
+
+    ...mainRouter,
+
 ]
 
 const router = createRouter({
