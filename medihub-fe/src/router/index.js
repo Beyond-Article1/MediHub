@@ -1,7 +1,11 @@
 import {createRouter, createWebHistory} from "vue-router";
 import journalRouter from "@/router/journalRouter.js";
 
+import cpRouter from "@/router/cpRouter.js";
+
 const routes = [
+    // CP 라우터
+    ...cpRouter,
     // 논문 라우터
     ...journalRouter,
 ]
