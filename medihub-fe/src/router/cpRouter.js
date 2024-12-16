@@ -3,15 +3,20 @@ import CpDetail from "@/views/cp/CpDetail.vue";
 
 export default [
     {
-        path: '/cp',
+        path: '/cp/',
         name: 'CpMainPage',
         component: CpMain,
-        children: [
-            {
-                path: '/:cpVersionSeq',
-                name: 'CpDetailPage',
-                component: CpDetail
-            }
-        ]
+        // children: [
+        //     {
+        //         path: '/:cpVersionSeq',
+        //         name: 'CpDetailPage',
+        //         component: CpDetail
+        //     }
+        // ]
+    },
+    {
+        path: '/cp/:cpVersionSeq',
+        name: 'CpDetailPage',
+        component: CpDetail
     }
 ]
