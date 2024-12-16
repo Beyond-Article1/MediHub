@@ -31,11 +31,11 @@ async function fetchData() {
       const response = await axios.get(`cp/${cpVersionSeq}`);
 
       if (response.status === 200) {
-        console.log("CP 조회 성공");
+        console.log("CP 명 성공");
         cp.value = response.data.data;
         console.log(cp.value);
       } else {
-        console.log("CP 조회 실패");
+        console.log("CP 명 실패");
       }
     } else {
       cp.value.cpName = ''; // cpVersionSeq가 null인 경우 cpName 초기화
