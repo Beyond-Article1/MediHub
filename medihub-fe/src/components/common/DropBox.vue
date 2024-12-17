@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineProps, defineEmits } from 'vue';
+import {defineEmits, defineProps} from 'vue';
 
 const props = defineProps({
   options: {
@@ -13,35 +13,35 @@ const props = defineProps({
   modelValue: {
     type: Array,
     default: () => []
+  },
+  isOpen: { // 부모에서 전달받은 열림 상태
+    type: Boolean,
+    default: false
   }
 });
 
-const emit = defineEmits(['update:modelValue']);
-
-const isOpen = ref(false);
-const selectedLabels = ref(props.modelValue.map(value =>
-    props.options.find(option => option.value === value)?.text || ''
-).filter(Boolean));
+const emit = defineEmits(['update:modelValue', 'update:isOpen']);
 
 const toggleDropdown = () => {
-  isOpen.value = !isOpen.value;
+  emit('update:isOpen', !props.isOpen); // 부모에게 열림 상태 업데이트
 };
 
 const toggleOption = (option) => {
-  const index = props.modelValue.indexOf(option.value);
+  const newValue = [...props.modelValue]; // 기존 값을 복사
+  const index = newValue.indexOf(option.value);
 
   if (index === -1) {
     // 선택되지 않은 경우, 추가
-    props.modelValue.push(option.value);
+    newValue.push(option.value);
   } else {
     // 이미 선택된 경우, 제거
-    props.modelValue.splice(index, 1);
+    newValue.splice(index, 1);
   }
 
-  emit('update:modelValue', props.modelValue);
-  selectedLabels.value = props.modelValue.map(value =>
-      props.options.find(opt => opt.value === value)?.text || ''
-  ).filter(Boolean);
+  // 중복 제거 후 새로운 배열을 부모에게 전달
+  const uniqueValues = [...new Set(newValue)];
+  emit('update:modelValue', uniqueValues);
+
 };
 
 const isSelected = (option) => {
@@ -50,8 +50,12 @@ const isSelected = (option) => {
 </script>
 
 <template>
-  <div class="dropdown" @click="toggleDropdown">
-    <div class="dropdown-selected" :class="{ 'selected': isOpen }">
+  <div class="dropdown">
+    <div
+        class="dropdown-selected"
+        @click="toggleDropdown"
+        :class="{ 'active': isOpen }"
+    >
       {{ label }}
     </div>
     <div v-if="isOpen" class="dropdown-options">
@@ -78,27 +82,24 @@ const isSelected = (option) => {
   width: 100%;
   max-width: 300px; /* 최대 너비 설정 */
   cursor: pointer;
+  margin-bottom: 10px; /* 드롭박스 간의 간격을 조정 */
 }
 
 .dropdown-selected {
   padding: 12px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  background-color: #fff; /* 기본 배경색 */
-  color: #000; /* 기본 폰트 색상 */
-  transition: background-color 0.3s, color 0.3s; /* 부드러운 전환 효과 */
+  background-color: #fff;
+  color: #000;
+  transition: background-color 0.3s, color 0.3s;
 }
 
-.dropdown-selected.selected {
-  background-color: #1C306A; /* 드롭박스가 열렸을 때 배경색 */
-  color: white; /* 드롭박스가 열렸을 때 폰트 색상 */
+.dropdown-selected.active {
+  background-color: var(--symbol-blue);
+  color: white;
 }
 
 .dropdown-options {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
   border: 1px solid #ccc;
   border-radius: 4px;
   background-color: #fff;
@@ -108,7 +109,7 @@ const isSelected = (option) => {
 .dropdown-option {
   padding: 12px;
   display: flex;
-  align-items: center; /* 체크박스와 텍스트를 수직 정렬 */
+  align-items: center;
 }
 
 .dropdown-option input {
@@ -116,6 +117,6 @@ const isSelected = (option) => {
 }
 
 .dropdown-option:hover {
-  background-color: #f0f0f0; /* 옵션에 마우스를 올렸을 때 색상 변경 */
+  background-color: #f0f0f0;
 }
 </style>
