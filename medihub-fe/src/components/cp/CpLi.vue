@@ -2,7 +2,7 @@
 import {defineEmits, defineProps} from "vue";
 import {useAuthStore} from "@/store/authStore.js";
 import LocalDateTimeFormat from "@/components/common/LocalDateTimeFormat.vue";
-import BookmarkButton from "@/components/common/BookmarkButton.vue";
+import BookmarkButton from "@/components/common/button/BookmarkButton.vue";
 import axios from 'axios';
 
 // Props 정의
