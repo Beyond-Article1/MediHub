@@ -1,6 +1,6 @@
 import CpMain from "@/views/cp/CpMain.vue";
 import CpDetail from "@/views/cp/CpDetail.vue";
-import CpBody from "@/components/cp/CpBody.vue";
+import CpListBody from "@/components/cp/CpListBody.vue";
 
 export default [
     {
@@ -11,7 +11,7 @@ export default [
             {
                 path: '',
                 name: 'CpList',
-                component: CpBody,
+                component: CpListBody,
             },
             {
                 path: ':cpVersionSeq',
