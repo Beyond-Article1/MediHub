@@ -5,6 +5,7 @@ import cpRouter from "@/router/cpRouter.js";
 import caseSharingRouter from "@/router/caseShairngRouter.js";
 import loginRouter from "@/router/loginRouter.js";
 import mainRouter from "@/router/mainRouter.js";
+import medicalLifeRouter from "@/router/medicalLifeRouter.js";
 
 const routes = [
 
@@ -20,6 +21,8 @@ const routes = [
     ...journalRouter,
 
     ...mainRouter,
+
+    ...medicalLifeRouter,
 
 ]
 
