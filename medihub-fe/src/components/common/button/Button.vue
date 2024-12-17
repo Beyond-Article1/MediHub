@@ -1,4 +1,8 @@
 <script setup>
+/*
+* 기본 버튼 입니다.
+* */
+
 import {defineEmits, defineProps} from 'vue';
 
 const props = defineProps({

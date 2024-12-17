@@ -1,7 +1,7 @@
 <script setup>
-import afterBookmark from "@/assets/images/after-bookmark.png";
-import beforeBookmark from "@/assets/images/before-bookmark.png";
-import { defineEmits, defineProps } from "vue";
+import {defineEmits, defineProps} from "vue";
+import afterBookmark from "@/assets/images/bookmark/after-bookmark.png";
+import beforeBookmark from "@/assets/images/bookmark/before-bookmark.png";
 
 // 부모 컴포넌트로부터 전달받는 props
 const props = defineProps({

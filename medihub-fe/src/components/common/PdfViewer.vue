@@ -1,7 +1,7 @@
 <script setup>
 import {onMounted, ref, watch, defineProps} from 'vue';
 import * as pdfjsLib from 'pdfjs-dist';
-import Button from "@/components/common/Button.vue";
+import Button from "@/components/common/button/Button.vue";
 
 const props = defineProps({
   data: {

@@ -1,9 +1,10 @@
 <script setup>
 
-import {onMounted, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import axios from "axios";
-import SortButtonGroup from "@/components/common/JournalSortButtonGroup.vue";
-import BookmarkButton from "@/components/common/BookmarkButton.vue";
+import SortButtonGroup from "@/components/common/button/JournalSortButtonGroup.vue";
+import BookmarkButton from "@/components/common/button/BookmarkButton.vue";
+import Pagenation from "@/components/common/Pagenation.vue";
 
 // 논문 데이터
 const journalData = ref([]);
@@ -13,6 +14,10 @@ const sortByValue = ref("bookmark");
 
 // 논문 내림차순(true), 오름차순(false)
 const isSorted = ref(true);
+
+// 페이지네이션 관련 데이터
+const currentPage = ref(1); // 현재 페이지
+const pageSize = 5; // 페이지당 데이터 개수
 
 onMounted(() => {
   check(sortByValue.value);
@@ -37,14 +42,6 @@ async function check(sortValue){
       .catch(err => {
         console.error('에러 발생: ', err);
       })
-}
-
-// 북마크 해제 또는 취소
-function onClickBookmark(journal){
-
-  journal.isBookmark = !journal.isBookmark;
-
-  bookmarkMethod(journal);
 }
 
 // 북마크 통신
@@ -87,14 +84,26 @@ function changeCondition(condition){
 }
 
 // 북마크 상태 업데이트 함수
-function updateBookmark(newState, journalSeq) {
+function updateBookmark(journalSeq) {
   // journalSeq를 찾아 해당 항목의 isBookmark 상태를 업데이트
   const journal = journalData.value.find((j) => j.journalSeq === journalSeq);
   if (journal) {
     bookmarkMethod(journal);
-
   }
 }
+
+// 페이지 변경 핸들러
+const handlePageChange = (page) => {
+  currentPage.value = page;
+  console.log("현재 페이지: ", page);
+};
+
+// 현재 페이지에 맞는 데이터 반환
+const paginatedData = computed(() => {
+  const start = (currentPage.value - 1) * pageSize;
+  const end = start + pageSize;
+  return journalData.value.slice(start, end);
+});
 
 // 조회순 조회
 </script>
@@ -113,8 +122,15 @@ function updateBookmark(newState, journalSeq) {
 
     </div>
 
-    <div class="journal-box" v-for="(journal, index) in journalData" :key="journal.journalSeq">
-      <div class="journal-rank align-mid">{{ index + 1}}</div>
+    <!-- 페이지에 맞는 데이터 출력 -->
+    <div
+        class="journal-box"
+        v-for="(journal, index) in paginatedData"
+        :key="journal.journalSeq"
+    >
+      <div class="journal-rank align-mid">
+        {{ ((currentPage - 1) * pageSize + index + 1).toString().padStart(2, '0') }}
+      </div>
       <div class="journal-info align-mid">
         <div class="journal-title">{{journal.title}}</div>
         <div class="journal-detail">{{journal.authors.join(', ')}} | {{journal.source}} | {{journal.pubDate}} | {{journal.size}}</div>
@@ -124,12 +140,19 @@ function updateBookmark(newState, journalSeq) {
 
         <BookmarkButton
             :currentIsBookmark="journal.isBookmark"
-            @updateBookmark="(newState) => updateBookmark(newState, journal.journalSeq)"
+            @updateBookmark="() => updateBookmark(journal.journalSeq)"
         />
 
       </div>
+
     </div>
 
+    <Pagenation
+        :totalData=journalData.length
+        :limitPage=pageSize
+        :page="currentPage"
+        @updatePage="handlePageChange"
+    />
   </div>
 </template>
 
@@ -185,6 +208,7 @@ function updateBookmark(newState, journalSeq) {
     display: flex;
     justify-content: space-between;
     height: 70px;
+    border-bottom: 1px solid grey;
   }
 
   /* == 논문 순위 == */
@@ -197,6 +221,7 @@ function updateBookmark(newState, journalSeq) {
   /* == 논문 정보들 == */
   .journal-info{
     width: 700px;
+    margin-left: 15px;
   }
   .journal-title{
     font-size: 24px;
