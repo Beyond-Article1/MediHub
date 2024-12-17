@@ -4,15 +4,22 @@ import {onMounted, ref} from "vue";
 export const useAuthStore = defineStore('auth', () => {
     const accessToken = ref(null);
     const refreshToken = ref(null);
+    const userSeq = ref(null);
     const userRole = ref(null);
     const isLogined = ref(false);
 
     onMounted(() => {
-        let item = localStorage.getItem('accessToken');
-        if (item){
-            accessToken.value = item;
+        const access = localStorage.getItem('accessToken');
+        const refresh = localStorage.getItem('refreshToken');
+
+        if (access) {
+            accessToken.value = access;
         }
-    })
+        if (refresh) {
+            refreshToken.value = refresh; // Refresh Token을 불러오기
+            console.log("onMounted - Refresh Token:", refresh);
+        }
+    });
 
     // JWT 토큰 디코딩 유틸리티 함수
     function decodeToken(token) {
@@ -27,17 +34,25 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     // 로그인 처리
-    function login(token, refresh) {
-        console.log("[AuthStore] token: ", token); // 로그인 디버깅
+    function login(token, refresh, userSeqValue) {
+        console.log("[AuthStore] 로그인 처리 시작");
+        console.log("[AuthStore] AccessToken:", token);
+        console.log("[AuthStore] RefreshToken:", refresh);
+        console.log("[AuthStore] userSeqValue:", userSeqValue);
+
         isLogined.value = true;
         accessToken.value = token;
-        refreshToken.value = refresh
+        refreshToken.value = refresh;
+        userSeq.value = userSeqValue;
+
+        // 로컬 스토리지에 저장
         localStorage.setItem('accessToken', token);
+        localStorage.setItem('refreshToken', refresh);
 
         const payload = decodeToken(token);
         if (payload) {
             userRole.value = payload.auth[0]; // `auth`에서 역할 설정
-            console.log("[AuthStore] login:" , userRole.value); // 디버깅
+            console.log("[AuthStore] login:" , userRole.value);
         }
     }
 
@@ -47,8 +62,11 @@ export const useAuthStore = defineStore('auth', () => {
         isLogined.value = false;
         accessToken.value = null;
         refreshToken.value = null;
+        userSeq.value = null;
         userRole.value = null;
+
         localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
     }
 
     // 권한 확인
@@ -61,6 +79,7 @@ export const useAuthStore = defineStore('auth', () => {
     return {
         accessToken,
         refreshToken,
+        userSeq,
         userRole,
         login,
         logout,
