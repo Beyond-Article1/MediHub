@@ -19,7 +19,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useAuthStore } from '@/store/authStore'; // Pinia 스토어 가져오기
+import { useAuthStore } from '@/store/authStore';
+import axios from "axios"; // Pinia 스토어 가져오기
 
 const authStore = useAuthStore();
 const accessToken = authStore.accessToken; // accessToken 가져오기
@@ -30,18 +31,11 @@ const caseList = ref([]);
 // API 호출 함수
 const fetchCaseList = async () => {
   try {
+    // API 호출
+    const response = await axios.get('/case_sharing');
 
-    const response = await fetch('http://localhost:8088/case_sharing', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`, // 인증 헤더 추가
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) throw new Error('API 호출 실패');
-
-    const result = await response.json();
+    // axios 응답 객체에서 데이터 바로 사용
+    const result = response.data;
 
     if (result.success && Array.isArray(result.data)) {
       // 데이터 가공
@@ -60,6 +54,7 @@ const fetchCaseList = async () => {
     caseList.value = [];
   }
 };
+
 
 // 컴포넌트 마운트 시 API 호출
 onMounted(() => {

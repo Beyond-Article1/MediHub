@@ -1,5 +1,6 @@
 <template>
   <div class="action-buttons">
+
     <button @click="$emit('save')" class="save-btn">저장</button>
     <button @click="$emit('tempSave')" class="temp-save-btn">임시 저장</button>
   </div>

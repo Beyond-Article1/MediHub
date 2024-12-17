@@ -1,5 +1,6 @@
 import CaseSharingListView from "@/views/case_sharing/case_sharing/CaseSharingListView.vue";
 import CaseSharingCreate from "@/views/case_sharing/case_sharing/CaseSharingCreate.vue";
+import CaseSharingTemplate from "@/views/case_sharing/template/TemplateListView.vue";
 
 export default [
     {
@@ -12,5 +13,10 @@ export default [
         name: 'CaseSharingCreate',
         component: CaseSharingCreate,
 
-    }
+    },
+    {
+        path: '/case_sharing/template',
+        name: 'TemplateListView',
+        component: CaseSharingTemplate,
+    },
 ];

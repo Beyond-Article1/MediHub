@@ -11,15 +11,17 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import axios from "axios";
 
 const categories = ref([]); // 초기 빈 배열로 설정
 
 // API 호출로 카테고리 리스트 가져오기
 const fetchCategories = async () => {
   try {
-    const response = await fetch('http://localhost:8088/api/v1/part/1');
-    if (!response.ok) throw new Error('API 호출 실패');
-    const data = await response.json();
+    const response = await axios.get('/api/v1/part/1');
+
+    // axios 응답 객체에서 data를 바로 추출
+    const data = response.data;
 
     // partName 값만 추출해 categories에 저장
     categories.value = data.map(item => item.partName);
@@ -28,6 +30,7 @@ const fetchCategories = async () => {
     categories.value = ['불러오기 실패'];
   }
 };
+
 
 onMounted(() => {
   fetchCategories(); // 컴포넌트 마운트 시 API 호출
