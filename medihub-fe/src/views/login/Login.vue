@@ -108,36 +108,26 @@ const handleLogin = async () => {
     });
 
     console.log("응답 전체:", response);
-    console.log("응답 헤더:", response.headers);
 
-    if (response.data.success === false) {
-      throw new Error(response.data.message || "로그인 실패");
-    }
+    // 헤더와 데이터에서 Refresh Token과 UserSeq 추출
+    const accessToken = response.headers["access-token"];
+    const refreshToken = response.headers["refresh-token"];
 
-    const authorizationHeader = response.headers["authorization"];
-    const refreshToken = response.data.refreshToken;
-    const userSeq = response.data.userSeq;
+    console.log("Authorization Header:", accessToken);
+    console.log("Refresh Token:", refreshToken);
 
-    if (authorizationHeader && authorizationHeader.startsWith("Bearer ")) {
-      const accessToken = authorizationHeader.replace("Bearer ", "");
-
-      authStore.login(accessToken, refreshToken, userSeq);
+      authStore.login(accessToken, refreshToken);
 
       console.log("로그인 성공: AccessToken, RefreshToken, UserSeq 저장 완료");
-      console.log("UserSeq:", userSeq);
-      alert("로그인에 성공했습니다!");
-
       router.push("/main");
-    } else {
-      throw new Error("Authorization 헤더에서 토큰을 찾을 수 없습니다.");
-    }
+
   } catch (error) {
     console.error("로그인 실패:", error.message);
     alert("로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.");
+
   } finally {
     loading.value = false;
   }
-
 };
 </script>
 

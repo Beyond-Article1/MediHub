@@ -27,7 +27,7 @@ watch(
 </script>
 
 <template>
-  
+
   <!-- 로그인 페이지가 아닐 때만 Header와 ChatButton 보이기 -->
   <Header v-if="!isLoginPage" />
   
