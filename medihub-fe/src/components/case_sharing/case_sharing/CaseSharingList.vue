@@ -1,4 +1,3 @@
-<!-- components/CaseList.vue -->
 <template>
   <div class="case-list">
     <div class="case-header">
@@ -19,15 +18,58 @@
 </template>
 
 <script setup>
-const totalCases = 14219;
-const caseList = [
-  { id: 1, title: '골절성부전증 환자의 총 무릎 교체: 사례 보고 및 문헌 검토', author: '임서연 전문의', date: '2024.11.24' },
-  { id: 23, title: '20대 남자 스마트암 라식', author: '임채훈 교수', date: '2024.11.24' },
-  { id: 55, title: '10대 남자 무릎 골절', author: '임정택 전문의', date: '2024.11.24' },
-  { id: 77, title: '60대 여자 임플란트', author: '윤지영 조교수', date: '2024.11.24' },
-  // 추가 항목들
-];
+import { ref, onMounted } from 'vue';
+import { useAuthStore } from '@/store/authStore';
+import axios from "axios"; // Pinia 스토어 가져오기
+
+const authStore = useAuthStore();
+const accessToken = authStore.accessToken; // accessToken 가져오기
+
+const totalCases = ref(0);
+const caseList = ref([]);
+
+// API 호출 함수
+const fetchCaseList = async () => {
+  try {
+    // API 호출
+    const response = await axios.get('/case_sharing');
+
+    // axios 응답 객체에서 데이터 바로 사용
+    const result = response.data;
+
+    if (result.success && Array.isArray(result.data)) {
+      // 데이터 가공
+      caseList.value = result.data.map(item => ({
+        id: item.caseSharingSeq,
+        title: item.caseSharingTitle,
+        author: `${item.caseAuthor} (${item.caseAuthorRankName || '직급 없음'})`,
+        date: new Date(item.regDate).toLocaleDateString('ko-KR'),
+      }));
+      totalCases.value = result.data.length;
+    } else {
+      throw new Error('데이터 형식 오류');
+    }
+  } catch (error) {
+    console.error('Error fetching case list:', error);
+    caseList.value = [];
+  }
+};
+
+
+// 컴포넌트 마운트 시 API 호출
+onMounted(() => {
+  console.log("[CaseList] Access Token 확인:", accessToken);
+
+  if (accessToken) {
+    console.log("[CaseList] Access Token 있음. API 호출 시작.");
+    fetchCaseList();
+  } else {
+    console.error("[CaseList] Access Token 없음. 사용자 로그인 필요.");
+  }
+});
+
 </script>
+
 
 <style scoped>
 .case-header {

@@ -10,7 +10,9 @@
       🔍
     </button>
 
-    <button class="new-post-button">신규 등록</button>
+    <button class="new-post-button" @click="goToTemplateListView">
+      신규 등록
+    </button>
     <select class="sort-select">
       <option>최신순</option>
       <option>인기순</option>
@@ -20,9 +22,18 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useAuthStore } from '@/store/authStore';
+import router from "@/router/index.js"; // Pinia 스토어 가져오기
+
 const searchQuery = ref('');
+const store = useAuthStore();
+
 const search = () => {
   console.log(`Searching for: ${searchQuery.value}`);
+};
+
+const goToTemplateListView = () => {
+  router.push('/case_sharing/template');
 };
 </script>
 
