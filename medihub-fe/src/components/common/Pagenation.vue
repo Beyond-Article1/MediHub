@@ -4,7 +4,7 @@ import { computed } from "vue";
 // 부모 컴포넌트로부터 전달받는 props
 const props = defineProps({
   totalData: Number,   // 전체 데이터 개수
-  limitPage: Number,   // 보여줄 페이지 개수
+  limitPage: Number,   // 보여줄 데이터 개수
   page: Number         // 현재 페이지
 });
 
@@ -16,18 +16,16 @@ const totalPages = computed(() => {
   return Math.ceil(props.totalData / props.limitPage);
 });
 
-// 페이지네이션 버튼 계산 (현재 페이지 기준으로 시작과 끝 조정)
+// 현재 블록 단위 계산 (5개 단위로 나눈 블록)
+const currentBlock = computed(() => {
+  return Math.ceil(props.page / 5);
+});
+
+// 페이지네이션 버튼 계산 (블록 단위로 페이지 번호 표시)
 const pageNumbers = computed(() => {
   const pages = [];
-  const currentPage = props.page;
-  const visiblePages = props.limitPage;
-
-  let startPage = Math.max(1, currentPage - Math.floor(visiblePages / 2));
-  let endPage = Math.min(totalPages.value, startPage + visiblePages - 1);
-
-  if (endPage - startPage < visiblePages - 1) {
-    startPage = Math.max(1, endPage - visiblePages + 1);
-  }
+  const startPage = (currentBlock.value - 1) * 5 + 1; // 블록의 첫 페이지
+  const endPage = Math.min(startPage + 4, totalPages.value); // 블록의 마지막 페이지
 
   for (let i = startPage; i <= endPage; i++) {
     pages.push(i);
@@ -45,11 +43,20 @@ const changePage = (page) => {
 
 <template>
   <nav class="pagination-container">
-    <!-- 이전 페이지 버튼 -->
+
     <button
         class="pagination-button"
-        :disabled="page < 6"
-        @click="changePage(page - 5)"
+        :disabled="currentBlock === 1"
+        @click="changePage(1)"
+    >
+      처음
+    </button>
+
+    <!-- 이전 블록 버튼 -->
+    <button
+        class="pagination-button"
+        :disabled="currentBlock === 1"
+        @click="changePage((currentBlock - 1) * 5)"
     >
       이전
     </button>
@@ -65,13 +72,21 @@ const changePage = (page) => {
       {{ pageNum }}
     </button>
 
-    <!-- 다음 페이지 버튼 -->
+    <!-- 다음 블록 버튼 -->
     <button
         class="pagination-button"
-        :disabled="page === totalPages"
-        @click="changePage(page + 5)"
+        :disabled="currentBlock * 5 >= totalPages"
+        @click="changePage(currentBlock * 5 + 1)"
     >
       다음
+    </button>
+
+    <button
+        class="pagination-button"
+        :disabled="currentBlock * 5 >= totalPages"
+        @click="changePage(totalPages - 4)"
+    >
+      마지막
     </button>
   </nav>
 </template>
@@ -108,8 +123,7 @@ const changePage = (page) => {
   border: none;
 }
 
-.pagination-button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
+button:disabled{
+  display: none;
 }
 </style>
