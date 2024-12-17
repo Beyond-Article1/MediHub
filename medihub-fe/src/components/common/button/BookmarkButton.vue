@@ -1,8 +1,7 @@
 <script setup>
-
+import {defineEmits, defineProps} from "vue";
 import afterBookmark from "@/assets/images/bookmark/after-bookmark.png";
 import beforeBookmark from "@/assets/images/bookmark/before-bookmark.png";
-import {defineEmits} from "vue";
 
 // 부모 컴포넌트로부터 전달받는 props
 const props = defineProps({
@@ -13,25 +12,26 @@ const props = defineProps({
 const emit = defineEmits(["updateBookmark"]);
 
 // 북마크 버튼 클릭 이벤트
-function onClickBookmark() {
+function onClickBookmark(event) {
+  event.stopPropagation(); // 부모 이벤트 전파 방지
   // 현재 북마크 상태를 반대로 만들어 상위 컴포넌트에 전달
   emit("updateBookmark", !props.currentIsBookmark);
 }
-
 </script>
 
 <template>
-  <div class="bookmark-btn align-mid" @click="onClickBookmark()">
+  <div class="bookmark-btn align-mid" @click="onClickBookmark">
     <img :src="currentIsBookmark ? afterBookmark : beforeBookmark"
-         :alt="currentIsBookmark ? 'After' : 'Before'" />
+         :alt="currentIsBookmark ? 'After' : 'Before'"/>
   </div>
 </template>
 
 <style scoped>
-.bookmark-btn{
+.bookmark-btn {
   cursor: pointer;
 }
-.bookmark-btn img{
+
+.bookmark-btn img {
   width: 25px;
 }
 </style>
