@@ -1,7 +1,6 @@
 <script setup>
 import {onMounted, ref, watch, defineProps} from 'vue';
 import * as pdfjsLib from 'pdfjs-dist';
-import {Canvas} from 'fabric';
 import Button from "@/components/common/Button.vue";
 
 const props = defineProps({
@@ -26,6 +25,17 @@ let isRendering = false; // 렌더링 중 상태
 // 컴포넌트가 마운트될 때 기본 PDF 페이지 로드
 onMounted(async () => {
   pdfCanvas.value = document.getElementById('pdf-canvas');
+
+  // PDF 클릭 이벤트 리스너 추가
+  pdfCanvas.value.addEventListener('click', (event) => {
+    const rect = pdfCanvas.value.getBoundingClientRect();
+    const x = event.offsetX - rect.left; // 클릭된 X 좌표
+    const y = event.offsetY - rect.top; // 클릭된 Y 좌표
+    console.log(`클릭된 좌표: (${x.toFixed(2)}, ${y.toFixed(2)})`); // 로그 출력
+
+    // 마커 이미지 추가
+    addMarker(x, y);
+  });
 });
 
 // pdfUrl 변경 시 PDF 로드
@@ -73,6 +83,26 @@ async function loadPage(pdfUrlToLoad) {
   } finally {
     isRendering = false; // 렌더링 완료
   }
+}
+
+// 마커 추가 함수
+function addMarker(x, y) {
+  const markerImage = new Image();
+  markerImage.src = '/icons/marker.png'; // 마커 이미지 경로
+
+  markerImage.onload = () => {
+    const ctx = pdfCanvas.value.getContext('2d');
+
+    const markerWidth = markerImage.width / 14; // 마커 크기 조정
+    const markerHeight = markerImage.height / 14; // 마커 크기 조정
+
+    // 클릭된 위치에 이미지 중심을 맞추기 위해 좌표 조정
+    ctx.drawImage(markerImage,
+        x - (markerWidth / 2),
+        y - (markerHeight / 2),
+        markerWidth,
+        markerHeight); // 클릭된 위치에 이미지 추가
+  };
 }
 
 function goToPreviousPage() {
