@@ -1,27 +1,71 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import {onMounted, ref, watch, defineProps} from 'vue';
 import * as pdfjsLib from 'pdfjs-dist';
 import Button from "@/components/common/Button.vue";
+
+const props = defineProps({
+  data: {
+    type: Object,
+    required: true
+  },
+  pdfUrl: {
+    type: String,
+    required: true
+  }
+});
 
 // Web Worker 경로 설정
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
 
-const pdfUrl = '/pdfs/tsutsugamushi_1.0.0.pdf'; // public 폴더에 위치
 const currentPage = ref(1); // 현재 페이지
 const totalPages = ref(0); // 총 페이지 수
-const pdfCanvas = ref(null); // 캔버스 참조
+const pdfCanvas = ref(null); // PDF 캔버스 참조
+let isRendering = false; // 렌더링 중 상태
 
+// 컴포넌트가 마운트될 때 기본 PDF 페이지 로드
 onMounted(async () => {
   pdfCanvas.value = document.getElementById('pdf-canvas');
-  await loadPage(currentPage.value);
+  if (props.pdfUrl) { // pdfUrl 유효성 체크
+    try {
+      await loadPage(props.pdfUrl); // 부모에서 받은 pdfUrl로 PDF 로드
+    } catch (error) {
+      console.error("PDF 로드 중 오류 발생:", error); // 오류 로그 출력
+    }
+  } else {
+    console.error("PDF의 URL이 아직 전달 받지 못했습니다. 잠시 기다려주세요. 계속 로드되지 않으면 관리자에게 문의해주세요.");
+  }
 });
 
-async function loadPage(pageNumber) {
+// pdfUrl 변경 시 PDF 로드
+watch(() => props.pdfUrl, async (newUrl) => {
+  if (newUrl) {
+    currentPage.value = 1; // 페이지 초기화
+    await loadPage(newUrl); // 새로운 URL로 PDF 로드
+  }
+});
+
+// currentPage 변경 시 PDF 로드
+watch(currentPage, async () => {
+  if (props.pdfUrl) { // pdfUrl이 유효한지 확인
+    await loadPage(props.pdfUrl); // 현재 페이지에 맞는 PDF 로드
+  }
+});
+
+// 페이지 로드 함수
+async function loadPage(pdfUrlToLoad) {
+  if (!pdfUrlToLoad) {
+    console.error("PDF URL이 제공되지 않았습니다."); // URL 확인
+    return;
+  }
+
+  if (isRendering) return; // 이미 렌더링 중이면 무시
+
+  isRendering = true; // 렌더링 시작
   try {
-    const pdf = await pdfjsLib.getDocument(pdfUrl).promise; // PDF 문서 가져오기
+    const pdf = await pdfjsLib.getDocument(pdfUrlToLoad).promise; // PDF 문서 가져오기
     totalPages.value = pdf.numPages; // 총 페이지 수 가져오기
-    const page = await pdf.getPage(pageNumber); // 페이지 가져오기
-    const viewport = page.getViewport({ scale: 1 });
+    const page = await pdf.getPage(currentPage.value); // 현재 페이지 가져오기
+    const viewport = page.getViewport({scale: 1});
 
     pdfCanvas.value.width = viewport.width; // 캔버스 너비 설정
     pdfCanvas.value.height = viewport.height; // 캔버스 높이 설정
@@ -34,20 +78,20 @@ async function loadPage(pageNumber) {
     await page.render(renderContext).promise; // 페이지 렌더링
   } catch (error) {
     console.error("PDF 로드 중 오류 발생:", error);
+  } finally {
+    isRendering = false; // 렌더링 완료
   }
 }
 
 function goToPreviousPage() {
   if (currentPage.value > 1) {
-    currentPage.value--;
-    loadPage(currentPage.value);
+    currentPage.value--; // 페이지 감소
   }
 }
 
 function goToNextPage() {
   if (currentPage.value < totalPages.value) {
-    currentPage.value++;
-    loadPage(currentPage.value);
+    currentPage.value++; // 페이지 증가
   }
 }
 </script>
@@ -55,7 +99,7 @@ function goToNextPage() {
 <template>
   <div class="centered-container">
     <canvas id="pdf-canvas" class="pdf-canvas"></canvas>
-    <span class="ml-2 pagination-container"> {{ currentPage }} / {{ totalPages }}</span>
+    <span class="ml-2 pagination-container">{{ currentPage }} / {{ totalPages }}</span>
     <div class="mt-3 button-container">
       <Button @click="goToPreviousPage" :isDisabled="currentPage <= 1">이전 페이지</Button>
       <Button @click="goToNextPage" :isDisabled="currentPage >= totalPages">다음 페이지</Button>
