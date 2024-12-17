@@ -6,21 +6,12 @@ const props = defineProps({
   iconClass: {
     type: String,
     required: true
-  },
-  onClick: {
-    type: Function,
-    required: true
   }
 });
-
-// 클릭 이벤트 핸들러
-const handleClick = () => {
-  props.onClick(); // 부모 컴포넌트의 클릭 핸들러 호출
-}
 </script>
 
 <template>
-  <button class="image-button" @click="handleClick">
+  <button class="image-button">
     <i :class="iconClass"></i>
   </button>
 </template>
