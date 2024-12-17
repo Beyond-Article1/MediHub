@@ -1,6 +1,7 @@
 <script setup>
 import {onMounted, ref, watch, defineProps} from 'vue';
 import * as pdfjsLib from 'pdfjs-dist';
+import {Canvas} from 'fabric';
 import Button from "@/components/common/Button.vue";
 
 const props = defineProps({
@@ -25,15 +26,6 @@ let isRendering = false; // 렌더링 중 상태
 // 컴포넌트가 마운트될 때 기본 PDF 페이지 로드
 onMounted(async () => {
   pdfCanvas.value = document.getElementById('pdf-canvas');
-  if (props.pdfUrl) { // pdfUrl 유효성 체크
-    try {
-      await loadPage(props.pdfUrl); // 부모에서 받은 pdfUrl로 PDF 로드
-    } catch (error) {
-      console.error("PDF 로드 중 오류 발생:", error); // 오류 로그 출력
-    }
-  } else {
-    console.error("PDF의 URL이 아직 전달 받지 못했습니다. 잠시 기다려주세요. 계속 로드되지 않으면 관리자에게 문의해주세요.");
-  }
 });
 
 // pdfUrl 변경 시 PDF 로드
