@@ -95,7 +95,15 @@ function moveToItem(menu) {
       route = '/';
       break;
   }
-  router.push(route);
+  if (route) {
+    router.push(route).catch((err) => {
+      if (err.name !== 'NavigationDuplicated') {
+        console.error('Router push error:', err);
+      }
+    });
+  }
+  // router.push(route);
+  window.location.replace(route);
 }
 
 function goToHome() {
