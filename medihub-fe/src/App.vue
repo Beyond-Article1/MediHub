@@ -17,6 +17,7 @@ const toggleChatWindow = () => {
     <RouterView :key="$route.fullPath"/>
     <ChatButton @toggle-chat-window="toggleChatWindow" />
     <ChatWindow v-if="isChatOpen" :isOpen="isChatOpen" @close-chat-window="toggleChatWindow" />
+
   </div>
 
 </template>

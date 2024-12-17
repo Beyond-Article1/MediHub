@@ -1,16 +1,13 @@
 <template>
   <div class="login-container d-flex justify-content-center align-items-center vh-100">
     <div class="card p-5 shadow-lg border-0">
-      <!-- 타이틀 -->
       <div class="text-center mb-5">
         <h3 class="fw-bold text-nowrap">
           <em>MEDIHUB</em>에 오신 것을 환영합니다.
         </h3>
       </div>
 
-      <!-- 로그인 폼 -->
       <form @submit.prevent="handleLogin">
-        <!-- ID 입력 -->
         <div class="input-group mb-4">
           <span class="input-group-text bg-light px-4">
             <i class="bi bi-person fs-4"></i>
@@ -18,13 +15,11 @@
           <input
               type="text"
               class="form-control form-control-lg"
-              v-model="formData.id"
+              v-model="formData.userId"
               placeholder="ID"
               required
           />
         </div>
-
-        <!-- PASSWORD 입력 -->
         <div class="input-group mb-5">
           <span class="input-group-text bg-light px-4">
             <i class="bi bi-lock fs-4"></i>
@@ -32,13 +27,11 @@
           <input
               type="password"
               class="form-control form-control-lg"
-              v-model="formData.password"
+              v-model="formData.userPassword"
               placeholder="PASSWORD"
               required
           />
         </div>
-
-        <!-- 로그인 버튼 -->
         <div class="d-grid">
           <button type="submit" class="btn btn-primary btn-lg fw-bold" :disabled="loading">
             {{ loading ? "처리 중..." : "LOGIN" }}
@@ -56,14 +49,52 @@ import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "vue-router";
 
 const authStore = useAuthStore();
-const router = useRouter(); // Router 인스턴스 사용
+const router = useRouter();
 
 const formData = reactive({
-  id: "",
-  password: "",
+  userId: "",
+  userPassword: "",
 });
 
 const loading = ref(false);
+
+const reissueToken = async () => {
+  if (!authStore.refreshToken) {
+    console.error("Refresh Token이 존재하지 않습니다.");
+    alert("다시 로그인해주세요.");
+    authStore.logout();
+    router.push("/login");
+    return;
+  }
+
+  try {
+    console.log("Refresh Token 요청 시작:", authStore.refreshToken);
+
+    const response = await axios.post("/api/v1/token/reissue", null, {
+      headers: { "Refresh-Token": authStore.refreshToken },
+    });
+
+    const newAccessToken = response.headers["authorization"]?.replace("Bearer ", "");
+    const newRefreshToken = response.headers["refresh-token"];
+
+    if (newAccessToken && newRefreshToken) {
+      authStore.accessToken.value = newAccessToken;
+      authStore.refreshToken.value = newRefreshToken;
+
+      localStorage.setItem("accessToken", newAccessToken);
+      localStorage.setItem("refreshToken", newRefreshToken);
+
+      console.log("토큰 재발급 성공:", newAccessToken, newRefreshToken);
+    } else {
+      throw new Error("재발급된 토큰이 없습니다.");
+    }
+  } catch (error) {
+    console.error("토큰 재발급 실패:", error.response?.data || error.message);
+    alert("다시 로그인해주세요.");
+    authStore.logout();
+    router.push("/login");
+  }
+};
 
 const handleLogin = async () => {
   loading.value = true;
@@ -72,44 +103,47 @@ const handleLogin = async () => {
     console.log("로그인 요청:", formData);
 
     const response = await axios.post("/api/v1/user/login", {
-      userId: formData.id,
-      userPassword: formData.password,
+      userId: formData.userId,
+      userPassword: formData.userPassword,
     });
 
     console.log("응답 전체:", response);
     console.log("응답 헤더:", response.headers);
+    
+    if (response.data.success === false) {
+      throw new Error(response.data.message || "로그인 실패");
+    }
 
     const authorizationHeader = response.headers["authorization"];
     const refreshToken = response.data.refreshToken;
+    const userSeq = response.data.userSeq;
 
     if (authorizationHeader && authorizationHeader.startsWith("Bearer ")) {
       const accessToken = authorizationHeader.replace("Bearer ", "");
 
-      // authStore에 토큰 저장
-      authStore.login(accessToken, refreshToken);
+      authStore.login(accessToken, refreshToken, userSeq);
 
-      console.log("로그인 성공: AccessToken과 RefreshToken 저장 완료");
+      console.log("로그인 성공: AccessToken, RefreshToken, UserSeq 저장 완료");
+      console.log("UserSeq:", userSeq);
       alert("로그인에 성공했습니다!");
 
-      // Main.vue로 이동
       router.push("/main");
     } else {
       throw new Error("Authorization 헤더에서 토큰을 찾을 수 없습니다.");
     }
   } catch (error) {
-    console.error("로그인 실패:", error.response?.data || error.message);
+    console.error("로그인 실패:", error.message);
     alert("로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.");
   } finally {
     loading.value = false;
   }
+
 };
 </script>
 
-
 <style scoped>
-/* 전체 화면 배경 설정 */
 .login-container {
-  background-color: #e9ecef; /* 연한 회색 배경 */
+  background-color: #e9ecef;
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -117,65 +151,59 @@ const handleLogin = async () => {
   padding: 1rem;
 }
 
-/* 카드 스타일 */
 .card {
   width: 100%;
-  max-width: 500px; /* 카드 최대 너비 설정 */
-  border-radius: 20px; /* 모서리를 둥글게 설정 */
-  background-color: #ffffff; /* 흰색 배경 */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 부드러운 그림자 */
+  max-width: 500px;
+  border-radius: 20px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* 타이틀 스타일 */
 h3 {
   font-size: 1.5rem;
-  color: #002b5b; /* 진한 네이비 색상 */
+  color: #002b5b;
 }
 
-/* 입력 그룹 스타일 */
 .input-group-text {
   border: none;
   font-size: 1.2rem;
-  background-color: #f8f9fa; /* 연한 회색 배경 */
+  background-color: #f8f9fa;
 }
 
 .input-group .form-control {
   font-size: 1.2rem;
-  padding: 1rem; /* 입력란 크기 확장 */
+  padding: 1rem;
   border: 1px solid #ced4da;
   border-radius: 0.5rem;
 }
 
 .input-group .form-control:focus {
-  border-color: #003366; /* 포커스 시 테두리 색상 */
+  border-color: #003366;
   box-shadow: 0 0 0 0.2rem rgba(0, 43, 91, 0.25);
 }
 
-/* 버튼 스타일 */
 .btn-primary {
-  background-color: #002b5b; /* 진한 네이비 색상 */
+  background-color: #002b5b;
   border: none;
   font-size: 1.3rem;
   padding: 0.75rem;
   border-radius: 0.5rem;
-  transition: background-color 0.3s ease; /* 부드러운 전환 효과 */
+  transition: background-color 0.3s ease;
 }
 
 .btn-primary:hover {
-  background-color: #003366; /* 어두운 네이비 색상 */
+  background-color: #003366;
 }
 
 .btn-primary:disabled {
-  background-color: #6c757d; /* 비활성화 시 회색 */
+  background-color: #6c757d;
   cursor: not-allowed;
 }
 
-/* 카드 안 여백 설정 */
 .p-5 {
-  padding: 3rem !important; /* 내부 여백 설정 */
+  padding: 3rem !important;
 }
 
-/* 반응형 디자인 */
 @media (max-width: 768px) {
   h3 {
     font-size: 1.2rem;
