@@ -34,16 +34,14 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     // 로그인 처리
-    function login(token, refresh, userSeqValue) {
+    function login(token, refresh) {
         console.log("[AuthStore] 로그인 처리 시작");
         console.log("[AuthStore] AccessToken:", token);
         console.log("[AuthStore] RefreshToken:", refresh);
-        console.log("[AuthStore] userSeqValue:", userSeqValue);
 
         isLogined.value = true;
         accessToken.value = token;
         refreshToken.value = refresh;
-        userSeq.value = userSeqValue;
 
         // 로컬 스토리지에 저장
         localStorage.setItem('accessToken', token);
@@ -52,7 +50,9 @@ export const useAuthStore = defineStore('auth', () => {
         const payload = decodeToken(token);
         if (payload) {
             userRole.value = payload.auth[0]; // `auth`에서 역할 설정
-            console.log("[AuthStore] login:" , userRole.value);
+            userSeq.value = payload.userSeq;
+            console.log("[AuthStore] userRole:" , userRole.value);
+            console.log("[AuthStore] userSeq:" , userSeq.value);
         }
     }
 

@@ -10,12 +10,31 @@
 </template>
 
 <script setup>
-const categories = [
-  '내과', '응급의학과', '외과', '마취통증의학과', '소아청소년과',
-  '비뇨의학과', '산부인과', '피부과', '재활의학과', '안과',
-  '진단검사의학과', '이비인후과', '병리과', '치과',
-  '영상의학과', '가정의학과', '정신건강의학과', '직업환경의학과'
-];
+import { ref, onMounted } from 'vue';
+import axios from "axios";
+
+const categories = ref([]); // 초기 빈 배열로 설정
+
+// API 호출로 카테고리 리스트 가져오기
+const fetchCategories = async () => {
+  try {
+    const response = await axios.get('/api/v1/part/1');
+
+    // axios 응답 객체에서 data를 바로 추출
+    const data = response.data;
+
+    // partName 값만 추출해 categories에 저장
+    categories.value = data.map(item => item.partName);
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    categories.value = ['불러오기 실패'];
+  }
+};
+
+
+onMounted(() => {
+  fetchCategories(); // 컴포넌트 마운트 시 API 호출
+});
 </script>
 
 <style scoped>

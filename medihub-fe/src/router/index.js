@@ -2,9 +2,11 @@ import {createRouter, createWebHistory} from "vue-router";
 
 import journalRouter from "@/router/journalRouter.js";
 import cpRouter from "@/router/cpRouter.js";
-import caseSharingRouter from "@/router/caseShairngRouter.js";
+import caseSharingRouter from "@/router/caseSharingRouter.js";
 import loginRouter from "@/router/loginRouter.js";
 import mainRouter from "@/router/mainRouter.js";
+import medicalLifeRouter from "@/router/medicalLifeRouter.js";
+import userRouter from "@/router/userRouter.js";
 
 const routes = [
 
@@ -20,6 +22,10 @@ const routes = [
     ...journalRouter,
 
     ...mainRouter,
+
+    ...medicalLifeRouter,
+
+    ...userRouter,
 
 ]
 

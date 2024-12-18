@@ -49,7 +49,16 @@ const bookmarkMethod = async (journal) => {
   await axios.post(`/journal/bookmark/${journal.journalSeq}`)
       .then(res => {
         if (res.status === 200){
-          journal.isBookmark ? alert('북마크 완료') : alert('북마크 해제');
+
+          journal.bookmark = !journal.bookmark;
+
+          if (journal.bookmark) {
+            journal.count += 1; // 북마크 추가
+            alert('북마크 완료')
+          } else {
+            journal.count -= 1; // 북마크 삭제
+            alert('북마크 해제');
+          }
         } else {
           console.log('성공 코드와 다름', res.data);
         }
@@ -105,7 +114,6 @@ const paginatedData = computed(() => {
   return journalData.value.slice(start, end);
 });
 
-// 조회순 조회
 </script>
 
 <template>
@@ -136,10 +144,10 @@ const paginatedData = computed(() => {
         <div class="journal-detail">{{journal.authors.join(', ')}} | {{journal.source}} | {{journal.pubDate}} | {{journal.size}}</div>
       </div>
       <div class="journal-bookmark">
-        <div class="bookmark-count align-mid">{{sortByValue === 'bookmark' ? '북마크순' : '조회순'}}: {{journal.count}}</div>
+        <div class="bookmark-count align-mid">{{sortByValue === 'bookmark' ? '북마크수' : '조회수'}}: {{journal.count}}</div>
 
         <BookmarkButton
-            :currentIsBookmark="journal.isBookmark"
+            :currentIsBookmark="journal.bookmark"
             @updateBookmark="() => updateBookmark(journal.journalSeq)"
         />
 
