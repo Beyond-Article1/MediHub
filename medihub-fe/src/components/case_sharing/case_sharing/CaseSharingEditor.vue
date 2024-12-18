@@ -35,7 +35,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import {nextTick, ref, watch} from "vue";
 import EditorJS from "@editorjs/editorjs";
 
 // 플러그인 임포트
@@ -44,10 +44,8 @@ import List from "@editorjs/list";
 import Checklist from "@editorjs/checklist";
 import Table from "@editorjs/table";
 import CodeTool from "@editorjs/code";
-import LinkTool from "@editorjs/link";
 import Marker from "@editorjs/marker";
 import Quote from "@editorjs/quote";
-import Warning from "@editorjs/warning";
 import Embed from "@editorjs/embed";
 import InlineCode from "@editorjs/inline-code";
 import Delimiter from "@editorjs/delimiter";
@@ -56,59 +54,79 @@ import ImageTool from "@editorjs/image";
 import Underline from "@editorjs/underline";
 import ColorPlugin from "editorjs-text-color-plugin";
 
-let editorInstance;
-const imageInput = ref(null);
-const images = ref([]); // 업로드할 이미지 파일 저장
+const props = defineProps({
+  initialData: { type: Object, default: () => ({ blocks: [] }) }, // 초기 데이터
+});
 
-onMounted(() => {
+let editorInstance = null;
+const images = ref([]); // 이미지 파일 저장
+const imageInput = ref(null);
+
+let checkOnce = true;
+
+const initializeEditor = async (data) => {
+  console.log("initializeEditor 호출됨");
+
+  console.log("전달된 데이터:", data);
+  if (editorInstance && typeof editorInstance.destroy === "function") {
+    editorInstance.destroy(); // 안전하게 destroy 호출
+    editorInstance = null;
+  }
+  const editorData = data && data.blocks && data.blocks.length > 0 ? data : { blocks: [] };
+
+  console.log("검사 후 에디터 데이터:", editorData);
+  console.log("블록 길이:", editorData.blocks.length);
+  await nextTick();
+
   editorInstance = new EditorJS({
     holder: "editor",
-    placeholder: "내용을 입력하세요.",
+    placeholder: editorData.blocks.length > 0 ? "" : "내용을 입력하세요...", // 데이터가 있으면 placeholder 제거
+    data: data || { blocks: [] },
     tools: {
-      header: {
-        class: Header,
-        config: { levels: [2, 3, 4], defaultLevel: 2 },
-        inlineToolbar:  ["bold", "italic", "underline", "textColor"] },
-      paragraph: {
-        class: Paragraph,
-        inlineToolbar: ["bold", "italic", "underline", "marker", "textColor"] },
-      textColor: {
-        class: ColorPlugin,
-        config: {
-          colorCollections: [
-            "#FF5733", "#FFBD33", "#33FF57", "#3357FF", "#8C33FF", "#000000", "#FFFFFF"
-          ],
-          defaultColor: "#FF5733",
-          customPicker: true, // 사용자 색상 선택기 활성화
-        },
-      },
-      list: { class: List, inlineToolbar: true },
-      checklist: { class: Checklist, inlineToolbar: true },
+      header: {class: Header, config: {levels: [2, 3, 4], defaultLevel: 2}},
+      paragraph: {class: Paragraph, inlineToolbar: true},
+      list: {class: List, inlineToolbar: true},
+      checklist: {class: Checklist, inlineToolbar: true},
       table: Table,
       code: CodeTool,
       quote: Quote,
-      warning: Warning,
       embed: Embed,
       inlineCode: InlineCode,
       delimiter: Delimiter,
       underline: Underline,
       marker: Marker,
-      linkTool: LinkTool,
+      textColor: {
+        class: ColorPlugin,
+        config: {
+          colorCollections: ["#FF5733", "#33FF57", "#3357FF", "#000000"],
+          defaultColor: "#FF5733",
+          customPicker: true,
+        },
+      },
       image: {
         class: ImageTool,
         config: {
           uploader: {
             uploadByFile: async (file) => {
               const blobUrl = URL.createObjectURL(file);
-              images.value.push(file); // 이미지 파일 저장
-              return { success: 1, file: { url: blobUrl } };
+              images.value.push(file);
+              return {success: 1, file: {url: blobUrl}};
             },
           },
         },
       },
     },
   });
-});
+  checkOnce = false;
+};
+watch(
+    () => props.initialData,
+
+    (newData) => {
+      if (newData) initializeEditor(newData);
+    },
+    { immediate: true,  deep: true }
+);
 
 // 툴바 기능 메서드
 const insertHeader = (level) => editorInstance.blocks.insert("header", { level });
@@ -143,20 +161,24 @@ const changeTextColor = () => editorInstance.inlineToolbar.activate("textColor")
 
 // 인라인 서식 툴
 const applyInlineTool = (tool) => editorInstance.inlineToolbar.activate(tool);
-
-// 저장 시 데이터와 이미지 처리
+// getEditorData 메서드 추가
 const getEditorData = async () => {
-  const editorData = await editorInstance.save();
-  const formData = new FormData();
-  formData.append("content", JSON.stringify(editorData)); // JSON 데이터 저장
-  images.value.forEach((file, index) => {
-    formData.append("images", file, `img-${index + 1}`);
-  });
-  return { content: editorData, images: images.value }; // 저장된 데이터 반환
+  if (!editorInstance) {
+    console.warn("Editor instance is not initialized.");
+    return { content: { blocks: [] }, images: [] };
+  }
+  try {
+    const savedData = await editorInstance.save();
+    return { content: savedData, images: images.value };
+  } catch (error) {
+    console.error("Error saving editor data:", error);
+    return { content: { blocks: [] }, images: [] };
+  }
 };
-
-defineExpose({ getEditorData });
-
+defineExpose({
+  getEditorData, // 부모 컴포넌트에서 호출할 수 있도록 노출
+  initializeEditor
+});
 </script>
 
 <style scoped>
@@ -175,16 +197,23 @@ defineExpose({ getEditorData });
   transform: none !important;
 }
 :deep(.ce-block__content) {
-  max-width: 1200px !important; /* 최대 폭을 1000px로 고정 */
+  max-width: 1000px !important; /* 최대 폭을 1000px로 고정 */
   margin: 0 auto; /* 내용 중앙 정렬 */
 }
 
 :deep(.ce-toolbar__content){
-  max-width: 1200px !important; /* 최대 폭을 1000px로 고정 */
+  max-width: 1000px !important; /* 최대 폭을 1000px로 고정 */
 }
+
+/* redactor 요소 스타일 제거 */
+:deep(.codex-editor__redactor) {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
 .case-editor {
   width: 100%; /* 전체 폭을 차지하도록 설정 */
-  max-width: 1400px; /* 원하는 최대 너비 설정 */
+  max-width: 1200px; /* 원하는 최대 너비 설정 */
   margin: 0 auto; /* 가운데 정렬 */
   padding: 20px;
   box-sizing: border-box;
