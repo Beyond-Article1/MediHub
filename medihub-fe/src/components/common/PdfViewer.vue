@@ -6,6 +6,7 @@ import * as pdfjsLib from 'pdfjs-dist';
 import Button from "@/components/common/button/Button.vue";
 import IconButton from "@/components/common/button/IconButton.vue";
 import DropBox from "@/components/common/SingleSelectDropBox.vue";
+import CpModal from "@/components/cp/CpModal.vue";
 
 // props 정의
 const props = defineProps({
@@ -22,97 +23,100 @@ const props = defineProps({
 // Web Worker 경로 설정
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
 
-const currentPage = ref(1); // 현재 페이지
-const totalPages = ref(0); // 총 페이지 수
-const pdfCanvas = ref(null); // PDF 캔버스 참조
-const isMarkerEnabled = ref(false); // 마커 활성 상태
-let isRendering = false; // 렌더링 중 상태
+const currentPage = ref(1);
+const totalPages = ref(0);
+const pdfCanvas = ref(null);
+const isMarkerEnabled = ref(false);
+let isRendering = false;
 
-const cpOpinionLocationList = ref([]); // 조회된 CP 의견 정보 위치 리스트
-const cpVersionList = ref([]); // 조회된 CP 버전 리스트
-const fetchedCpVersionList = ref([]); // 조회된 CP 버전 정보 리스트
-const selectedCpVersion = ref(''); // 선택된 CP 버전 정보 (단일 값으로 변경)
-const isOpen = ref(false); // 드롭다운 열림 상태
+const cpOpinionLocationList = ref([]);
+const cpVersionList = ref([]);
+const fetchedCpVersionList = ref([]);
+const selectedCpVersion = ref('');
+const isOpen = ref(false);
+const isModalVisible = ref(false);
+const clickedMarkerData = ref({x: null, y: null, cpOpinionLocationSeq: null}); // 기본값 설정
+const existingMarkers = ref([]); // 이미 추가된 마커 목록
 
-// 마운트 함수
 onMounted(async () => {
   pdfCanvas.value = document.getElementById('pdf-canvas');
   fetchCpOpinionLocationData();
   fetchCpVersion();
 });
 
-// pdfUrl 변경 시 PDF 로드
 watch(() => props.pdfUrl, async (newUrl) => {
   if (newUrl) {
-    currentPage.value = 1; // 페이지 초기화
-    await loadPage(newUrl); // 새로운 URL로 PDF 로드
-    setMarkerOnPDF(); // 마커를 마킹
+    currentPage.value = 1;
+    await loadPage(newUrl);
+    pdfCanvas.value.addEventListener('click', handlePdfClick);
+    setMarkerOnPDF();
   }
 });
 
-watch(() => props.cpVersion, async (newCpVersion) => {
-  if (newCpVersion) {
-    console.log("props 전달됨.");
-    selectedCpVersion.value = newCpVersion;
-  }
-});
-
-// currentPage 변경 시 PDF 로드
 watch(currentPage, async () => {
-  if (props.pdfUrl) { // pdfUrl이 유효한지 확인
-    await loadPage(props.pdfUrl); // 현재 페이지에 맞는 PDF 로드
-    setMarkerOnPDF(); // 등록된 의견 위치 확인
+  if (props.pdfUrl) {
+    await loadPage(props.pdfUrl);
+    setMarkerOnPDF();
   }
 });
 
 // 클릭 이벤트 핸들러 정의
 const handlePdfClick = (event) => {
   const rect = pdfCanvas.value.getBoundingClientRect();
-  const x = event.offsetX - rect.left; // 클릭된 X 좌표
-  const y = event.offsetY - rect.top; // 클릭된 Y 좌표
+  const x = event.offsetX;
+  const y = event.offsetY;
 
-  addMarker(x, y);
+  // 클릭된 위치에 마커가 이미 있는지 확인
+  const isMarkerExists = existingMarkers.value.some(marker => {
+    return Math.abs(marker.x - x) < 10 && Math.abs(marker.y - y) < 15; // 10px 이내에 마커가 있는지 확인
+  });
+
+  if (isMarkerExists) {
+    clickedMarkerData.value = {x, y, cpOpinionLocationSeq: -1}; // 추가 데이터 설정 가능
+    console.log("마커가 존재하는 위치입니다. 모달을 엽니다.");
+    isModalVisible.value = true; // 모달 열기
+  } else {
+    if (isMarkerEnabled.value) {
+      addMarker(x, y);
+      existingMarkers.value.push({x, y}); // 마커 목록에 추가
+
+      // 클릭된 마커에 대한 데이터 설정
+      clickedMarkerData.value = {x, y, cpOpinionLocationSeq: -1}; // 추가 데이터 설정 가능
+      isModalVisible.value = true; // 모달 열기
+    }
+  }
 };
 
 // isMarkerEnabled 변경 시 마커 기능 활성화
-watch(isMarkerEnabled, (newValue) => {
-  console.log(`마커 기능 ${newValue ? '활성화' : '비활성화'}`);
-
-  if (newValue) {
-    // PDF 클릭 이벤트 리스너 추가
-    pdfCanvas.value.addEventListener('click', handlePdfClick);
-  } else {
-    // 이벤트 제거
-    pdfCanvas.value.removeEventListener('click', handlePdfClick);
-  }
-});
+// watch(isMarkerEnabled, (newValue) => {
+//   if (newValue) {
+//     pdfCanvas.value.addEventListener('click', handlePdfClick);
+//   } else {
+//     pdfCanvas.value.removeEventListener('click', handlePdfClick);
+//   }
+// });
 
 // PDF 위에 마커 마킹 함수
 function setMarkerOnPDF() {
-  // 현재 페이지와 마커 데이터가 비어 있지 않은지 확인
   if (cpOpinionLocationList.value.length > 0) {
-    const ctx = pdfCanvas.value.getContext('2d'); // 캔버스의 2D 컨텍스트 가져오기
+    const ctx = pdfCanvas.value.getContext('2d');
 
     cpOpinionLocationList.value.forEach(location => {
       const {cpOpinionLocationPageNum, cpOpinionLocationX, cpOpinionLocationY} = location;
 
-      // 현재 페이지와 마커의 페이지 번호가 일치하는지 확인
       if (cpOpinionLocationPageNum === currentPage.value) {
-        console.log("등록된 마커를 표시합니다.");
         const markerImage = new Image();
-        markerImage.src = '/icons/marker.png'; // 마커 이미지 경로
+        markerImage.src = '/icons/marker.png';
 
         markerImage.onload = () => {
-          const markerWidth = markerImage.width / 14; // 마커 크기 조정
-          const markerHeight = markerImage.height / 14; // 마커 크기 조정
+          const markerWidth = markerImage.width / 14;
+          const markerHeight = markerImage.height / 14;
 
-          // 클릭된 위치에 이미지 중심을 맞추기 위해 좌표 조정
           ctx.drawImage(markerImage,
-              cpOpinionLocationX - (markerWidth
-                  / 2),
+              cpOpinionLocationX - (markerWidth / 2),
               cpOpinionLocationY - (markerHeight / 2),
               markerWidth,
-              markerHeight); // 지정된 위치에 마커 이미지 추가
+              markerHeight);
         };
       }
     });
@@ -122,88 +126,80 @@ function setMarkerOnPDF() {
 // 페이지 로드 함수
 async function loadPage(pdfUrlToLoad) {
   if (!pdfUrlToLoad) {
-    console.error("PDF URL이 제공되지 않았습니다."); // URL 확인
+    console.error("PDF URL이 제공되지 않았습니다.");
     return;
   }
 
-  if (isRendering) return; // 이미 렌더링 중이면 무시
+  if (isRendering) return;
 
-  isRendering = true; // 렌더링 시작
+  isRendering = true;
   try {
-    const pdf = await pdfjsLib.getDocument(pdfUrlToLoad).promise; // PDF 문서 가져오기
-    totalPages.value = pdf.numPages; // 총 페이지 수 가져오기
-    const page = await pdf.getPage(currentPage.value); // 현재 페이지 가져오기
+    const pdf = await pdfjsLib.getDocument(pdfUrlToLoad).promise;
+    totalPages.value = pdf.numPages;
+    const page = await pdf.getPage(currentPage.value);
     const viewport = page.getViewport({scale: 1});
 
-    pdfCanvas.value.width = viewport.width; // 캔버스 너비 설정
-    pdfCanvas.value.height = viewport.height; // 캔버스 높이 설정
+    pdfCanvas.value.width = viewport.width;
+    pdfCanvas.value.height = viewport.height;
 
     const renderContext = {
-      canvasContext: pdfCanvas.value.getContext('2d'), // 2D 컨텍스트 가져오기
-      viewport: viewport, // 뷰포트 설정
+      canvasContext: pdfCanvas.value.getContext('2d'),
+      viewport: viewport,
     };
 
-    await page.render(renderContext).promise; // 페이지 렌더링
+    await page.render(renderContext).promise;
   } catch (error) {
     console.error("PDF 로드 중 오류 발생:", error);
   } finally {
-    isRendering = false; // 렌더링 완료
+    isRendering = false;
   }
 }
 
 // 마커 추가 함수
 function addMarker(x, y) {
   const markerImage = new Image();
-  markerImage.src = '/icons/marker.png'; // 마커 이미지 경로
+  markerImage.src = '/icons/marker.png';
 
   markerImage.onload = () => {
     const ctx = pdfCanvas.value.getContext('2d');
 
-    const markerWidth = markerImage.width / 14; // 마커 크기 조정
-    const markerHeight = markerImage.height / 14; // 마커 크기 조정
+    const markerWidth = markerImage.width / 14;
+    const markerHeight = markerImage.height / 14;
 
-    // 클릭된 위치에 이미지 중심을 맞추기 위해 좌표 조정
     ctx.drawImage(markerImage,
         x - (markerWidth / 2),
         y - (markerHeight / 2),
         markerWidth,
-        markerHeight); // 클릭된 위치에 이미지 추가
+        markerHeight);
   };
 }
 
 function goToPreviousPage() {
   if (currentPage.value > 1) {
-    currentPage.value--; // 페이지 감소
+    currentPage.value--;
   }
 }
 
 function goToNextPage() {
   if (currentPage.value < totalPages.value) {
-    currentPage.value++; // 페이지 증가
+    currentPage.value++;
   }
 }
 
-// 마커 활성 함수
 function handleMakerToggle() {
-  console.log("handleMakerToggle()")
   isMarkerEnabled.value = !isMarkerEnabled.value;
-  console.log("isMarkerEnabled.value = " + isMarkerEnabled.value)
 }
 
-// 확인용 함수 수정해야함
 function handleButtonClick(text) {
   console.log(`${text} 클릭`);
 }
 
-// 데이터 호출 함수
 async function fetchCpOpinionLocationData() {
   try {
     const response = await axios.get(`cp/${useRoute().params.cpVersionSeq}/cpOpinionLocation`);
 
     if (response.status === 200) {
-      console.log("CP 의견 위치 조회 성공");
-      cpOpinionLocationList.value = response.data.data; // 데이터 저장
-      console.log(cpOpinionLocationList.value);
+      cpOpinionLocationList.value = response.data.data;
     } else {
       console.log("CP 의견 위치 조회 실패");
     }
@@ -212,22 +208,16 @@ async function fetchCpOpinionLocationData() {
   }
 }
 
-// 데이터 호출 함수
 async function fetchCpVersion() {
   try {
     const response = await axios.get(`cp/${useRoute().params.cpVersionSeq}/cpVersion`);
 
     if (response.status === 200) {
-      console.log("CP 버전 조회 성공");
-      cpVersionList.value = response.data.data; // 데이터 저장
-      console.log(cpVersionList.value);
+      cpVersionList.value = response.data.data;
       selectedCpVersion.value = props.data.cpVersion;
       cpVersionList.value.forEach(item => {
         fetchedCpVersionList.value.push(item.cpVersion);
       });
-      console.log("props")
-      console.log("추출된 버전들");
-      console.log(fetchedCpVersionList.value);
     } else {
       console.log("CP 버전 조회 실패");
     }
@@ -236,6 +226,7 @@ async function fetchCpVersion() {
   }
 }
 </script>
+
 
 <template>
   <div class="container">
@@ -266,6 +257,7 @@ async function fetchCpVersion() {
         <Button @click="goToNextPage" :isDisabled="currentPage >= totalPages">다음 페이지</Button>
       </div>
     </div>
+
     <div class="dropdown-container">
       <DropBox
           :options="fetchedCpVersionList"
@@ -276,6 +268,20 @@ async function fetchCpVersion() {
           @update:isOpen="isOpen = $event"
       />
     </div>
+
+    <CpModal :isVisible="isModalVisible" @close="isModalVisible = false"
+             :x="clickedMarkerData.x"
+             :y="clickedMarkerData.y"
+             :cpOpinionLocationSeq="clickedMarkerData.cpOpinionLocationSeq">
+      <div>
+        <h3>마커 정보</h3>
+        <p>위치: ({{ clickedMarkerData.x }}, {{ clickedMarkerData.y }})</p>
+        <p>추가적인 정보를 여기에 표시합니다.</p>
+        <ul>
+          <li v-for="(opinion, index) in cpOpinionLocationList" :key="index">{{ opinion }}</li>
+        </ul>
+      </div>
+    </CpModal>
   </div>
 </template>
 
