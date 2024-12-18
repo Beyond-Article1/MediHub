@@ -3,7 +3,13 @@
 </script>
 
 <template>
-<h1>조직도</h1>
+  <div class="chat-header">
+    <h2>조직도</h2>
+  </div>
+
+  <div class="organization-content">
+
+  </div>
 </template>
 
 <style scoped>

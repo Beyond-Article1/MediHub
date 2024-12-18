@@ -3,7 +3,13 @@
 </script>
 
 <template>
-<h1>파일함</h1>
+  <div class="chat-header">
+    <h2>파일함</h2>
+  </div>
+
+  <div class="filebox-content">
+
+  </div>
 </template>
 
 <style scoped>
