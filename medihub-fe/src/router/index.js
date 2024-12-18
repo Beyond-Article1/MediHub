@@ -7,6 +7,7 @@ import loginRouter from "@/router/loginRouter.js";
 import mainRouter from "@/router/mainRouter.js";
 import medicalLifeRouter from "@/router/medicalLifeRouter.js";
 import userRouter from "@/router/userRouter.js";
+import testRouter from "@/router/testRouter.js";
 
 const routes = [
 
@@ -27,6 +28,7 @@ const routes = [
 
     ...userRouter,
 
+    ...testRouter,
 ]
 
 const router = createRouter({
