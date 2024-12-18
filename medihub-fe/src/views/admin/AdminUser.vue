@@ -1,7 +1,12 @@
 <template>
   <div class="container mt-5">
-    <!-- 제목 -->
-    <h3 class="fw-bold mb-4 text-center">의료진</h3>
+    <!-- 상단 타이틀과 회원 등록 버튼 -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h3 class="fw-bold">의료진</h3>
+      <button class="btn btn-primary" @click="registerUser">
+        <span class="material-icons me-1">person_add</span> 회원 등록
+      </button>
+    </div>
     <LineDivider />
 
     <!-- 사용자 카드 -->
@@ -12,28 +17,20 @@
           :key="user.userEmail"
       >
         <div class="user-card position-relative">
-          <!-- 북마크 버튼 (오른쪽 위) -->
-          <BookmarkButton
-              class="bookmark-button"
-              :isFavorite="favorites.includes(user.userEmail)"
-              @click="toggleFavorite(user.userEmail)"
-          />
-
           <!-- 프로필 이미지 -->
           <div class="profile-image">
             <img
                 :src="user.profileImage || defaultImage"
                 alt="Profile"
-                class="rounded-circle"
             />
           </div>
 
           <!-- 사용자 정보 -->
           <div class="user-info">
             <h4 class="fw-bold mb-2">{{ user.userName }}</h4>
-            <p class="mb-1 text-muted fs-5">{{ user.userPhone }}</p>
-            <p class="mb-1 fs-5">{{ user.partName }}</p>
-            <p class="fw-bold mb-0 fs-5">{{ user.rankingName }}</p>
+            <p class="mb-1">{{ user.partName }}</p>
+            <p class="mb-1">{{ user.userEmail }}</p>
+            <p class="fw-bold mb-0">{{ user.userPhone }}</p>
           </div>
         </div>
       </div>
@@ -53,22 +50,21 @@
 import { ref, computed, onMounted } from "vue";
 import Pagenation from "@/components/common/Pagenation.vue";
 import LineDivider from "@/components/common/LineDivider.vue";
-import BookmarkButton from "@/components/common/button/BookmarkButton.vue";
 import axios from "axios";
 
-const users = ref([]);
-const favorites = ref([]);
-const defaultImage = "https://via.placeholder.com/150";
+// 상태 변수
+const users = ref([]); // 사용자 목록
+const defaultImage = "https://via.placeholder.com/120"; // 기본 이미지
 
-
+// 페이지네이션 상태
 const currentPage = ref(1);
 const itemsPerPage = 6;
 const totalUsers = ref(0);
 
-
+// API에서 사용자 데이터 불러오기
 const fetchUsers = async () => {
   try {
-    const response = await axios.get(`/api/v1/admin/users`, {
+    const response = await axios.get(`/api/v1/users/allUser`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
@@ -80,22 +76,21 @@ const fetchUsers = async () => {
   }
 };
 
+// 현재 페이지에 보여질 사용자 계산
 const paginatedUsers = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage; // 시작 인덱스
-  const end = start + itemsPerPage; // 종료 인덱스
+  const start = (currentPage.value - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
   return users.value.slice(start, end);
 });
 
+// 페이지 변경 이벤트
 const changePage = (page) => {
-  currentPage.value = page; // 현재 페이지 변경
+  currentPage.value = page;
 };
 
-const toggleFavorite = (email) => {
-  if (favorites.value.includes(email)) {
-    favorites.value = favorites.value.filter((fav) => fav !== email);
-  } else {
-    favorites.value.push(email);
-  }
+// 회원 등록 버튼 클릭 이벤트
+const registerUser = () => {
+  alert("회원 등록 기능이 준비 중입니다!");
 };
 
 onMounted(() => {
@@ -104,56 +99,69 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 컨테이너 */
 .container {
   max-width: 1000px;
 }
 
+/* 상단 버튼 스타일 */
+button.btn-primary {
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  padding: 8px 16px;
+}
+
+button.btn-primary .material-icons {
+  font-size: 1.2rem;
+}
+
+/* 사용자 카드 */
 .user-card {
-  background-color: #f8f9fa;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 25px;
   display: flex;
   align-items: center;
   gap: 20px;
-  position: relative;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   height: 170px;
 }
 
+/* 프로필 이미지 */
 .profile-image img {
   width: 120px;
   height: 120px;
   border-radius: 50%;
   object-fit: cover;
   background-color: #eaeaea;
+  border: 2px solid #ccc;
+}
+
+/* 사용자 정보 네모 박스 */
+.user-info {
+  flex-grow: 1;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .user-info h4 {
   font-size: 1.5rem;
+  color: #333;
   margin-bottom: 10px;
 }
 
 .user-info p {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
+  color: #555;
 }
 
-.bookmark-button {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 1.8rem;
-  color: #999;
-}
-
-.bookmark-button:hover {
-  color: #f39c12;
-}
-
+/* 버튼 및 간격 조정 */
 .row {
   margin-left: 0;
   margin-right: 0;
