@@ -42,13 +42,13 @@ onMounted(async () => {
   pdfCanvas.value = document.getElementById('pdf-canvas');
   fetchCpOpinionLocationData();
   fetchCpVersion();
+  pdfCanvas.value.addEventListener('click', handlePdfClick);
 });
 
 watch(() => props.pdfUrl, async (newUrl) => {
   if (newUrl) {
     currentPage.value = 1;
     await loadPage(newUrl);
-    pdfCanvas.value.addEventListener('click', handlePdfClick);
     setMarkerOnPDF();
   }
 });
