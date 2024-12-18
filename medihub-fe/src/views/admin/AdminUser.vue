@@ -12,9 +12,9 @@
           >
             <i
                 :class="{
-                'bi bi-chevron-down': dept.deptSeq === openDept,
-                'bi bi-chevron-right': dept.deptSeq !== openDept,
-              }"
+                  'bi bi-chevron-down': dept.deptSeq === openDept,
+                  'bi bi-chevron-right': dept.deptSeq !== openDept,
+                }"
             ></i>
             {{ dept.deptName }}
           </div>
@@ -32,6 +32,13 @@
           </ul>
         </li>
       </ul>
+
+      <!-- 부서 관리 버튼 -->
+      <div class="text-center mt-3">
+        <button class="btn btn-sm btn-secondary" @click="goToManageDepartments">
+          <i class="bi bi-gear"></i> 부서 관리
+        </button>
+      </div>
     </div>
 
     <!-- 오른쪽 컨텐츠: 사용자 목록 -->
@@ -60,7 +67,8 @@
               <img :src="user.profileImage || defaultImage" alt="Profile" />
             </div>
             <div class="user-info">
-              <h4>{{ user.userName }}</h4>
+              <!-- 이름 + 직급 표시 -->
+              <h4>{{ user.userName }} <small class="text-muted">({{ user.rankingName }})</small></h4>
               <p>{{ user.partName }}</p>
               <p>{{ user.userEmail }}</p>
               <p>{{ user.userPhone }}</p>
@@ -79,6 +87,7 @@
     </div>
   </div>
 </template>
+
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
@@ -87,19 +96,18 @@ import LineDivider from "@/components/common/LineDivider.vue";
 import axios from "axios";
 
 const router = useRouter();
-const users = ref([]); // 전체 사용자 목록
-const departments = ref([]); // 부서 목록
-const parts = ref([]); // 과 목록
+const users = ref([]);
+const departments = ref([]);
+const parts = ref([]);
 const currentPage = ref(1);
 const itemsPerPage = 6;
 const defaultImage = "https://via.placeholder.com/120";
 
-const selectedDeptName = ref(""); // 선택된 부서 이름
-const selectedPartName = ref(""); // 선택된 과 이름
-const selectedPartSeq = ref(null); // 선택된 과 Seq
-const openDept = ref(null); // 현재 열린 부서 Seq
+const selectedDeptName = ref("");
+const selectedPartName = ref("");
+const selectedPartSeq = ref(null);
+const openDept = ref(null);
 
-// 부서 및 과 데이터 가져오기
 const fetchDepartmentsAndParts = async () => {
   try {
     const [deptRes, partRes, userRes] = await Promise.all([
@@ -117,7 +125,6 @@ const fetchDepartmentsAndParts = async () => {
   }
 };
 
-// 부서 선택 (토글)
 const toggleDept = (deptSeq, deptName) => {
   openDept.value = openDept.value === deptSeq ? null : deptSeq;
   selectedDeptName.value = deptName;
@@ -126,19 +133,16 @@ const toggleDept = (deptSeq, deptName) => {
   currentPage.value = 1;
 };
 
-// 과 선택
 const selectPart = (partSeq, partName) => {
   selectedPartSeq.value = partSeq;
   selectedPartName.value = partName;
   currentPage.value = 1;
 };
 
-// 과 필터링 (deptSeq 기준)
 const filteredParts = computed(() => {
   return parts.value.filter((part) => part.deptSeq === openDept.value);
 });
 
-// 사용자 필터링
 const filteredUsers = computed(() => {
   return users.value.filter((user) => {
     const matchesDept = !selectedDeptName.value || user.deptName === selectedDeptName.value;
@@ -147,7 +151,6 @@ const filteredUsers = computed(() => {
   });
 });
 
-// 페이지네이션 데이터
 const paginatedUsers = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
   return filteredUsers.value.slice(start, start + itemsPerPage);
@@ -159,6 +162,7 @@ const changePage = (page) => {
 
 const registerUser = () => router.push("/CreateUser");
 const goToDetail = (userSeq) => router.push({ name: "AdminUserDetail", params: { userSeq } });
+const goToManageDepartments = () => router.push("/PartManage"); // 수정된 라우터 경로
 
 onMounted(fetchDepartmentsAndParts);
 </script>
@@ -203,7 +207,7 @@ onMounted(fetchDepartmentsAndParts);
   padding: 20px;
 }
 
-button.btn-primary {
+button.btn-primary, button.btn-secondary {
   display: flex;
   align-items: center;
   font-size: 1rem;
@@ -245,4 +249,3 @@ button.btn-primary {
   color: #555;
 }
 </style>
-
