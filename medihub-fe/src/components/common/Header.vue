@@ -91,6 +91,9 @@ function moveToItem(menu) {
     case 'anonymous':
       route = '/anonymous';
       break;
+    case 'cp':
+      route = '/cp';
+      break;
     default:
       route = '/';
       break;
