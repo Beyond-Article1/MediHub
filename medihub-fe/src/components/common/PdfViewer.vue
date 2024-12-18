@@ -4,7 +4,8 @@ import axios from "axios";
 import {useRoute} from "vue-router";
 import * as pdfjsLib from 'pdfjs-dist';
 import Button from "@/components/common/button/Button.vue";
-import IconButton from "@/components/common/button/IconButton.vue"; // MiniButton 임포트
+import IconButton from "@/components/common/button/IconButton.vue";
+import DropBox from "@/components/common/DropBox.vue"; // MiniButton 임포트
 
 const props = defineProps({
   data: {
@@ -27,11 +28,13 @@ const isMarkerEnabled = ref(false); // 마커 활성 상태
 let isRendering = false; // 렌더링 중 상태
 
 const cpOpinionLocationList = ref([]);
+const cpVersionList = ref([]);
 
 // PDF 클릭 이벤트 리스너 추가
 onMounted(async () => {
   pdfCanvas.value = document.getElementById('pdf-canvas');
-  fetchData();
+  // fetchCpOpinionLocationData();
+  fetchCpVersion();
 });
 
 // pdfUrl 변경 시 PDF 로드
@@ -181,9 +184,8 @@ function handleButtonClick(text) {
 }
 
 // 데이터 호출 함수
-async function fetchData() {
+async function fetchCpOpinionLocationData() {
   try {
-
     const response = await axios.get(`cp/${useRoute().params.cpVersionSeq}/cpOpinionLocation`);
 
     if (response.status === 200) {
@@ -197,25 +199,31 @@ async function fetchData() {
     console.error("예기치 못한 오류가 발생했습니다. 에러: ", error);
   }
 }
+
+// 데이터 호출 함수
+async function fetchCpVersion() {
+  try {
+    const response = await axios.get(`cp/${useRoute().params.cpVersionSeq}/cpVersion`);
+
+    if (response.status === 200) {
+      console.log("CP 버전 조회 성공");
+      cpVersionList.value = response.data.data; // 데이터 저장
+      console.log(cpVersionList.value);
+    } else {
+      console.log("CP 버전 조회 실패");
+    }
+  } catch (error) {
+    console.error("예기치 못한 오류가 발생했습니다. 에러: ", error);
+  }
+}
 </script>
 
 <template>
   <div class="container">
-    <div class="button-container">
-      <template v-if="isMarkerEnabled">
-        <IconButton class="mini-button active-button" iconClass="bi bi-pencil" @click="handleMakerToggle"/>
-      </template>
-      <template v-else>
-        <IconButton class="mini-button" iconClass="bi bi-pencil" @click="handleMakerToggle"/>
-      </template>
-      <IconButton class="mini-button" iconClass="bi bi-file-earmark-arrow-down"
-                  :onClick="() => handleButtonClick('button2')"/>
-      <IconButton class="mini-button" iconClass="bi bi-calendar2-x" :onClick="() => handleButtonClick('button3')"/>
-      <IconButton class="mini-button" iconClass="bi bi-bookmark" :onClick="() => handleButtonClick('button4')"/>
-      <IconButton class="mini-button" iconClass="bi bi-plus-circle" :onClick="() => handleButtonClick('button5')"/>
-      <IconButton class="mini-button" iconClass="bi bi-dash-circle" :onClick="() => handleButtonClick('button6')"/>
-    </div>
     <div class="pdf-viewer-container">
+      <div class="dropdown-container">
+        <!--        <DropBox :options="versions" v-model="selectedVersion" @change="handleVersionChange"/>-->
+      </div>
       <canvas id="pdf-canvas" class="pdf-canvas"></canvas>
       <span class="pagination-container">{{ currentPage }} / {{ totalPages }}</span>
       <div class="navigation-buttons">
@@ -223,11 +231,33 @@ async function fetchData() {
         <Button @click="goToNextPage" :isDisabled="currentPage >= totalPages">다음 페이지</Button>
       </div>
     </div>
+    <div>
+      <div class="button-container">
+        <template v-if="isMarkerEnabled">
+          <IconButton class="mini-button active-button" iconClass="bi bi-pencil" @click="handleMakerToggle"/>
+        </template>
+        <template v-else>
+          <IconButton class="mini-button" iconClass="bi bi-pencil" @click="handleMakerToggle"/>
+        </template>
+        <IconButton class="mini-button" iconClass="bi bi-file-earmark-arrow-down"
+                    :onClick="() => handleButtonClick('button2')"/>
+        <IconButton class="mini-button" iconClass="bi bi-calendar2-x" :onClick="() => handleButtonClick('button3')"/>
+        <IconButton class="mini-button" iconClass="bi bi-bookmark" :onClick="() => handleButtonClick('button4')"/>
+        <IconButton class="mini-button" iconClass="bi bi-plus-circle" :onClick="() => handleButtonClick('button5')"/>
+        <IconButton class="mini-button" iconClass="bi bi-dash-circle" :onClick="() => handleButtonClick('button6')"/>
+      </div>
+    </div>
   </div>
 </template>
 
-
 <style scoped>
+.dropdown-container {
+  position: absolute; /* 절대 위치 지정 */
+  top: 20px; /* 상단에서의 거리 */
+  right: 20px; /* 오른쪽에서의 거리 */
+  z-index: 10; /* 다른 요소 위에 표시되도록 */
+}
+
 .active-button {
   background-color: var(--symbol-yellow); /* 노란색 배경 설정 */
 }
