@@ -5,8 +5,9 @@ import {useRoute} from "vue-router";
 import * as pdfjsLib from 'pdfjs-dist';
 import Button from "@/components/common/button/Button.vue";
 import IconButton from "@/components/common/button/IconButton.vue";
-import DropBox from "@/components/common/DropBox.vue"; // MiniButton 임포트
+import DropBox from "@/components/common/SingleSelectDropBox.vue";
 
+// props 정의
 const props = defineProps({
   data: {
     type: Object,
@@ -27,13 +28,16 @@ const pdfCanvas = ref(null); // PDF 캔버스 참조
 const isMarkerEnabled = ref(false); // 마커 활성 상태
 let isRendering = false; // 렌더링 중 상태
 
-const cpOpinionLocationList = ref([]);
-const cpVersionList = ref([]);
+const cpOpinionLocationList = ref([]); // 조회된 CP 의견 정보 위치 리스트
+const cpVersionList = ref([]); // 조회된 CP 버전 리스트
+const fetchedCpVersionList = ref([]); // 조회된 CP 버전 정보 리스트
+const selectedCpVersion = ref(''); // 선택된 CP 버전 정보 (단일 값으로 변경)
+const isOpen = ref(false); // 드롭다운 열림 상태
 
-// PDF 클릭 이벤트 리스너 추가
+// 마운트 함수
 onMounted(async () => {
   pdfCanvas.value = document.getElementById('pdf-canvas');
-  // fetchCpOpinionLocationData();
+  fetchCpOpinionLocationData();
   fetchCpVersion();
 });
 
@@ -42,7 +46,14 @@ watch(() => props.pdfUrl, async (newUrl) => {
   if (newUrl) {
     currentPage.value = 1; // 페이지 초기화
     await loadPage(newUrl); // 새로운 URL로 PDF 로드
-    setMarkerOnPDF();       // 마커를 마킹
+    setMarkerOnPDF(); // 마커를 마킹
+  }
+});
+
+watch(() => props.cpVersion, async (newCpVersion) => {
+  if (newCpVersion) {
+    console.log("props 전달됨.");
+    selectedCpVersion.value = newCpVersion;
   }
 });
 
@@ -50,7 +61,7 @@ watch(() => props.pdfUrl, async (newUrl) => {
 watch(currentPage, async () => {
   if (props.pdfUrl) { // pdfUrl이 유효한지 확인
     await loadPage(props.pdfUrl); // 현재 페이지에 맞는 PDF 로드
-    setMarkerOnPDF();             // 등록된 의견 위치 확인
+    setMarkerOnPDF(); // 등록된 의견 위치 확인
   }
 });
 
@@ -97,7 +108,8 @@ function setMarkerOnPDF() {
 
           // 클릭된 위치에 이미지 중심을 맞추기 위해 좌표 조정
           ctx.drawImage(markerImage,
-              cpOpinionLocationX - (markerWidth / 2),
+              cpOpinionLocationX - (markerWidth
+                  / 2),
               cpOpinionLocationY - (markerHeight / 2),
               markerWidth,
               markerHeight); // 지정된 위치에 마커 이미지 추가
@@ -209,6 +221,13 @@ async function fetchCpVersion() {
       console.log("CP 버전 조회 성공");
       cpVersionList.value = response.data.data; // 데이터 저장
       console.log(cpVersionList.value);
+      selectedCpVersion.value = props.data.cpVersion;
+      cpVersionList.value.forEach(item => {
+        fetchedCpVersionList.value.push(item.cpVersion);
+      });
+      console.log("props")
+      console.log("추출된 버전들");
+      console.log(fetchedCpVersionList.value);
     } else {
       console.log("CP 버전 조회 실패");
     }
@@ -220,10 +239,26 @@ async function fetchCpVersion() {
 
 <template>
   <div class="container">
+    <div class="button-container">
+      <template v-if="isMarkerEnabled">
+        <IconButton class="mini-button active-button" iconClass="bi bi-pencil" @click="handleMakerToggle"/>
+      </template>
+      <template v-else>
+        <IconButton class="mini-button" iconClass="bi bi-pencil" @click="handleMakerToggle"/>
+      </template>
+      <IconButton class="mini-button" iconClass="bi bi-file-earmark-arrow-down"
+                  @click="() => handleButtonClick('button2')"/>
+      <IconButton class="mini-button" iconClass="bi bi-calendar2-x"
+                  @click="() => handleButtonClick('button3')"/>
+      <IconButton class="mini-button" iconClass="bi bi-bookmark"
+                  @click="() => handleButtonClick('button4')"/>
+      <IconButton class="mini-button" iconClass="bi bi-plus-circle"
+                  @click="() => handleButtonClick('button5')"/>
+      <IconButton class="mini-button" iconClass="bi bi-dash-circle"
+                  @click="() => handleButtonClick('button6')"/>
+    </div>
+
     <div class="pdf-viewer-container">
-      <div class="dropdown-container">
-        <!--        <DropBox :options="versions" v-model="selectedVersion" @change="handleVersionChange"/>-->
-      </div>
       <canvas id="pdf-canvas" class="pdf-canvas"></canvas>
       <span class="pagination-container">{{ currentPage }} / {{ totalPages }}</span>
       <div class="navigation-buttons">
@@ -231,42 +266,20 @@ async function fetchCpVersion() {
         <Button @click="goToNextPage" :isDisabled="currentPage >= totalPages">다음 페이지</Button>
       </div>
     </div>
-    <div>
-      <div class="button-container">
-        <template v-if="isMarkerEnabled">
-          <IconButton class="mini-button active-button" iconClass="bi bi-pencil" @click="handleMakerToggle"/>
-        </template>
-        <template v-else>
-          <IconButton class="mini-button" iconClass="bi bi-pencil" @click="handleMakerToggle"/>
-        </template>
-        <IconButton class="mini-button" iconClass="bi bi-file-earmark-arrow-down"
-                    :onClick="() => handleButtonClick('button2')"/>
-        <IconButton class="mini-button" iconClass="bi bi-calendar2-x" :onClick="() => handleButtonClick('button3')"/>
-        <IconButton class="mini-button" iconClass="bi bi-bookmark" :onClick="() => handleButtonClick('button4')"/>
-        <IconButton class="mini-button" iconClass="bi bi-plus-circle" :onClick="() => handleButtonClick('button5')"/>
-        <IconButton class="mini-button" iconClass="bi bi-dash-circle" :onClick="() => handleButtonClick('button6')"/>
-      </div>
+    <div class="dropdown-container">
+      <DropBox
+          :options="fetchedCpVersionList"
+          :label="'다른 버전 선택'"
+          :modelValue="selectedCpVersion"
+          :isOpen="isOpen"
+          @update:modelValue="selectedCpVersion = $event"
+          @update:isOpen="isOpen = $event"
+      />
     </div>
   </div>
 </template>
 
 <style scoped>
-.dropdown-container {
-  position: absolute; /* 절대 위치 지정 */
-  top: 20px; /* 상단에서의 거리 */
-  right: 20px; /* 오른쪽에서의 거리 */
-  z-index: 10; /* 다른 요소 위에 표시되도록 */
-}
-
-.active-button {
-  background-color: var(--symbol-yellow); /* 노란색 배경 설정 */
-}
-
-.active-button:hover {
-  background-color: var(--symbol-yellow); /* 호버 시 배경색을 동일하게 유지 */
-  cursor: default; /* 포인터 커서로 변경하지 않음 */
-}
-
 .container {
   display: flex;
   height: 100vh; /* 전체 화면 높이 사용 */
@@ -288,8 +301,15 @@ async function fetchCpVersion() {
   display: flex;
   flex-direction: column;
   align-items: center; /* 수평 중앙 정렬 */
-  justify-content: center; /* 수직 중앙 정렬 */
+  justify-content: flex-start; /* 위쪽 정렬 */
   flex-grow: 1; /* 가능한 공간을 모두 차지하도록 설정 */
+  position: relative; /* 드롭다운을 절대 위치로 만들기 위해 상대 위치 설정 */
+  margin-left: 20px; /* 미니 버튼과의 간격 조정 */
+}
+
+.dropdown-container {
+  margin: 10px 0; /* 드롭박스와 PDF 뷰어 사이의 여백 */
+  z-index: 10; /* 다른 요소 위에 표시되도록 */
 }
 
 .pdf-canvas {
@@ -307,5 +327,14 @@ async function fetchCpVersion() {
   display: flex; /* 버튼을 가로로 배치 */
   justify-content: center; /* 버튼을 가운데 정렬 */
   margin-top: 10px; /* 위쪽 여백 */
+}
+
+.active-button {
+  background-color: var(--symbol-yellow); /* 노란색 배경 설정 */
+}
+
+.active-button:hover {
+  background-color: var(--symbol-yellow); /* 호버 시 배경색을 동일하게 유지 */
+  cursor: default; /* 포인터 커서로 변경하지 않음 */
 }
 </style>

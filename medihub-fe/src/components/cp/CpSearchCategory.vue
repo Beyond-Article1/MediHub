@@ -2,7 +2,7 @@
 import axios from "axios";
 import { computed, onMounted, ref } from "vue";
 import { useAuthStore } from "@/store/authStore.js";
-import DropBox from "@/components/common/DropBox.vue";
+import DropBox from "@/components/common/MultiSelectDropBox.vue";
 
 // 인증 스토어 초기화
 const authStore = useAuthStore();
