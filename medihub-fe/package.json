@@ -30,6 +30,7 @@
     "bootstrap-icons": "^1.11.3",
     "bootstrap-vue-3": "^0.5.1",
     "editorjs-text-color-plugin": "^2.0.4",
+    "event-source-polyfill": "^1.0.31",
     "html2canvas": "^1.4.1",
     "pdfjs-dist": "^4.9.155",
     "pinia": "^2.3.0",

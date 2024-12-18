@@ -46,7 +46,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
-import Pagination from '@/components/common/Pagenation.vue'; // 페이지네이션 컴포넌트 import
+import Pagination from '@/components/common/Pagination.vue'; // 페이지네이션 컴포넌트 import
 
 const templates = ref([]);
 const searchQuery = ref('');
