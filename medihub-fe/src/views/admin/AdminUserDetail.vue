@@ -57,7 +57,7 @@
         <div class="col-md-6 mb-3">
           <label for="partSeq" class="form-label">과</label>
           <select class="form-select" v-model="form.partSeq">
-            <option v-for="part in parts" :key="part.partSeq" :value="part.partSeq">
+            <option v-for="part in filteredParts" :key="part.partSeq" :value="part.partSeq">
               {{ part.partName }}
             </option>
           </select>
@@ -89,7 +89,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 
@@ -103,6 +103,11 @@ const parts = ref([]);
 const rankings = ref([]);
 const profileImage = ref(null);
 const profilePreview = ref("");
+
+// **과 필터링**: form.value.deptSeq에 맞는 과만 표시
+const filteredParts = computed(() => {
+  return parts.value.filter((part) => part.deptSeq === form.value.deptSeq);
+});
 
 // 프로필 이미지 업로드
 const handleImageUpload = (event) => {
@@ -122,8 +127,6 @@ const resetPassword = async () => {
   } catch (error) {
     console.error("비밀번호 초기화 실패:", error);
     alert("비밀번호 초기화에 실패했습니다.");
-
-
   }
 };
 
@@ -138,8 +141,8 @@ const fetchData = async () => {
 
     form.value = userRes.data.data;
     profilePreview.value = userRes.data.data.profileImage || "";
-    parts.value = partRes.data;
-    rankings.value = rankRes.data;
+    parts.value = partRes.data; // 전체 파트 데이터
+    rankings.value = rankRes.data; // 직급 데이터
   } catch (error) {
     console.error("데이터 불러오기 실패:", error);
     alert("회원 정보를 불러오는 데 실패했습니다.");
@@ -159,10 +162,10 @@ const submitForm = async () => {
 
   try {
     await axios.put(`/api/v1/admin/users/${userSeq}`, formData, {
-      headers: {"Content-Type": "multipart/form-data"},
+      headers: { "Content-Type": "multipart/form-data" },
     });
     alert("수정되었습니다.");
-    router.push({name: "AdminUser"}); // AdminUser 페이지로 이동
+    router.push({ name: "AdminUser" }); // AdminUser 페이지로 이동
   } catch (error) {
     console.error("수정 실패:", error);
     alert("수정에 실패했습니다. 다시 시도해주세요.");
