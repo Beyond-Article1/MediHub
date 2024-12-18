@@ -1,75 +1,35 @@
-<script setup>
-import {computed, nextTick, ref} from 'vue';
-import router from "@/router/index.js";
-import {useAuthStore} from "@/store/authStore.js";
-
-const store = useAuthStore();
-const isLogIn = 123; // 디자인 확인을 위해 임시값
-const isAdmin = computed(() => store.userRole === 'ADMIN');
-const selectedItem = ref(''); // 선택된 아이템
-
-const logout = async () => {
-  await store.logout();
-  deleteCookie('token');
-  await nextTick();
-  router.push('/');
-};
-
-function deleteCookie(name) {
-  document.cookie = `${name}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
-  if (document.domain) {
-    document.cookie = `${name}=; Path=/; Domain=${document.domain}; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
-  }
-}
-
-function moveToItem(move) {
-  selectedItem.value = move; // 선택된 아이템 업데이트
-  let item;
-  switch (move) {
-    case 'board':
-      alert("개발중입니다.");
-      item = '/';
-      break;
-    case 'cp':
-      item = '/cp';
-      break;
-    case 'journal':
-      alert("개발중입니다.");
-      item = '/';
-      break;
-    case 'member':
-      alert("개발중입니다.");
-      item = '/';
-      break;
-    case 'admin':
-      alert("개발중입니다.");
-      item = '/';
-      break;
-    default:
-      item = '/';
-      break;
-  }
-  router.push(`${item}`);
-}
-
-// 로고 클릭 시 실행
-function goToHome() {
-  selectedItem.value = ''; // 선택 초기화
-  router.push('/');
-}
-</script>
-
 <template>
   <div class="header-content">
+    <!-- 로고 -->
     <div class="logo" @click="goToHome">
-      <img src="../../assets/images/medihub2.png"  alt="어라라...?">
+      <img src="../../assets/images/medihub2.png" alt="Logo" />
     </div>
 
-    <!-- 로그인 상태일 때만 메뉴 항목 표시 -->
+    <!-- 메뉴 리스트 -->
     <div class="menu-list" v-if="isLogIn">
       <ul>
+        <!-- BOARDS 메뉴 -->
         <li
-            v-for="menu in ['board', 'cp', 'journal', 'member', 'admin']"
+            class="menu-item dropdown"
+            @mouseover="showDropdown = true"
+            @mouseleave="showDropdown = false"
+        >
+          BOARDS
+          <!-- 드롭다운 메뉴 -->
+          <ul v-if="showDropdown" class="dropdown-menu">
+            <li
+                v-for="item in dropdownItems"
+                :key="item.value"
+                @click="moveToItem(item)"
+            >
+              {{ item.label }}
+            </li>
+          </ul>
+        </li>
+
+        <!-- 다른 메뉴 -->
+        <li
+            v-for="menu in ['cp', 'journal', 'member', 'admin']"
             :key="menu"
             :class="{ active: selectedItem === menu }"
             @click="moveToItem(menu)"
@@ -91,26 +51,101 @@ function goToHome() {
   </div>
 </template>
 
+<script setup>
+import { ref, nextTick } from 'vue';
+import router from '@/router/index.js';
+import { useAuthStore } from '@/store/authStore.js';
+
+const store = useAuthStore();
+const isLogIn = 123;
+const selectedItem = ref('');
+const showDropdown = ref(false);
+
+const dropdownItems = [
+  { label: 'CASE SHARING', value: 'case_sharing' },
+  { label: 'MEDICAL LIFE', value: 'medical_life' },
+  { label: 'ANONYMOUS', value: 'anonymous' },
+];
+
+const logout = async () => {
+  await store.logout();
+  deleteCookie('token');
+  await nextTick();
+  router.push('/');
+};
+
+function deleteCookie(name) {
+  document.cookie = `${name}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+}
+
+function moveToItem(menu) {
+  selectedItem.value = menu.value || menu;
+  let route;
+  switch (menu.value || menu) {
+    case 'case_sharing':
+      route = '/case_sharing';
+      break;
+    case 'medical_life':
+      route = '/medical_life';
+      break;
+    case 'anonymous':
+      route = '/anonymous';
+      break;
+    default:
+      route = '/';
+      break;
+  }
+  if (route) {
+    router.push(route).catch((err) => {
+      if (err.name !== 'NavigationDuplicated') {
+        console.error('Router push error:', err);
+      }
+    });
+  }
+  // router.push(route);
+  window.location.replace(route);
+}
+
+function goToHome() {
+  selectedItem.value = '';
+  router.push('/');
+}
+</script>
+
 <style scoped>
+/* 헤더 컨테이너 스타일 */
 .header-content {
   display: flex;
-  justify-content: space-between; /* 양쪽 끝 정렬 */
-  align-items: center; /* 세로 중앙 정렬 */
-  background: linear-gradient(to bottom, #1A2F69, #3A4F89, #5A6FA9);
-  height: 100px; /* 헤더 높이 */
-  padding: 0 20px; /* 좌우 여백 */
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(to bottom, #1a2f69, #3a4f89, #5a6fa9);
+  height: 100px;
+  padding: 0 20px;
 }
 
 /* 로고 스타일 */
 .logo img {
   cursor: pointer;
-  height: 100px; /* 로고 높이 */
+  height: 100px;
 }
 
-/* 메뉴 리스트 */
+/* 메뉴 아이템 공통 스타일 */
+.menu-item {
+  position: relative;
+  color: white;
+  font-size: 1.4em;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.menu-item:hover {
+  color: #ffc653;
+}
+
+/* 메뉴 리스트 스타일 */
 .menu-list ul {
-  display: flex;
-  gap: 100px; /* 메뉴 간격 */
+  display: flex; /* 가로 정렬 */
+  gap: 150px; /* 메뉴 간격 조정 */
   margin: 0;
   padding: 0;
   list-style: none;
@@ -118,33 +153,65 @@ function goToHome() {
 
 .menu-list li {
   color: white;
-  font-size: 1.4em; /* 텍스트 크기 증가 */
+  font-size: 1.4em;
   font-weight: bold;
   cursor: pointer;
   transition: color 0.2s ease;
 }
 
 .menu-list li.active {
-  color: #FFC653; /* 활성 메뉴 색상 */
+  color: #ffc653;
 }
 
 .menu-list li:hover {
-  color: #FFC653; /* 호버 시 색상 변경 */
+  color: #ffc653;
 }
 
-/* 로그인/로그아웃 버튼 */
-.login-logout {
-  margin-right: 2%;
-  align-content: center;
-  font-size: 1.2em;
-  color: white;
-}
-
+/* 로그인/로그아웃 버튼 스타일 */
 .login-logout button {
   border: none;
-  background-color: rgb(0, 0, 0, 0);
+  background-color: transparent;
   font-size: 1.2em;
   font-weight: bold;
   color: white;
+  cursor: pointer;
 }
+
+
+/* 드롭다운 메뉴 스타일 강제 적용 - 임시방편...*/
+.dropdown-menu {
+  position: absolute !important;
+  top: 100% !important;
+  left: 50% !important;
+  transform: translateX(-50%);
+  display: block !important;
+  width: 180px !important;
+  background-color: white !important;
+  border: 1px solid #ddd !important;
+  border-radius: 4px !important;
+  padding: 0 !important;
+  margin-top: 0 !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+  list-style: none !important;
+  z-index: 9999 !important;
+}
+
+.dropdown-menu li {
+  display: block !important; /* 세로 정렬 */
+  padding: 20px 0px !important;
+  color: black !important;
+  font-size: 1em !important;
+  font-weight: normal !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s ease, color 0.2s ease !important;
+}
+
+.dropdown-menu li:hover {
+  background-color: #ffc653 !important; /* 호버 시 배경색 */
+  color: black !important; /* 호버 시 글자색 */
+  font-weight: bold !important;
+
+}
+
 </style>
