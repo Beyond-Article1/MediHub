@@ -47,6 +47,7 @@ import { reactive, ref } from "vue";
 import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "vue-router";
+import { useWebSocketStore } from "@/store/webSocket.js";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -119,6 +120,14 @@ const handleLogin = async () => {
       authStore.login(accessToken, refreshToken);
 
       console.log("로그인 성공: AccessToken, RefreshToken, UserSeq 저장 완료");
+      alert("로그인에 성공했습니다!");
+
+      // 로그인 후 웹소켓 연결
+      await useWebSocketStore().connectWebSocket();
+
+      // 채팅방 구독
+      await getUserChatrooms();
+
       router.push("/main");
 
   } catch (error) {
@@ -129,6 +138,29 @@ const handleLogin = async () => {
     loading.value = false;
   }
 };
+
+const getUserChatrooms = async () => {
+  try {
+    const response = await axios.get("/chatroom", {
+      headers: {
+        'Authorization': `Bearer ${authStore.accessToken}`,
+      }
+    });
+
+    const userChatrooms = response.data.data;  // 사용자 채팅방 리스트 받아오기
+    console.log("사용자가 참여한 채팅방 리스트:", userChatrooms);
+
+    userChatrooms.forEach((chatroom) => {
+      const chatroomSeq = chatroom.chatroomSeq;
+      // 채팅방 구독 요청
+      useWebSocketStore().subscribeChatroom(chatroomSeq);
+    });
+  } catch (error) {
+    console.error("채팅방 목록을 가져오는 데 실패했습니다:", error);
+    alert("채팅방 목록을 가져오는 데 실패했습니다. 다시 시도해주세요.");
+  }
+};
+
 </script>
 
 <style scoped>

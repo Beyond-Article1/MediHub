@@ -55,8 +55,10 @@
 import { ref, nextTick } from 'vue';
 import router from '@/router/index.js';
 import { useAuthStore } from '@/store/authStore.js';
+import { useWebSocketStore } from "@/store/webSocket.js";
 
 const store = useAuthStore();
+const webSocketStore = useWebSocketStore();
 const isLogIn = 123;
 const selectedItem = ref('');
 const showDropdown = ref(false);
@@ -68,6 +70,7 @@ const dropdownItems = [
 ];
 
 const logout = async () => {
+  await webSocketStore.disconnectWebSocket(); // 로그아웃 시, 웹소켓 연결 종료
   await store.logout();
   deleteCookie('token');
   await nextTick();
