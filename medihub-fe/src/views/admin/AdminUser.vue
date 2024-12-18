@@ -1,10 +1,9 @@
 <template>
   <div class="container mt-5">
-    <!-- 상단 타이틀과 회원 등록 버튼 -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h3 class="fw-bold">의료진</h3>
+      <h3 class="fw-bold"></h3>
       <button class="btn btn-primary" @click="registerUser">
-        <span class="material-icons me-1">person_add</span> 회원 등록
+        <i class="bi bi-person-plus"></i> 회원 등록
       </button>
     </div>
     <LineDivider />
@@ -14,29 +13,22 @@
       <div
           class="col-md-6 col-lg-6 mb-4"
           v-for="user in paginatedUsers"
-          :key="user.userEmail"
+          :key="user.userSeq"
       >
-        <div class="user-card position-relative">
-          <!-- 프로필 이미지 -->
+        <div class="user-card" @click="goToDetail(user.userSeq)">
           <div class="profile-image">
-            <img
-                :src="user.profileImage || defaultImage"
-                alt="Profile"
-            />
+            <img :src="user.profileImage || defaultImage" alt="Profile" />
           </div>
-
-          <!-- 사용자 정보 -->
           <div class="user-info">
-            <h4 class="fw-bold mb-2">{{ user.userName }}</h4>
-            <p class="mb-1">{{ user.partName }}</p>
-            <p class="mb-1">{{ user.userEmail }}</p>
-            <p class="fw-bold mb-0">{{ user.userPhone }}</p>
+            <h4>{{ user.userName }}</h4>
+            <p>{{ user.partName }}</p>
+            <p>{{ user.userEmail }}</p>
+            <p>{{ user.userPhone }}</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 페이지네이션 -->
     <Pagenation
         :totalData="totalUsers"
         :limitPage="itemsPerPage"
@@ -48,63 +40,56 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import Pagenation from "@/components/common/Pagenation.vue";
 import LineDivider from "@/components/common/LineDivider.vue";
 import axios from "axios";
 
-// 상태 변수
-const users = ref([]); // 사용자 목록
-const defaultImage = "https://via.placeholder.com/120"; // 기본 이미지
-
-// 페이지네이션 상태
+const router = useRouter();
+const users = ref([]);
 const currentPage = ref(1);
 const itemsPerPage = 6;
 const totalUsers = ref(0);
+const defaultImage = "https://via.placeholder.com/120";
 
-// API에서 사용자 데이터 불러오기
 const fetchUsers = async () => {
   try {
-    const response = await axios.get(`/api/v1/users/allUser`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
+    const response = await axios.get("/api/v1/admin/users", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
     });
-    users.value = response.data.data; // 사용자 데이터
-    totalUsers.value = users.value.length; // 전체 사용자 수
+    users.value = response.data.data;
+    totalUsers.value = users.value.length;
   } catch (error) {
-    console.error("회원 정보 조회 실패:", error);
+    console.error("데이터 불러오기 실패:", error);
   }
 };
 
-// 현재 페이지에 보여질 사용자 계산
 const paginatedUsers = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
   const end = start + itemsPerPage;
   return users.value.slice(start, end);
 });
 
-// 페이지 변경 이벤트
 const changePage = (page) => {
   currentPage.value = page;
 };
 
-// 회원 등록 버튼 클릭 이벤트
 const registerUser = () => {
-  alert("회원 등록 기능이 준비 중입니다!");
+  router.push("/CreateUser");
 };
 
-onMounted(() => {
-  fetchUsers();
-});
+const goToDetail = (userSeq) => {
+  router.push({ name: "AdminUserDetail", params: { userSeq } });
+};
+
+onMounted(fetchUsers);
 </script>
 
 <style scoped>
-/* 컨테이너 */
 .container {
   max-width: 1000px;
 }
 
-/* 상단 버튼 스타일 */
 button.btn-primary {
   display: flex;
   align-items: center;
@@ -116,7 +101,6 @@ button.btn-primary .material-icons {
   font-size: 1.2rem;
 }
 
-/* 사용자 카드 */
 .user-card {
   display: flex;
   align-items: center;
@@ -127,9 +111,14 @@ button.btn-primary .material-icons {
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   height: 170px;
+  cursor: pointer;
+  transition: transform 0.2s;
 }
 
-/* 프로필 이미지 */
+.user-card:hover {
+  transform: scale(1.02);
+}
+
 .profile-image img {
   width: 120px;
   height: 120px;
@@ -139,7 +128,6 @@ button.btn-primary .material-icons {
   border: 2px solid #ccc;
 }
 
-/* 사용자 정보 네모 박스 */
 .user-info {
   flex-grow: 1;
   background-color: #fff;
@@ -161,7 +149,6 @@ button.btn-primary .material-icons {
   color: #555;
 }
 
-/* 버튼 및 간격 조정 */
 .row {
   margin-left: 0;
   margin-right: 0;

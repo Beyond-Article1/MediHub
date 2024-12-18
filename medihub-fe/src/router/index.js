@@ -8,7 +8,6 @@ import mainRouter from "@/router/mainRouter.js";
 import medicalLifeRouter from "@/router/medicalLifeRouter.js";
 import userRouter from "@/router/userRouter.js";
 import adminRouter from "@/router/adminRouter.js";
-import adminCreateRouter from "@/router/adminCreateRouter.js";
 
 const routes = [
 
@@ -31,7 +30,7 @@ const routes = [
 
     ...adminRouter,
 
-    ...adminCreateRouter,
+
 
 
 ]

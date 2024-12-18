@@ -87,8 +87,11 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
+import { useRouter } from "vue-router";
 
-// 초기 상태
+const router = useRouter();
+
+
 const form = ref({
   userName: "",
   userId: "",
@@ -99,11 +102,11 @@ const form = ref({
   rankingSeq: "",
 });
 
-const selectedDeptSeq = ref(""); // 선택된 부서 ID
-const depts = ref([]); // 부서 목록
-const parts = ref([]); // 전체 과 목록
-const filteredParts = ref([]); // 선택된 부서의 과 목록
-const rankings = ref([]); // 직급 목록
+const selectedDeptSeq = ref("");
+const depts = ref([]);
+const parts = ref([]);
+const filteredParts = ref([]);
+const rankings = ref([]);
 const profileImage = ref(null);
 
 // 프로필 이미지 핸들러
@@ -111,17 +114,16 @@ const handleImageUpload = (event) => {
   profileImage.value = event.target.files[0];
 };
 
-// API로 부서, 과, 직급 데이터 불러오기
 const fetchMetadata = async () => {
   try {
     const [deptRes, partRes, rankRes] = await Promise.all([
-      axios.get("/api/v1/dept"), // 부서 목록
-      axios.get("/api/v1/part"), // 과 목록
-      axios.get("/api/v1/ranking"), // 직급 목록
+      axios.get("/api/v1/dept"),
+      axios.get("/api/v1/part"),
+      axios.get("/api/v1/ranking"),
     ]);
-    depts.value = deptRes.data; // 부서 데이터
-    parts.value = partRes.data; // 과 데이터
-    rankings.value = rankRes.data; // 직급 데이터
+    depts.value = deptRes.data;
+    parts.value = partRes.data;
+    rankings.value = rankRes.data;
   } catch (error) {
     console.error("메타데이터 가져오기 실패:", error);
   }
@@ -148,18 +150,29 @@ const submitForm = async () => {
       headers: { "Content-Type": "multipart/form-data" },
     });
     alert("등록 성공!");
+
+    router.push({ name: "AdminUser" });
   } catch (error) {
     console.error("등록 실패:", error);
     alert("등록 실패! 다시 시도해주세요.");
   }
 };
 
-// 폼 초기화
 const resetForm = () => {
-  form.value = { userName: "", userId: "", userPassword: "", userEmail: "", userPhone: "", partSeq: "", rankingSeq: "" };
+  form.value = {
+    userName: "",
+    userId: "",
+    userPassword: "",
+    userEmail: "",
+    userPhone: "",
+    partSeq: "",
+    rankingSeq: ""
+  };
   profileImage.value = null;
   selectedDeptSeq.value = "";
   filteredParts.value = [];
+
+  router.push({ name: "AdminUser" });
 };
 
 onMounted(() => {
