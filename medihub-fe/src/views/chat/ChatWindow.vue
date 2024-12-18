@@ -13,6 +13,7 @@ const currentRoom = ref(false);   // 현재 선택된 채팅방, 기본값 false
 // 채팅창 드래그 상태 관리
 const isDragging = ref(false);  // 드래그 중인지 여부
 const offset = ref({ x: 0, y: 0 });  // 드래그 시작 지점에서의 상대적인 위치
+const initialPosition = ref({ x:0, y:0 });  // 초기 위치 기록(드래그 시작 위치)
 
 // 현재 선택된 메뉴 버튼 상태 관리
 const activeButton = ref('chatroom'); // 초기값: chatroom 버튼 활성화
@@ -34,29 +35,61 @@ const handlePageChange = (page) => {
 };
 
 // 채팅방을 더블클릭하면 해당 채팅방 상세 화면을 보여줌
-const openChatRoom = (room) => {
+const openChatroom = (room) => {
   currentRoom.value = room;  // 선택한 채팅방으로 상태 변경
   currentPage.value = ChatroomDetail;  // 채팅방 상세 화면으로 전환
 };
 
 // 드래그 시작 이벤트
 const startDrag = (event) => {
+  // 마우스 왼쪽 버튼일 때만 드래그 시작
+  if(event.button !== 0) return;
+
+  const chatHeader = event.target.closest('.chat-header');  // chat-header 영역에서만 드래그 시작
+  if (!chatHeader) return;  // 만약 chat-header가 아니라면 드래그를 시작하지 않음
+
+  const chatWindow = event.target.closest('.chat-window');
+  if (!chatWindow) return;  // chat-window 영역 내에서만 드래그 시작하도록 제한
+
+  const rect = chatWindow.getBoundingClientRect();
+
+  // 드래그 시작 위치와 chat-window의 상대적인 위치 계산
+  offset.value = {
+    x: event.clientX - rect.left,
+    y: event.clientY - rect.top
+  };
+
+  initialPosition.value = {
+    x: rect.left,
+    y: rect.top
+  };
+
+  // 드래그가 시작되었음을 표시
   isDragging.value = true;
-  offset.value = { x: event.clientX - event.target.getBoundingClientRect().left, y: event.clientY - event.target.getBoundingClientRect().top };
 };
 
 // 드래그 이동 이벤트
 const onDrag = (event) => {
   if (isDragging.value) {
     const chatWindow = document.querySelector('.chat-window');
-    chatWindow.style.left = `${event.clientX - offset.value.x}px`;
-    chatWindow.style.top = `${event.clientY - offset.value.y}px`;
+    const left = event.clientX - offset.value.x;
+    const top = event.clientY - offset.value.y;
+
+    // 화면을 벗어나지 않도록 위치 제한
+    const maxLeft = window.innerWidth - chatWindow.offsetWidth;
+    const maxTop = window.innerHeight - chatWindow.offsetHeight;
+
+    // 위치를 화면 내로 제한
+    chatWindow.style.left = `${Math.max(0, Math.min(left, maxLeft))}px`;
+    chatWindow.style.top = `${Math.max(0, Math.min(top, maxTop))}px`;
   }
 };
 
 // 드래그 종료 이벤트
 const stopDrag = () => {
   isDragging.value = false;
+  document.removeEventListener('mousemove', onDrag);
+  document.removeEventListener('mouseup', stopDrag);
 };
 
 </script>
@@ -91,7 +124,7 @@ const stopDrag = () => {
 
     <!-- 메뉴 화면(조직도, 채팅방, 파일함) 또는 채팅방 화면을 동적으로 변경 -->
     <div id="container" class="chat-content">
-      <component :is="currentPage" v-if="!currentRoom" @open-chat-room="openChatRoom" />
+      <component :is="currentPage" v-if="!currentRoom" @open-chatroom="openChatroom" />
       <ChatroomDetail v-if="currentRoom" :room="currentRoom" />
     </div>
 
@@ -102,7 +135,7 @@ const stopDrag = () => {
 
 <style scoped>
 .chat-window {
-  position: fixed;
+  position: absolute;  /* absolute로 변경하여 위치를 절대좌표로 설정 */
   bottom: 0;
   right: 0;
   width: 500px;
@@ -113,7 +146,6 @@ const stopDrag = () => {
   z-index: 9999;
   display: flex;
   flex-direction: row;
-  cursor: move;  /* 마우스를 올리면 드래그 가능하게 표시 */
 }
 
 .chat-header {
@@ -124,8 +156,9 @@ const stopDrag = () => {
   color: white;
   border-top-left-radius: 2px;
   border-top-right-radius: 2px;
-  height: 98.5%;
+  height: 100%;
   justify-content: space-between;
+  cursor: move;  /* 마우스를 올리면 드래그 가능하게 표시 */
 }
 
 .chat-header-profile {
@@ -163,8 +196,8 @@ const stopDrag = () => {
 }
 
 .chat-header-menu button img {
-  width: 30px;  /* 이미지 크기 (작게 조정) */
-  height: 30px;  /* 이미지 크기 (작게 조정) */
+  width: 30px;
+  height: 30px;
 }
 
 .chat-header-logo img {
@@ -174,9 +207,9 @@ const stopDrag = () => {
 
 /* 버튼이 활성화된 경우 스타일 */
 .chat-header-menu button.active {
-  background-color: #FFC653;  /* 버튼의 배경색을 노란색으로 */
-  border-radius: 5px;  /* 원형 버튼 배경 */
-  padding: 5px;  /* 버튼 여백 */
+  background-color: #FFC653;
+  border-radius: 5px;
+  padding: 5px;
 }
 
 .chat-content {
@@ -188,8 +221,8 @@ const stopDrag = () => {
 /* 닫기 버튼 (X 버튼) */
 .close-button {
   position: absolute;
-  top: 10px;  /* 상단 10px */
-  right: 10px; /* 우측 10px */
+  top: 10px;
+  right: 10px;
   background: none;
   border: none;
   color: #1A2F69;
