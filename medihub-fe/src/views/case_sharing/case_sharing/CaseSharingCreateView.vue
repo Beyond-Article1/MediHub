@@ -3,11 +3,17 @@
     <!-- 페이지 제목 및 저장 버튼 -->
     <div class="case-header">
       <div class="case-title">케이스 공유글 작성 - 외과</div>
-      <div class="template-selector" @click="openModal">
+      <div class="template-selector" @click="openTemplateModal">
         + 입력한 내용을 템플릿에 저장
       </div>
       <div class="case-actions">
-        <CaseActionButtons @save="handleSave" @tempSave="handleTempSave" />
+        <CaseActionButtons
+            @save="handleSave"
+            @tempSave="handleTempSave"
+            @openDraftModal="openDraftModal"
+        />
+        <DraftModal v-if="isDraftModalOpen" @close="closeDraftModal" />
+        <TemplateCreateModal v-if="isTemplateModalOpen" @close="closeTemplateModal" />
       </div>
 
     </div>
@@ -25,17 +31,17 @@
       <CaseEditor ref="caseEditor" />
     </div>
 
-    <!-- 태그 입력 -->
+    <!-- 키워드 입력 -->
     <div class="case-tags">
       <div class="tag-list">
-        <!-- 생성된 태그가 표시되는 부분 -->
+        <!-- 생성된 키워드가 표시되는 부분 -->
         <CaseTagInput @update:keywords="updateKeywords" />
       </div>
     </div>
 
     <TemplateCreateModal
-        v-if="isModalOpen"
-        @close="closeModal"
+        v-if="isTemplateModalOpen"
+        @close="closeTemplateModal"
         @save-template="handleTemplateSave"
     />
   </div>
@@ -43,30 +49,102 @@
 
 
 <script setup>
-import { ref } from "vue";
+import {onMounted, ref} from "vue";
 import CaseEditor from "@/components/case_sharing/case_sharing/CaseSharingEditor.vue";
 import CaseTagInput from "@/components/case_sharing/case_sharing/CaseTagInput.vue";
 import CaseActionButtons from "@/components/case_sharing/case_sharing/CaseSharingSaveButton.vue";
 import TemplateCreateModal from "@/components/case_sharing/modal/TemplateCreateModal.vue";
+import DraftModal from "@/components/case_sharing/case_sharing/DraftModal.vue";
+
 import { useAuthStore } from '@/store/authStore'; // Pinia 스토어 가져오기
 import html2canvas from "html2canvas";
 import axios from "axios";
+import { useRoute } from "vue-router";
+import router from "@/router/index.js";
 
 const authStore = useAuthStore();
 const accessToken = authStore.accessToken; // accessToken 가져오기
+const route = useRoute();
+console.log("라우트 정보:", route.params);
 
 const title = ref(""); // 제목 상태
-const keywords = ref([]); // 태그 상태
+const keywords = ref([]); // 키워드 상태
 const caseEditor = ref(null); // Editor.js 참조
+const templateSeq =route.params.id;
+
+const isDraftModalOpen = ref(false);
+const isTemplateModalOpen = ref(false);   // 템플릿 모달 상태
+
+// 임시 저장 모달 열기/닫기
+const openDraftModal = () => {
+  isDraftModalOpen.value = true;
+};
+
+const closeDraftModal = () => {
+  isDraftModalOpen.value = false;
+};
+
+// 템플릿 모달 열기/닫기
+const openTemplateModal = () => {
+  isTemplateModalOpen.value = true;
+};
+
+const closeTemplateModal = () => {
+  isTemplateModalOpen.value = false;
+};
+
+
+
+// FormData 생성
+const formData = new FormData();
 
 const updateKeywords = (newKeywords) => {
   keywords.value = newKeywords;
 };
+const fetchTemplateData = async () => {
+  try {
+    // API 호출
+    const response = await axios.get(`/template/${route.params.id}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    const result = response.data;
+    console.log("결과:", result);
+
+    if (result.success) {
+      const data = result.data;
+
+      // 데이터 유효성 검사
+      if (!data.templateTitle || !data.templateContent) {
+        console.error("API에서 불완전한 데이터 반환:", data);
+        return;
+      }
+
+      // 제목 설정
+      title.value = data.templateTitle;
+
+      // 내용 파싱 및 Editor.js 초기화
+      const content = JSON.parse(data.templateContent);
+      if (caseEditor.value) {
+        await caseEditor.value.initializeEditor(content);
+      }
+    } else {
+      console.error("데이터 불러오기 실패:", result.error);
+    }
+  } catch (error) {
+    console.error("템플릿 데이터 불러오기 오류:", error);
+  }
+};
+
+
 
 const handleSave = async () => {
   try {
-    // Editor.js에서 데이터와 이미지 파일 가져오기
-    const { content, images } = await caseEditor.value.getEditorData();
+    // 1. Editor.js에서 데이터와 이미지 파일 가져오기
+    const editorData = await caseEditor.value.getEditorData();
+    const { content, images } = editorData;
 
     // 데이터 유효성 검사
     if (!title.value.trim()) {
@@ -77,13 +155,10 @@ const handleSave = async () => {
       alert("본문 내용을 입력해주세요.");
       return;
     }
-
-    // FormData 생성
-    const formData = new FormData();
-
+    console.log("템플릿번호"+templateSeq);
     // 데이터 직렬화 (content를 JSON 문자열로 변환)
     const data = {
-      templateSeq: 1, // 템플릿 선택값
+      templateSeq: templateSeq, // 템플릿 선택값
       title: title.value,
       content: JSON.stringify(content), // content를 JSON 문자열로 변환
       keywords: keywords.value.length > 0 ? keywords.value : [], // 키워드 처리
@@ -108,33 +183,79 @@ const handleSave = async () => {
     });
 
     // 성공 확인
-    console.log("저장 완료:", response.data);
+    console.log("저장 완료:", response.data.data);
     alert("저장이 완료되었습니다.");
+    const createdCaseId = response.data.data
+    console.log("정보" + createdCaseId);
+    // 상세 조회 페이지로 라우팅
+    await router.push({name: "CaseSharingDetailView", params: {id: createdCaseId}});
+
   } catch (error) {
     console.error("Error saving data:", error);
     alert("저장 중 오류가 발생했습니다.");
   }
 };
 
+const handleTempSave = async () => {
+  try {
+    // 1. Editor.js에서 데이터와 이미지 파일 가져오기
+    const editorData = await caseEditor.value.getEditorData();
+    const { content, images } = editorData;
+
+    // 데이터 유효성 검사
+    if (!title.value.trim()) {
+      alert("제목을 입력해주세요.");
+      return;
+    }
+    if (!content || content.blocks.length === 0) {
+      alert("본문 내용을 입력해주세요.");
+      return;
+    }
 
 
-const handleTempSave = () => {
-  alert("임시 저장되었습니다.");
-};
+    // 데이터 직렬화 (content를 JSON 문자열로 변환)
+    const requestDTO  = {
+      templateSeq: templateSeq, // 템플릿 선택값
+      title: title.value,
+      content: JSON.stringify(content), // content를 JSON 문자열로 변환
+      keywords: keywords.value.length > 0 ? keywords.value : [], // 키워드 처리
+    };
 
-const isModalOpen = ref(false);
+    // FormData에 데이터 추가
+    formData.append("requestDTO", JSON.stringify(requestDTO));
 
-const openModal = () => {
-  isModalOpen.value = true;
-};
+    // 이미지 파일 추가
+    images.forEach((file, index) => {
+      formData.append("images", file, `img-${index + 1}`);
+    });
 
-const closeModal = () => {
-  isModalOpen.value = false;
+    console.log("FormData 전송:", requestDTO, images);
+
+    // API 호출
+    const response = await axios.post("case_sharing/draft", formData, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`, // 사용자 토큰 추가
+        "Content-Type": "multipart/form-data", // FormData 사용 시 필요
+      },
+    });
+
+    // 성공 확인
+    console.log("임시 저장 완료:", response.data.data);
+    alert("임시 저장이 완료되었습니다.");
+    const createdCaseId = response.data.data
+    console.log("정보" + createdCaseId);
+
+  } catch (error) {
+    console.error("Error saving data:", error);
+    alert("임시 저장 중 오류가 발생했습니다.");
+  }
 };
 
 const handleTemplateSave = async ({ title: templateTitle, openScope }) => {
   try {
-    const { content } = await caseEditor.value.getEditorData();
+    const editorData = await caseEditor.value.getEditorData();
+    const { content, images } = editorData;
+    console.log(content)
 
     if (!templateTitle.trim()) {
       alert("템플릿 제목을 입력해주세요.");
@@ -180,31 +301,29 @@ const handleTemplateSave = async ({ title: templateTitle, openScope }) => {
         canvas.toBlob(resolve, "image/png")
     );
 
-    // FormData 생성
+    const templateData = {
+      templateTitle: templateTitle.trim(),
+      templateContent: JSON.stringify(content), // JSON 직렬화된 content
+      openScope,
+    };
+
     const formData = new FormData();
-    formData.append(
-        "data",
-        JSON.stringify({
-          templateTitle,
-          templateContent: JSON.stringify(content),
-          openScope,
-        })
-    );
+    formData.append("data", JSON.stringify(templateData));
     formData.append("previewImage", imageBlob, "template-preview.png");
+    images.forEach((file, index) => {
+      formData.append("images", file, `img-${index + 1}`);
+    });
 
     // 서버로 전송
-    const response = await fetch("http://localhost:8088/template", {
-      method: "POST",
-      body: formData,
+    const response = await axios.post("/template", formData, {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`, // 사용자 인증 토큰
+        "Content-Type": "multipart/form-data", // FormData 전송
       },
     });
 
-    if (!response.ok) throw new Error("템플릿 저장 실패");
-
     alert("템플릿이 성공적으로 저장되었습니다.");
-    closeModal();
+    closeTemplateModal();
   } catch (error) {
     console.error("Error saving template:", error);
     alert("템플릿 저장 중 오류가 발생했습니다.");
@@ -212,7 +331,7 @@ const handleTemplateSave = async ({ title: templateTitle, openScope }) => {
 };
 
 
-
+onMounted(fetchTemplateData);
 </script>
 
 <style scoped>
@@ -224,7 +343,7 @@ const handleTemplateSave = async ({ title: templateTitle, openScope }) => {
 }
 
 .case-title {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: bold;
   text-align: left;
   margin-bottom: 10px;
@@ -245,7 +364,7 @@ const handleTemplateSave = async ({ title: templateTitle, openScope }) => {
   display: flex;
   align-items: center;
   width: 100%;
-  max-width: 1400px;
+  max-width: 1200px;
   margin-bottom: 10px;
 }
 
@@ -256,8 +375,7 @@ const handleTemplateSave = async ({ title: templateTitle, openScope }) => {
 }
 
 .title-input {
-  width: 80%;
-  max-width: 1400px;
+  width: 1200px;
   padding: 15px;
   font-size: 1.1em;
   border: 1px solid #ddd;
@@ -268,7 +386,7 @@ const handleTemplateSave = async ({ title: templateTitle, openScope }) => {
 
 .editor-wrapper {
   width: 100%;
-  max-width: 1400px;
+  max-width: 1200px;
   height: 650px;
   margin-bottom: 20px;
   background-color: white;
@@ -279,17 +397,17 @@ const handleTemplateSave = async ({ title: templateTitle, openScope }) => {
 
 .case-tags {
   width: 100%;
-  max-width: 1400px;
+  max-width: 1200px;
   margin-top: 100px; /* 본문과의 간격 */
-  margin-bottom: 20px; /* 태그 입력 아래 여백 */
-  text-align: left; /* 태그 입력 왼쪽 정렬 */
+  margin-bottom: 20px; /* 키워드 입력 아래 여백 */
+  text-align: left; /* 키워드 입력 왼쪽 정렬 */
   box-sizing: border-box;
 }
 .tag-list {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-bottom: 10px; /* 태그와 입력창 사이 간격 */
+  margin-bottom: 10px; /* 키워드와 입력창 사이 간격 */
 }
 
 .template-selector {
@@ -298,7 +416,7 @@ const handleTemplateSave = async ({ title: templateTitle, openScope }) => {
   font-weight: bold;
   cursor: pointer;
   white-space: nowrap; /* 텍스트 줄바꿈 방지 */
-  margin-left: 750px;
+  margin-left: auto;
   margin-top: 25px;
   margin-right: 20px;
 }
