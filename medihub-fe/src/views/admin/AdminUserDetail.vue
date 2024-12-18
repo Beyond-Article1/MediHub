@@ -1,7 +1,13 @@
 <template>
-  <div class="container mt-5">
+  <div class="container mt-5 position-relative">
     <!-- 제목 -->
     <h3 class="fw-bold mb-4 text-center">회원 정보 수정</h3>
+
+    <!-- 비밀번호 초기화 버튼 -->
+    <button class="btn btn-outline-primary reset-password-btn" @click="resetPassword">
+      비밀번호 초기화
+    </button>
+
     <form @submit.prevent="submitForm" enctype="multipart/form-data">
       <!-- 이름 -->
       <div class="mb-3">
@@ -104,6 +110,23 @@ const handleImageUpload = (event) => {
   profilePreview.value = URL.createObjectURL(profileImage.value);
 };
 
+// 비밀번호 초기화 함수
+const resetPassword = async () => {
+  try {
+    const confirmReset = confirm("비밀번호를 초기화하시겠습니까?");
+    if (confirmReset) {
+      await axios.patch(`/api/v1/admin/users/${userSeq}/reset-password`);
+      alert("비밀번호가 초기화되었습니다. 새로운 비밀번호를 사용자에게 안내하세요.");
+    }
+    router.push({ name: "AdminUser" });
+  } catch (error) {
+    console.error("비밀번호 초기화 실패:", error);
+    alert("비밀번호 초기화에 실패했습니다.");
+
+
+  }
+};
+
 // 데이터 불러오기
 const fetchData = async () => {
   try {
@@ -136,10 +159,10 @@ const submitForm = async () => {
 
   try {
     await axios.put(`/api/v1/admin/users/${userSeq}`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
+      headers: {"Content-Type": "multipart/form-data"},
     });
     alert("수정되었습니다.");
-    router.push({ name: "AdminUser" }); // AdminUser 페이지로 이동
+    router.push({name: "AdminUser"}); // AdminUser 페이지로 이동
   } catch (error) {
     console.error("수정 실패:", error);
     alert("수정에 실패했습니다. 다시 시도해주세요.");
@@ -157,7 +180,18 @@ onMounted(() => fetchData());
   max-width: 700px;
   margin: auto;
 }
+
 .img-thumbnail {
   border: 1px solid #ddd;
+}
+
+.reset-password-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 0.9rem;
+  padding: 6px 12px;
+  border-radius: 4px;
+  background-color: #f8f9f9;
 }
 </style>
