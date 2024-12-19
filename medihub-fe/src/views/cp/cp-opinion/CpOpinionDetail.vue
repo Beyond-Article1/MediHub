@@ -59,29 +59,31 @@ async function deleteCase() {
     return; // 사용자가 취소하면 종료
   }
 
-  alert("미구현");
-  return;
-
   try {
     // 삭제 요청
-    const response = await axios.delete(`/case_sharing/${route.params.id}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`, // 인증 토큰
-      },
-    });
+    const response = await axios.delete(`/cp/${route.params.cpVersionSeq}/cpOpinionLocation/${route.params.cpOpinionLocationSeq}/${route.params.cpOpinionSeq}`);
 
-    if (response.data.success) {
-      alert("케이스가 성공적으로 삭제되었습니다.");
-      await router.push({name: "CaseSharingList"}); // 목록 페이지로 이동
+    if (response.status === 200) {
+      console.log("CP 의견이 삭제 되었습니다.");
+      moveToCpPage();
+      alert("CP 의견 삭제가 완료되었습니다.");
     } else {
-      console.error("삭제 실패:", response.data.error);
-      alert("삭제에 실패했습니다. 다시 시도해주세요.");
+      console.log("CP 의견 삭제에 실패하였습니다.");
     }
   } catch (error) {
-    console.error("Error deleting case:", error);
-    alert("삭제 중 오류가 발생했습니다.");
+    console.error("CP 의견 삭제 중 예기치 못한 에러가 발생했습니다.");
+    console.error(error);
   }
+}
 
+// CP 화면으로 이동 함수
+function moveToCpPage() {
+  router.push({
+    name: 'CpDetailPage',
+    params: {
+      cpVersionSeq: route.params.cpVersionSeq
+    }
+  });
 }
 </script>
 
@@ -117,7 +119,6 @@ async function deleteCase() {
     </div>
   </div>
 </template>
-
 
 <style scoped>
 .case-detail-view {
