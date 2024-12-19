@@ -1,7 +1,7 @@
 <script setup>
-import { watch, defineEmits, ref } from 'vue';
+import {watch, defineEmits, ref} from 'vue';
 import axios from "axios";
-import { useRoute, useRouter } from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import Button from "@/components/common/button/Button.vue";
 import CpOpinionLi from "@/components/cp/CpOpinionLi.vue";
 import LineDivider from "@/components/common/LineDivider.vue";
@@ -66,6 +66,12 @@ function registerOpinion() {
   router.push(`/cp/${cpVersionSeq}/cpOpinionLocation/${props.cpOpinionLocationSeq}/cpOpinion`);
 }
 
+// CP 의견 조회 페이지 이동 함수
+function navigateToOpinion(cpOpinionSeq) {
+  console.log("CP 의견 화면으로 이동합니다.");
+  router.push(`/cp/${route.params.cpVersionSeq}/cpOpinionLocation/${props.cpOpinionLocationSeq}/cpOpinion/${cpOpinionSeq}`);
+}
+
 // Modal이 열릴 때 데이터 가져오기
 watch(() => props.isVisible, async (newValue) => {
   if (newValue) {
@@ -81,7 +87,8 @@ watch(() => props.isVisible, async (newValue) => {
       <div class="modal-body">
         <template v-if="cpOpinionList.length > 0">
           <div style="margin-top: 10px" v-for="cpOpinion in cpOpinionList" :key="cpOpinion.cpOpinionSeq">
-            <CpOpinionLi :data="cpOpinion"/>
+            <!-- 찬성, 반대 투표 기능 만들어야 됨 -->
+            <CpOpinionLi :data="cpOpinion" @click="navigateToOpinion(cpOpinion.cpOpinionSeq)"/>
             <LineDivider/>
           </div>
         </template>

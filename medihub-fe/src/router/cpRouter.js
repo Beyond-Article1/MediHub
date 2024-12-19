@@ -2,6 +2,7 @@ import CpMain from "@/views/cp/CpMain.vue";
 import CpDetail from "@/views/cp/CpDetail.vue";
 import CpListBody from "@/components/cp/CpListBody.vue";
 import CpOpinionRegister from "@/views/cp/CpOpinionRegister.vue";
+import CpOpinionDetail from "@/views/cp/CpOpinionDetail.vue";
 
 export default [
     {
@@ -23,7 +24,11 @@ export default [
         ]
     }, {
         path: '/cp/:cpVersionSeq/cpOpinionLocation/:cpOpinionLocationSeq/cpOpinion',
-        name: 'CpOpinionRegister',
+        name: 'CpOpinionRegisterPage',
         component: CpOpinionRegister
+    }, {
+        path: '/cp/:cpVersionSeq/cpOpinionLocation/:cpOpinionLocationSeq/cpOpinion/:cpOpinionSeq',
+        name: 'CpOpinionPage',
+        component: CpOpinionDetail
     }
 ];
