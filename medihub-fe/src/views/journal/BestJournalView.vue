@@ -4,7 +4,7 @@ import {computed, onMounted, ref} from "vue";
 import axios from "axios";
 import SortButtonGroup from "@/components/common/button/JournalSortButtonGroup.vue";
 import BookmarkButton from "@/components/common/button/BookmarkButton.vue";
-import Pagenation from "@/components/common/Pagenation.vue";
+import Pagination from "@/components/common/Pagination.vue";
 
 // 논문 데이터
 const journalData = ref([]);
@@ -155,7 +155,7 @@ const paginatedData = computed(() => {
 
     </div>
 
-    <Pagenation
+    <Pagination
         :totalData=journalData.length
         :limitPage=pageSize
         :page="currentPage"
