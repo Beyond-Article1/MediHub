@@ -2,7 +2,7 @@
 import html2canvas from "html2canvas";
 import axios from "axios";
 
-import {ref} from "vue";
+import {onMounted, ref} from "vue";
 import {useAuthStore} from '@/store/authStore.js';
 import {useRoute, useRouter} from "vue-router";
 
@@ -13,7 +13,7 @@ import TemplateCreateModal from "@/components/case_sharing/modal/TemplateCreateM
 
 // Vue 설정 변수
 const authStore = useAuthStore();
-const accessToken = authStore.accessToken; // accessToken 가져오기
+const accessToken = authStore.accessToken;
 const router = useRouter();
 const route = useRoute();
 
@@ -25,6 +25,11 @@ const caseEditor = ref(null); // Editor.js 참조
 const updateKeywords = (newKeywords) => {
   keywords.value = newKeywords;
 };
+
+// onMounted(() => {
+//   console.log(`전달받은 x = ${newPositionX.value}`);
+//   console.log(`전달받은 y = ${newPositionY.value}`);
+// })
 
 // 데이터 저장 함수
 const handleSave = async () => {
@@ -57,29 +62,55 @@ const handleSave = async () => {
   }
 };
 
+// 새로운 위치 생성 함수
+async function createNewLocation() {
+  const cpOpinionLocationPageNum = parseInt(route.query.pageNum); // 쿼리에서 페이지 번호 가져오기
+  const newPositionX = parseFloat(route.query.x);                 // 쿼리에서 x 좌표 가져오기
+  const newPositionY = parseFloat(route.query.y);                 // 쿼리에서 y 좌표 가져오기
+
+  // 데이터 전송
+  const response = await axios.post(`cp/${route.params.cpVersionSeq}/cpOpinionLocation`, {
+    cpOpinionLocationX: newPositionX,
+    cpOpinionLocationY: newPositionY,
+    cpOpinionLocationPageNum: cpOpinionLocationPageNum
+  });
+
+  if (response.status === 201) {
+    console.log("새로운 CP 의견 위치 생성에 성공하였습니다.");
+    console.log(response.data.data.cpOpinionLocationSeq);
+    return response.data.data.cpOpinionLocationSeq; // 위치 시퀀스 반환
+  } else {
+    console.log("새로운 CP 의견 위치 생성에 실패하였습니다.");
+    throw new Error("Failed to create new opinion location.");
+  }
+}
+
 // 데이터 전송 함수
 async function sendData(formData) {
   try {
-    const response = await axios.post(`cp/${route.params.cpVersionSeq}/cpOpinionLocation/${route.params.cpOpinionLocationSeq}`, formData
-        // , {
-        //   headers: {
-        //     Authorization: `Bearer ${accessToken}`, // 사용자 토큰 추가
-        //     "Content-Type": "multipart/form-data", // FormData 사용 시 필요
-        //   }
-        // }
-    );
+    let cpOpinionLocationSeq = parseInt(route.params.cpOpinionLocationSeq, 10);
+
+    // 신규 위치에 의견을 작성하는 경우
+    console.log("check");
+    console.log(cpOpinionLocationSeq === -1);
+    if (cpOpinionLocationSeq === -1) {
+      cpOpinionLocationSeq = await createNewLocation(); // await를 사용하여 비동기 처리
+    }
+
+    const response = await axios.post(`cp/${route.params.cpVersionSeq}/cpOpinionLocation/${cpOpinionLocationSeq}`, formData);
 
     if (response.status === 201) {
       console.log("새로운 CP 의견 생성에 성공하였습니다.");
     } else {
       console.log("새로운 CP 의견 생성에 실패하였습니다.");
-      throw error;
+      throw new Error("Failed to register opinion.");
     }
   } catch (error) {
     console.error("새로운 CP 의견 생성 시, 예상치 못한 에러가 발생했습니다.");
     console.error(error);
   }
 }
+
 
 // 데이터 조회 함수
 // async function fetchData() {

@@ -12,6 +12,9 @@ const props = defineProps({
     type: Boolean,
     required: true
   },
+  pageNum: {
+    type: Number
+  },
   x: {
     type: Number
   },
@@ -64,7 +67,13 @@ watch(() => [props.x, props.y], async ([newX, newY]) => {
 // 등록 함수
 function registerOpinion() {
   const cpVersionSeq = route.params.cpVersionSeq; // route 변수 사용
-  router.push(`/cp/${cpVersionSeq}/cpOpinionLocation/${props.cpOpinionLocationSeq}/cpOpinion`);
+  if (props.cpOpinionLocationSeq === -1) {
+    // cpOpinionLocationSeq가 -1인 경우 x, y 좌표도 전달
+    router.push(`/cp/${cpVersionSeq}/cpOpinionLocation/${props.cpOpinionLocationSeq}/cpOpinion?pageNum=${props.pageNum}&x=${props.x}&y=${props.y}`);
+  } else {
+    // cpOpinionLocationSeq가 -1이 아닐 경우
+    router.push(`/cp/${cpVersionSeq}/cpOpinionLocation/${props.cpOpinionLocationSeq}/cpOpinion`);
+  }
 }
 
 // CP 의견 조회 페이지 이동 함수

@@ -10,7 +10,7 @@ import IconButton from "@/components/common/button/IconButton.vue";
 import DropBox from "@/components/common/SingleSelectDropBox.vue";
 import CpModal from "@/components/cp/CpModal.vue";
 
-// props 정의
+// vue 설정 변수
 const props = defineProps({
   data: {
     type: Object,
@@ -21,6 +21,7 @@ const props = defineProps({
     required: true
   }
 });
+const route = useRoute();
 
 // PDF 관련 변수
 const currentPage = ref(1);           // 현재 페이지
@@ -41,9 +42,6 @@ const selectedCpVersion = ref('');        // 선택된 버전 정보
 const isOpen = ref(false);
 const isModalVisible = ref(false);
 
-// etc
-const route = useRoute();
-
 // 상수
 const MARKER_CHECK_RADIUS = 30;   // 주변 마커 감지 거리
 const MARKER_SCALE_FACTOR = 14;   // 마커의 크기를 조졀할 때 사용
@@ -51,7 +49,7 @@ const MARKER_SCALE_FACTOR = 14;   // 마커의 크기를 조졀할 때 사용
 // Web Worker 경로 설정
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
 
-// 마우트 시, 실행 함수
+// 마운트 시, 실행 함수
 onMounted(async () => {
   pdfCanvas.value = document.getElementById('pdf-canvas');
   fetchCpOpinionLocationData();
@@ -84,10 +82,10 @@ const handlePdfClick = (event) => {
 
   // 클릭된 위치에 마커가 이미 있는지 확인
   const existingMarker = cpOpinionLocationList.value.find(marker => {
-    console.log(`marker.cpOpinionLocationX = ${marker.cpOpinionLocationX}`);
-    console.log(`x = ${x}`);
-    console.log(`marker.cpOpinionLocationY = ${marker.cpOpinionLocationY}`);
-    console.log(`y = ${y}`);
+    // console.log(`marker.cpOpinionLocationX = ${marker.cpOpinionLocationX}`);
+    // console.log(`x = ${x}`);
+    // console.log(`marker.cpOpinionLocationY = ${marker.cpOpinionLocationY}`);
+    // console.log(`y = ${y}`);
     return Math.abs(marker.cpOpinionLocationX - x) < MARKER_CHECK_RADIUS && Math.abs(marker.cpOpinionLocationY - y) < MARKER_CHECK_RADIUS;
   });
 
@@ -313,6 +311,7 @@ async function fetchCpVersion() {
     </div>
 
     <CpModal :isVisible="isModalVisible" @close="isModalVisible = false"
+             :page-num="currentPage"
              :x="clickedMarkerData.x"
              :y="clickedMarkerData.y"
              :cpOpinionLocationSeq="clickedMarkerData.cpOpinionLocationSeq">
