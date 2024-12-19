@@ -43,54 +43,41 @@ async function fetchData() {
   }
 }
 
-// 저장 버튼 클릭 시 호출
 async function saveChanges() {
   try {
-    // 1. Editor.js에서 데이터 가져오기
-    const {content} = await caseEditor.value.getEditorData();
+    const { content } = await caseEditor.value.getEditorData();
 
-    // 2. 새로운 데이터 객체 준비
-    const requestDTO = {
-      content: JSON.stringify(content), // JSON 직렬화
-      keywords: keywords.value.length > 0 ? keywords.value : [], // 키워드 처리
+    if (!content || content.blocks.length === 0) {
+      alert("본문 내용을 입력해주세요.");
+      return;
+    }
+
+    const requestBody = new FormData();
+    const requestDto = {
+      cpOpinionContent: JSON.stringify(content),
+      keywordList: keywords.value.length > 0 ? keywords.value : [],
     };
-    console.log("Request DTO:", requestDTO); // 전송할 데이터 확인
 
-    // 3. FormData 생성 (이미지 포함)
-    const formDataToSend = new FormData();
-    formDataToSend.append("requestDTO", new Blob([JSON.stringify(requestDTO)], {type: "application/json"}));
+    // JSON 문자열을 직접 FormData에 추가
+    requestBody.append("data", JSON.stringify(requestDto));
 
-    // images 배열이 있다면 추가
-    const {images} = await caseEditor.value.getEditorData();
-    images.forEach((file, index) => {
-      formDataToSend.append("images", file, `img-${index + 1}`);
-    });
-
-    // 4. 새 버전 생성 API 호출
-    const response = await axios.post(
-        `/case_sharing/${route.params.id}/versions`,
-        formDataToSend,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        }
+    const response = await axios.put(
+        `/cp/${route.params.cpVersionSeq}/cpOpinionLocation/${route.params.cpOpinionLocationSeq}/${route.params.cpOpinionSeq}`,
+        requestBody
     );
-    // 5. 성공 처리
-    if (response.data.success) {
-      alert("수정이 완료되었습니다. 새 버전이 생성되었습니다.");
-      const createdCaseId = response.data.data
-      await router.push({name: "CaseSharingDetailView", params: {id: createdCaseId}}); // 상세 페이지로 이동
+
+    if (response.status === 200) {
+      alert("CP 의견 수정이 완료되었습니다.");
     } else {
-      console.error("수정 실패:", response.data.error);
-      alert("수정 중 문제가 발생했습니다.");
+      alert("CP 의견 수정 중 문제가 발생했습니다.");
     }
   } catch (error) {
-    console.error("Error saving changes:", error);
+    console.error("CP 의견 수정 중 예기치 못한 에러가 발생했습니다.");
+    console.error(error);
     alert("저장 중 오류가 발생했습니다.");
   }
 }
+
 
 // 수정 취소 함수
 function cancelEdit() {
@@ -111,7 +98,8 @@ function cancelEdit() {
     <div class="case-header">
       <div class="case-title">CP 의견 수정</div>
       <div class="case-actions">
-        <IconButton icon-class="bi bi-floppy"/>
+        <IconButton @click="saveChanges()" icon-class="bi bi-floppy"/>
+        <IconButton @click="cancelEdit()" icon-class="bi bi-x-circle"/>
       </div>
     </div>
     <!-- Editor.js 에디터 -->
