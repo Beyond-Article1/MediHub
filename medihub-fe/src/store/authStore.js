@@ -7,6 +7,15 @@ export const useAuthStore = defineStore('auth', () => {
     const userSeq = ref(null);
     const userRole = ref(null);
     const isLogined = ref(false);
+    const userInfo = ref({
+        userId: null,
+        userName: null,
+        rankingName: null, // 직책
+        partName: null,    // 부서
+        userEmail: null,
+        userPhone: null,
+        profileImage: null,
+    });
 
     onMounted(() => {
         const access = localStorage.getItem('accessToken');
@@ -56,6 +65,19 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
+    function setUserInfo(data) {
+        userInfo.value = {
+            userId: data.userId,
+            userName: data.userName,
+            rankingName: data.rankingName, // 직책
+            partName: data.partName,       // 부서
+            userEmail: data.userEmail,
+            userPhone: data.userPhone,
+            profileImage: data.profileImage || null,
+        };
+        console.log("[AuthStore] 사용자 정보 저장:", userInfo.value);
+    }
+
     // 로그아웃 처리
     function logout() {
         console.log("[AuthStore] Logout"); // 로그아웃 디버깅
@@ -68,6 +90,8 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
     }
+
+
 
     // 권한 확인
     function isAuthorized(requiredRole) {
@@ -85,5 +109,7 @@ export const useAuthStore = defineStore('auth', () => {
         logout,
         isAuthorized,
         isLogined,
+        userInfo,
+        setUserInfo,
     };
 })
