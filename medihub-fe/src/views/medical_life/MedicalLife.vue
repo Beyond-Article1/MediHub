@@ -82,7 +82,7 @@
     <LineDivider />
 
     <!-- 페이지네이션 -->
-    <Pagenation
+    <Pagination
         :totalData="filteredPosts.length"
         :limitPage="itemsPerPage"
         :page="currentPage"
@@ -95,7 +95,7 @@
 import {ref, computed, onMounted} from "vue";
 import axios from "axios";
 import SearchBox from "@/components/common/SearchBox.vue";
-import Pagenation from "@/components/common/Pagenation.vue";
+import Pagination from "@/components/common/Pagination.vue";
 import LineDivider from "@/components/common/LineDivider.vue";
 import BookmarkButton from "@/components/common/button/BookmarkButton.vue";
 import LikeButton from "@/components/common/button/HeartButton.vue";

@@ -1,9 +1,13 @@
 <template>
   <div class="tag-input">
+    <div v-for="(keyword, index) in localKeywords" :key="index" class="tag">
+      {{ keyword }}
+      <button @click="removeKeyword(index)">x</button>
+    </div>
     <input
         v-model="keywordInput"
         @keydown.enter.prevent="addKeyword"
-        placeholder="#태그를 입력해주세요 (최대 10개)"
+        placeholder="#키워드를 입력해주세요 (최대 10개)"
     />
     <span v-for="(keyword, index) in keywords" :key="index" class="tag">
       {{ keyword }}
@@ -13,17 +17,24 @@
 </template>
 
 <script setup>
-import { ref, defineEmits } from "vue";
+import { ref, defineEmits, defineProps, watch } from "vue";
 
-const keywords = ref([]);
-const keywordInput = ref("");
+const props = defineProps({
+  keywords: { type: Array, default: () => [] },
+});
 const emit = defineEmits(["update:keywords"]);
 
+const keywords = ref([]);
+const localKeywords = ref([...props.keywords]); // 로컬 상태 관리
+
+
+const keywordInput = ref("");
+
 const addKeyword = () => {
-  if (keywordInput.value.trim() && keywords.value.length < 10) {
-    keywords.value.push(keywordInput.value.trim());
+  if (keywordInput.value.trim() && localKeywords.value.length < 10) {
+    localKeywords.value.push(keywordInput.value.trim());
     keywordInput.value = "";
-    emit("update:keywords", keywords.value);
+    emit("update:keywords", localKeywords.value); // 부모 컴포넌트에 업데이트
   }
 };
 
@@ -31,6 +42,13 @@ const removeKeyword = (index) => {
   keywords.value.splice(index, 1);
   emit("update:keywords", keywords.value);
 };
+
+watch(
+    () => props.keywords,
+    (newVal) => {
+      localKeywords.value = [...newVal];
+    }
+);
 </script>
 
 <style scoped>

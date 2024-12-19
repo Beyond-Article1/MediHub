@@ -47,6 +47,7 @@ import { reactive, ref } from "vue";
 import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "vue-router";
+import { useWebSocketStore } from "@/store/webSocket.js";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -119,6 +120,17 @@ const handleLogin = async () => {
       authStore.login(accessToken, refreshToken);
 
       console.log("로그인 성공: AccessToken, RefreshToken, UserSeq 저장 완료");
+      alert("로그인에 성공했습니다!");
+
+      // 로그인 후 웹소켓 연결
+      await useWebSocketStore().connectWebSocket();
+
+      // 채팅방 구독
+      await getUserChatrooms();
+
+      // 유저 정보 저장
+      await fetchUserInfo();
+
       router.push("/main");
 
   } catch (error) {
@@ -129,6 +141,56 @@ const handleLogin = async () => {
     loading.value = false;
   }
 };
+
+// 로그인 한 유저 정보 저장
+const fetchUserInfo = async () => {
+  try {
+    // 사용자 정보 API 호출
+    const response = await axios.get('/api/v1/users', {
+      headers: { Authorization: `Bearer ${authStore.accessToken}` },
+    });
+
+    const userData = response.data.data;
+
+    // 사용자 정보를 Pinia 스토어에 저장
+    authStore.setUserInfo({
+      userId: userData.userId,
+      userName: userData.userName,
+      userEmail: userData.userEmail,
+      userPhone: userData.userPhone,
+      rankingName: userData.rankingName, // 직급
+      partName: userData.partName,       // 부서
+      profileImage: userData.profileImage || null,
+    });
+
+    console.log("사용자 정보 저장 완료:", authStore.userInfo);
+  } catch (error) {
+    console.error("사용자 정보 불러오기 실패:", error);
+  }
+};
+
+const getUserChatrooms = async () => {
+  try {
+    const response = await axios.get("/chatroom", {
+      headers: {
+        'Authorization': `Bearer ${authStore.accessToken}`,
+      }
+    });
+
+    const userChatrooms = response.data.data;  // 사용자 채팅방 리스트 받아오기
+    console.log("사용자가 참여한 채팅방 리스트:", userChatrooms);
+
+    userChatrooms.forEach((chatroom) => {
+      const chatroomSeq = chatroom.chatroomSeq;
+      // 채팅방 구독 요청
+      useWebSocketStore().subscribeChatroom(chatroomSeq);
+    });
+  } catch (error) {
+    console.error("채팅방 목록을 가져오는 데 실패했습니다:", error);
+    alert("채팅방 목록을 가져오는 데 실패했습니다. 다시 시도해주세요.");
+  }
+};
+
 </script>
 
 <style scoped>
