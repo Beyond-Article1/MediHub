@@ -1,7 +1,25 @@
 <template>
+  <p>현재 모달 상태: {{ selectedBlock ? '열림' : '닫힘' }}</p>
+  <!-- 댓글 작성 모달 -->
+  <CommentModal
+      v-if="selectedBlock"
+      :block="selectedBlock"
+      :blockPosition="selectedBlockPosition"
+      @close="closeCommentModal"
+      @save="saveComment"
+  />
+
   <div class="case-content">
     <!-- JSON 데이터 블록별 렌더링 -->
-    <div v-for="(block, index) in content.blocks" :key="index">
+    <div
+        v-for="(block, index) in content.blocks"
+        :key="index"
+        :id="`block-${index}`"
+        class="block"
+        :class="{ clickable: isFocusMode }"
+        @click="handleBlockClick(block, index)"
+    >
+
       <!-- 헤더 블록 -->
       <component
           :is="getHeaderLevel(block.data.level)"
@@ -34,25 +52,75 @@
         <p>지원되지 않는 블록 타입: {{ block.type }}</p>
       </div>
     </div>
+
   </div>
 </template>
 
 <script setup>
-import {nextTick, watch} from "vue";
+import { ref, nextTick, watch } from "vue";
+import CommentModal from "@/components/case_sharing/case_sharing_comment/CommentModal.vue";
 
 const props = defineProps({
   content: {
     type: Object,
     required: true,
   },
+  isFocusMode: {
+    type: Boolean,
+    default: false,
+  },
+  caseSharingSeq: {
+    type: Number,
+    required: true, // 필수로 설정
+  },
 });
+
+const emit = defineEmits(["selectBlock"]);
+
+const selectedBlock = ref(null);
+const selectedBlockPosition = ref({}); // 블록의 위치 정보
 
 const getHeaderLevel = (level) => {
   const validLevels = [1, 2, 3, 4, 5, 6];
-  return validLevels.includes(level) ? `h${level}` : 'h2'; // 유효하지 않으면 기본 h2 사용
+  return validLevels.includes(level) ? `h${level}` : "h2"; // 유효하지 않으면 기본 h2 사용
 };
 
-// 헤더 블록 ID가 렌더링되었는지 확인
+const handleBlockClick = (block, index) => {
+  if (!props.isFocusMode) return;
+
+  selectedBlock.value = { ...block, index };
+  console.log("선택된 블록:", selectedBlock.value);
+
+  // 블록 위치 계산
+  const blockElement = document.getElementById(`block-${index}`);
+  if (blockElement) {
+    const rect = blockElement.getBoundingClientRect();
+    selectedBlockPosition.value = {
+      top: rect.bottom + window.scrollY - 250 , // 블록 아래 위치
+      left: rect.left + window.scrollX + 350,
+    };
+    emit("selectBlock", {
+      block: selectedBlock.value,
+      position: selectedBlockPosition.value,
+    });
+    console.log("계산된 블록 위치:", selectedBlockPosition.value);
+  } else {
+    console.warn(`ID가 block-${index}인 요소를 찾을 수 없습니다.`);
+    console.log("현재 DOM에 렌더링된 요소들:", document.querySelectorAll("[id^='block-']"));
+  }
+};
+
+
+const closeCommentModal = () => {
+  selectedBlock.value = null;
+};
+
+const saveComment = (commentData) => {
+  console.log("댓글 저장:", { block: selectedBlock.value, comment: commentData });
+  closeCommentModal();
+};
+
+/*// 헤더 블록 ID가 렌더링되었는지 확인
 watch(
     () => props.content,
     () => {
@@ -67,14 +135,26 @@ watch(
         });
       });
     },
-    { immediate: true }
-);
+    {immediate: true}
+);*/
 </script>
 
 <style scoped>
 .case-content {
   line-height: 1.6;
   color: #333;
+  position: relative;
+}
+
+.block {
+  padding: 10px;
+  border: 1px solid transparent;
+  transition: border 0.3s;
+}
+
+.block.clickable:hover {
+  border: 1px solid #007bff;
+  cursor: pointer;
 }
 
 .header-block {

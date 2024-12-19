@@ -1,5 +1,10 @@
 <template>
-  <div class="case-detail-view">
+  <div :class="{ 'focus-mode': isFocusMode }" class="case-detail-view">
+
+    <!-- Focus 모드 헤더 -->
+    <div v-if="isFocusMode && ! selectedBlock"  class="focus-mode-header">
+      댓글을 작성할 문단을 입력해주세요
+    </div>
     <!-- 상단 정보 영역 -->
     <div class="top-section">
       <div class="author-info">
@@ -11,7 +16,7 @@
       </div>
       <!-- 버튼 그룹 -->
       <div class="button-group">
-        <button class="action-button">댓글 달기</button>
+        <button class="action-button" @click="toggleFocusMode">댓글 달기</button>
         <button class="action-button" @click="goToEditPage">수정</button>
         <button class="action-button" @click="deleteCase">삭제</button>
       </div>
@@ -22,6 +27,14 @@
 
     <!-- 전체 페이지 레이아웃 -->
     <div class="content-wrapper">
+      <!-- Focus 모드 해제 버튼 -->
+      <button
+          v-if="isFocusMode"
+          class="exit-focus-mode-button"
+          @click="toggleFocusMode"
+      >
+        ⟲
+      </button>
       <!-- 왼쪽 본문 영역 -->
       <div class="main-content">
         <!-- 제목 영역 -->
@@ -29,11 +42,13 @@
 
         <!-- 키워드 -->
         <KeywordList :keywords="caseData.keywords" />
-
         <hr class="divider" />
         <!-- 본문 -->
-        <CaseContent :content="caseData.content" />
-
+        <CaseContent
+            :content="caseData.content"
+            :isFocusMode="isFocusMode"
+            @selectBlock="handleSelectBlock"
+        />
       </div>
 
       <!-- 오른쪽 Table of Contents -->
@@ -48,7 +63,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import {ref, onMounted, computed, watch} from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 import KeywordList from "@/components/case_sharing/case_sharing/KeywordList.vue";
@@ -68,6 +83,19 @@ const caseData = ref({
   keywords: [],
   createdAt: "",
 });
+
+const isFocusMode = ref(false);
+const selectedBlock = ref(null);
+
+const toggleFocusMode = () => {
+  isFocusMode.value = !isFocusMode.value;
+  console.log("isFocusMode 상태:", isFocusMode.value);
+};
+
+const handleSelectBlock = ({ block, position }) => {
+  selectedBlock.value = { block, position };
+  console.log("selected 상태:", isFocusMode.value);
+};
 
 // API 호출
 const fetchCaseDetail = async () => {
@@ -137,7 +165,12 @@ const deleteCase = async () => {
   }
 };
 
-
+watch(
+    () => selectedBlock.value,
+    (newValue) => {
+      console.log("selectedBlock 변경:", newValue);
+    }
+);
 onMounted(fetchCaseDetail);
 </script>
 
@@ -217,6 +250,60 @@ onMounted(fetchCaseDetail);
   border-top: 1px solid grey;
 }
 
+.focus-mode-header {
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: white;
+  padding: 15px 30px;
+  border-radius: 8px;
+  border: 1px solid lightgray;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  font-size: 18px;
+  font-weight: bold;
+  z-index: 2000;
+  text-align: center;
+}
+
+.focus-mode {
+  position: relative;
+}
+
+.focus-mode::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* 어두운 배경 */
+  z-index: 1;
+}
+
+
+.focus-mode .main-content {
+  position: relative; /* 다른 레이어에 독립적으로 위치 */
+  z-index: 2; /* focus-mode의 그림자 위에 표시 */
+  background-color: white; /* 배경색 추가 */
+}
+
+/* Focus 모드 해제 버튼 */
+.exit-focus-mode-button {
+  position: fixed;
+  top: 200px;
+  left: 75%;
+  transform: translateX(-50%);
+  padding: 5px 10px;
+  background-color: white;
+  color:  #20346D;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 20px;
+  z-index: 2001;
+}
+
 
 .content-wrapper {
   display: flex; /* Flexbox 레이아웃 적용 */
@@ -286,4 +373,10 @@ onMounted(fetchCaseDetail);
 .case-actions button:hover {
   background-color: #0056b3;
 }
+
+body, html {
+  overflow: visible; /* 혹시 hidden이면 visible로 변경 */
+  position: static; /* 부모 요소가 relative일 경우 static으로 변경 */
+}
+
 </style>
