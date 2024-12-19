@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import axios from "axios";
-import Pagination from "@/components/common/Pagenation.vue";
+import Pagination from "@/components/common/Pagination.vue";
 import router from "@/router/index.js";
 
 const templates = ref([]); // 전체 템플릿 데이터
