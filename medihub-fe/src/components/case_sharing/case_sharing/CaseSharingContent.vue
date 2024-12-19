@@ -1,5 +1,4 @@
 <template>
-  <p>현재 모달 상태: {{ selectedBlock ? '열림' : '닫힘' }}</p>
   <!-- 댓글 작성 모달 -->
   <CommentModal
       v-if="selectedBlock"
@@ -8,7 +7,14 @@
       @close="closeCommentModal"
       @save="saveComment"
   />
-
+  <!-- 댓글 목록 모달 -->
+  <CommentListModal
+      v-if="isCommentListModalVisible"
+      :visible="isCommentListModalVisible"
+      :comments="commentList"
+      :blockPosition="selectedBlockPosition"
+      @close="closeCommentListModal"
+  />
   <div class="case-content">
     <!-- JSON 데이터 블록별 렌더링 -->
     <div
@@ -16,9 +22,16 @@
         :key="index"
         :id="`block-${index}`"
         class="block"
-        :class="{ clickable: isFocusMode }"
+        :class="{ clickable: isFocusMode, highlighted: highlightedBlock === block.id }"
         @click="handleBlockClick(block, index)"
     >
+      <div
+          v-if="commentedBlocks.includes(block.id)"
+          class="comment-icon"
+          @click.stop="openCommentList(block, index)"
+      >
+        💬
+      </div>
 
       <!-- 헤더 블록 -->
       <component
@@ -52,13 +65,19 @@
         <p>지원되지 않는 블록 타입: {{ block.type }}</p>
       </div>
     </div>
-
   </div>
 </template>
 
 <script setup>
-import { ref, nextTick, watch } from "vue";
+import { ref,  onMounted } from "vue";
+import axios from "axios";
 import CommentModal from "@/components/case_sharing/case_sharing_comment/CommentModal.vue";
+import CommentListModal from "@/components/case_sharing/case_sharing_comment/CommentListModal.vue"
+import {useRoute, useRouter} from "vue-router";
+
+
+const route = useRoute();
+const router = useRouter();
 
 const props = defineProps({
   content: {
@@ -69,13 +88,14 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  caseSharingSeq: {
-    type: Number,
-    required: true, // 필수로 설정
-  },
 });
 
 const emit = defineEmits(["selectBlock"]);
+
+const commentedBlocks = ref([]); // 댓글이 있는 블록 ID 목록
+const highlightedBlock = ref(null); // 강조된 블록 ID
+const commentList = ref([]); // 선택된 블록의 댓글 목록
+const isCommentListModalVisible = ref(false); // 댓글 목록 모달 표시 여부
 
 const selectedBlock = ref(null);
 const selectedBlockPosition = ref({}); // 블록의 위치 정보
@@ -83,6 +103,19 @@ const selectedBlockPosition = ref({}); // 블록의 위치 정보
 const getHeaderLevel = (level) => {
   const validLevels = [1, 2, 3, 4, 5, 6];
   return validLevels.includes(level) ? `h${level}` : "h2"; // 유효하지 않으면 기본 h2 사용
+};
+
+const fetchCommentedBlocks = async () => {
+  try {
+    const response = await axios.get(`/case_sharing_comment/${route.params.id}`);
+    if (response.data.success) {
+      commentedBlocks.value = response.data.data.map((item) => item.blockId); // blockId 목록 저장
+    } else {
+      console.error("댓글 여부 조회 실패:", response.data.error);
+    }
+  } catch (error) {
+    console.error("댓글 여부 조회 중 오류 발생:", error);
+  }
 };
 
 const handleBlockClick = (block, index) => {
@@ -119,6 +152,36 @@ const saveComment = (commentData) => {
   console.log("댓글 저장:", { block: selectedBlock.value, comment: commentData });
   closeCommentModal();
 };
+const openCommentList = async (block, index) => {
+  highlightedBlock.value = block.id;
+  const blockElement = document.getElementById(`block-${index}`);
+  if (blockElement) {
+    const rect = blockElement.getBoundingClientRect();
+    selectedBlockPosition.value = {
+      top: rect.bottom + window.scrollY,
+      left: rect.left + window.scrollX,
+    };
+  }
+
+  try {
+    const response = await axios.get(
+        `/case_sharing_comment/${route.params.id}/comments/${block.id}`
+    );
+    if (response.data.success) {
+      commentList.value = response.data.data; // 댓글 데이터 저장
+      isCommentListModalVisible.value = true;
+    } else {
+      console.error("댓글 목록 조회 실패:", response.data.error);
+    }
+  } catch (error) {
+    console.error("댓글 목록 조회 중 오류 발생:", error);
+  }
+};
+
+const closeCommentListModal = () => {
+  isCommentListModalVisible.value = false;
+  highlightedBlock.value = null; // 강조 해제
+};
 
 /*// 헤더 블록 ID가 렌더링되었는지 확인
 watch(
@@ -137,6 +200,8 @@ watch(
     },
     {immediate: true}
 );*/
+
+onMounted(fetchCommentedBlocks);
 </script>
 
 <style scoped>
@@ -147,8 +212,8 @@ watch(
 }
 
 .block {
-  padding: 10px;
   border: 1px solid transparent;
+  position: relative; /* 댓글 아이콘 위치를 위한 기준 */
   transition: border 0.3s;
 }
 
@@ -157,10 +222,15 @@ watch(
   cursor: pointer;
 }
 
+/* 블록 강조 스타일 */
+.block.highlighted {
+  background-color: #eeeeee; /* 연한 파란색 배경 */
+  border: 2px solid lightgrey; /* 강조된 파란색 테두리 */
+}
+
 .header-block {
-  margin: 20px 0 10px;
+  margin-top: 10px;
   font-weight: bold;
-  color: #002b5b;
 }
 
 h1 {
@@ -200,6 +270,20 @@ p {
   max-width: 100%;
   height: auto;
   border-radius: 8px;
+}
+
+.comment-icon {
+  position: absolute;
+  top: 80%;
+  right: 10px;
+  transform: translateY(-50%);
+  font-size: 20px;
+  cursor: pointer;
+  transition: transform 0.2s, color 0.3s;
+}
+
+.comment-icon:hover {
+  transform: scale(1.2); /* 확대 효과 */
 }
 
 .image-caption {

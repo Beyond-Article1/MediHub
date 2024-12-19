@@ -110,6 +110,7 @@ const initializeEditor = async (data) => {
             uploadByFile: async (file) => {
               const blobUrl = URL.createObjectURL(file);
               images.value.push(file);
+              monitorImageLoad(blobUrl);
               return {success: 1, file: {url: blobUrl}};
             },
           },
@@ -161,6 +162,44 @@ const changeTextColor = () => editorInstance.inlineToolbar.activate("textColor")
 
 // 인라인 서식 툴
 const applyInlineTool = (tool) => editorInstance.inlineToolbar.activate(tool);
+
+
+
+const monitorImageLoad = (url) => {
+  const img = new Image();
+  img.src = url;
+
+  // 이미지 로드 성공
+  img.onload = () => {
+    console.log("이미지 로드 성공:", url);
+  };
+
+  // 이미지 로드 실패
+  img.onerror = () => {
+    console.error("이미지 로드 실패:", url);
+    alert("이미지 로드에 실패하였습니다. 해당 블록이 삭제됩니다.");
+    removeImageBlock(url); // 실패한 이미지 블록 삭제
+  };
+
+  // DOM에 추가하지 않고 로드 상태만 확인
+};
+
+// 실패한 이미지 블록 삭제
+const removeImageBlock = (url) => {
+  const blocksCount = editorInstance.blocks.getBlocksCount();
+  for (let i = 0; i < blocksCount; i++) {
+    const block = editorInstance.blocks.getBlockByIndex(i);
+    if (block && block.type === "image" && block.data.file.url === url) {
+      editorInstance.blocks.delete(i); // 이미지 블록 삭제
+      console.log("삭제된 이미지 블록:", url);
+      break;
+    }
+  }
+};
+
+
+
+
 // getEditorData 메서드 추가
 const getEditorData = async () => {
   if (!editorInstance) {
@@ -175,6 +214,7 @@ const getEditorData = async () => {
     return { content: { blocks: [] }, images: [] };
   }
 };
+
 defineExpose({
   getEditorData, // 부모 컴포넌트에서 호출할 수 있도록 노출
   initializeEditor
