@@ -1,7 +1,38 @@
 <template>
+  <!-- 댓글 작성 모달 -->
+  <CommentModal
+      v-if="selectedBlock"
+      :block="selectedBlock"
+      :blockPosition="selectedBlockPosition"
+      @close="closeCommentModal"
+      @save="saveComment"
+  />
+  <!-- 댓글 목록 모달 -->
+  <CommentListModal
+      v-if="isCommentListModalVisible"
+      :visible="isCommentListModalVisible"
+      :comments="commentList"
+      :blockPosition="selectedBlockPosition"
+      @close="closeCommentListModal"
+  />
   <div class="case-content">
     <!-- JSON 데이터 블록별 렌더링 -->
-    <div v-for="(block, index) in content.blocks" :key="index">
+    <div
+        v-for="(block, index) in content.blocks"
+        :key="index"
+        :id="`block-${index}`"
+        class="block"
+        :class="{ clickable: isFocusMode, highlighted: highlightedBlock === block.id }"
+        @click="handleBlockClick(block, index)"
+    >
+      <div
+          v-if="commentedBlocks.includes(block.id)"
+          class="comment-icon"
+          @click.stop="openCommentList(block, index)"
+      >
+        💬
+      </div>
+
       <!-- 헤더 블록 -->
       <component
           :is="getHeaderLevel(block.data.level)"
@@ -38,21 +69,121 @@
 </template>
 
 <script setup>
-import {nextTick, watch} from "vue";
+import { ref,  onMounted } from "vue";
+import axios from "axios";
+import CommentModal from "@/components/case_sharing/case_sharing_comment/CommentModal.vue";
+import CommentListModal from "@/components/case_sharing/case_sharing_comment/CommentListModal.vue"
+import {useRoute, useRouter} from "vue-router";
+
+
+const route = useRoute();
+const router = useRouter();
 
 const props = defineProps({
   content: {
     type: Object,
     required: true,
   },
+  isFocusMode: {
+    type: Boolean,
+    default: false,
+  },
 });
+
+const emit = defineEmits(["selectBlock"]);
+
+const commentedBlocks = ref([]); // 댓글이 있는 블록 ID 목록
+const highlightedBlock = ref(null); // 강조된 블록 ID
+const commentList = ref([]); // 선택된 블록의 댓글 목록
+const isCommentListModalVisible = ref(false); // 댓글 목록 모달 표시 여부
+
+const selectedBlock = ref(null);
+const selectedBlockPosition = ref({}); // 블록의 위치 정보
 
 const getHeaderLevel = (level) => {
   const validLevels = [1, 2, 3, 4, 5, 6];
-  return validLevels.includes(level) ? `h${level}` : 'h2'; // 유효하지 않으면 기본 h2 사용
+  return validLevels.includes(level) ? `h${level}` : "h2"; // 유효하지 않으면 기본 h2 사용
 };
 
-// 헤더 블록 ID가 렌더링되었는지 확인
+const fetchCommentedBlocks = async () => {
+  try {
+    const response = await axios.get(`/case_sharing_comment/${route.params.id}`);
+    if (response.data.success) {
+      commentedBlocks.value = response.data.data.map((item) => item.blockId); // blockId 목록 저장
+    } else {
+      console.error("댓글 여부 조회 실패:", response.data.error);
+    }
+  } catch (error) {
+    console.error("댓글 여부 조회 중 오류 발생:", error);
+  }
+};
+
+const handleBlockClick = (block, index) => {
+  if (!props.isFocusMode) return;
+
+  selectedBlock.value = { ...block, index };
+  console.log("선택된 블록:", selectedBlock.value);
+
+  // 블록 위치 계산
+  const blockElement = document.getElementById(`block-${index}`);
+  if (blockElement) {
+    const rect = blockElement.getBoundingClientRect();
+    selectedBlockPosition.value = {
+      top: rect.bottom + window.scrollY - 250 , // 블록 아래 위치
+      left: rect.left + window.scrollX + 350,
+    };
+    emit("selectBlock", {
+      block: selectedBlock.value,
+      position: selectedBlockPosition.value,
+    });
+    console.log("계산된 블록 위치:", selectedBlockPosition.value);
+  } else {
+    console.warn(`ID가 block-${index}인 요소를 찾을 수 없습니다.`);
+    console.log("현재 DOM에 렌더링된 요소들:", document.querySelectorAll("[id^='block-']"));
+  }
+};
+
+
+const closeCommentModal = () => {
+  selectedBlock.value = null;
+};
+
+const saveComment = (commentData) => {
+  console.log("댓글 저장:", { block: selectedBlock.value, comment: commentData });
+  closeCommentModal();
+};
+const openCommentList = async (block, index) => {
+  highlightedBlock.value = block.id;
+  const blockElement = document.getElementById(`block-${index}`);
+  if (blockElement) {
+    const rect = blockElement.getBoundingClientRect();
+    selectedBlockPosition.value = {
+      top: rect.bottom + window.scrollY,
+      left: rect.left + window.scrollX,
+    };
+  }
+
+  try {
+    const response = await axios.get(
+        `/case_sharing_comment/${route.params.id}/comments/${block.id}`
+    );
+    if (response.data.success) {
+      commentList.value = response.data.data; // 댓글 데이터 저장
+      isCommentListModalVisible.value = true;
+    } else {
+      console.error("댓글 목록 조회 실패:", response.data.error);
+    }
+  } catch (error) {
+    console.error("댓글 목록 조회 중 오류 발생:", error);
+  }
+};
+
+const closeCommentListModal = () => {
+  isCommentListModalVisible.value = false;
+  highlightedBlock.value = null; // 강조 해제
+};
+
+/*// 헤더 블록 ID가 렌더링되었는지 확인
 watch(
     () => props.content,
     () => {
@@ -67,20 +198,40 @@ watch(
         });
       });
     },
-    { immediate: true }
-);
+    {immediate: true}
+);*/
+
+onMounted(fetchCommentedBlocks);
 </script>
 
 <style scoped>
 .case-content {
   line-height: 1.6;
   color: #333;
+  position: relative;
+}
+
+.block {
+  border: 1px solid transparent;
+  position: relative; /* 댓글 아이콘 위치를 위한 기준 */
+  transition: border 0.3s;
+}
+
+.block.clickable:hover {
+  border: 1px solid #AAAAAA;
+  background-color: #dddddd;
+  cursor: pointer;
+}
+
+/* 블록 강조 스타일 */
+.block.highlighted {
+  background-color: #eeeeee; /* 연한 파란색 배경 */
+  border: 2px solid lightgrey; /* 강조된 파란색 테두리 */
 }
 
 .header-block {
-  margin: 20px 0 10px;
+  margin-top: 10px;
   font-weight: bold;
-  color: #002b5b;
 }
 
 h1 {
@@ -121,6 +272,31 @@ p {
   height: auto;
   border-radius: 8px;
 }
+
+.comment-icon {
+  position: absolute;
+  top: 80%;
+  right: 10px;
+  transform: translateY(-50%);
+  font-size: 15px;
+  color: #fff; /* 텍스트 색상 흰색 */
+  background-color: #DDDDDD; /* 배경색 검정 */
+  border-radius: 50%; /* 동그라미 모양 */
+  width: 30px; /* 아이콘의 너비 */
+  height: 27px; /* 아이콘의 높이 */
+  display: flex; /* 가운데 정렬 */
+  align-items: center; /* 수직 가운데 정렬 */
+  justify-content: center; /* 수평 가운데 정렬 */
+  border: 1px solid #fff; /* 흰색 테두리 추가 */
+  cursor: pointer;
+  transition: transform 0.2s, color 0.3s, background-color 0.3s; /* 애니메이션 추가 */
+}
+
+.comment-icon:hover {
+  background-color: #333; /* hover 시 더 밝은 검정 */
+  transform: scale(1.2); /* hover 시 확대 */
+}
+
 
 .image-caption {
   font-size: 12px;
