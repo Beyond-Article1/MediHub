@@ -43,11 +43,14 @@ async function fetchData() {
 
 // 수정 페이지 이동 함수
 function goToEditPage() {
-  // router.push({
-  //   name: "CaseSharingEditView", // 수정 페이지 라우트 이름
-  //   params: {id: route.params.id}, // 현재 글 ID를 전달
-  // });
-  alert("미구현");
+  router.push({
+    name: "CpOpinionUpdatePage",
+    params: {
+      cpVersionSeq: route.params.cpVersionSeq,
+      cpOpinionLocationSeq: route.params.cpOpinionLocationSeq,
+      cpOpinionSeq: route.params.cpOpinionSeq
+    }
+  });
 }
 
 // CP 의견 삭제 함수

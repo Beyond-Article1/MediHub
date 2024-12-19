@@ -1,8 +1,9 @@
-import CpMain from "@/views/cp/CpMain.vue";
-import CpDetail from "@/views/cp/CpDetail.vue";
+import CpMain from "@/views/cp/cp/CpMain.vue";
+import CpDetail from "@/views/cp/cp/CpDetail.vue";
 import CpListBody from "@/components/cp/CpListBody.vue";
 import CpOpinionRegister from "@/views/cp/CpOpinionRegister.vue";
-import CpOpinionDetail from "@/views/cp/CpOpinionDetail.vue";
+import CpOpinionDetail from "@/views/cp/cp-opinion/CpOpinionDetail.vue";
+import CpOpinionUpdate from "@/views/cp/CpOpinionUpdate.vue";
 
 export default [
     {
@@ -30,5 +31,9 @@ export default [
         path: '/cp/:cpVersionSeq/cpOpinionLocation/:cpOpinionLocationSeq/cpOpinion/:cpOpinionSeq',
         name: 'CpOpinionPage',
         component: CpOpinionDetail
+    }, {
+        path: '/cp/:cpVersionSeq/cpOpinionLocation/:cpOpinionLocationSeq/cpOpinion/:cpOpinionSeq/update',
+        name: 'CpOpinionUpdatePage',
+        component: CpOpinionUpdate,
     }
 ];
