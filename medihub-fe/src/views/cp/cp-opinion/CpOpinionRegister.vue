@@ -20,6 +20,8 @@ const route = useRoute();
 // 데이터 저장 번수
 const keywords = ref([]); // 태그 상태
 const caseEditor = ref(null); // Editor.js 참조
+const cpOpinionSeq = ref();   // 데이터 생성 후 시퀀스값 저장
+let cpOpinionLocationSeq = parseInt(route.params.cpOpinionLocationSeq, 10);     // CP 의견 위치 시퀀스
 
 // 키워드 업데이트 함수
 const updateKeywords = (newKeywords) => {
@@ -68,41 +70,66 @@ async function createNewLocation() {
   const newPositionX = parseFloat(route.query.x);                 // 쿼리에서 x 좌표 가져오기
   const newPositionY = parseFloat(route.query.y);                 // 쿼리에서 y 좌표 가져오기
 
-  // 데이터 전송
-  const response = await axios.post(`cp/${route.params.cpVersionSeq}/cpOpinionLocation`, {
-    cpOpinionLocationX: newPositionX,
-    cpOpinionLocationY: newPositionY,
-    cpOpinionLocationPageNum: cpOpinionLocationPageNum
-  });
+  try {
+    // 데이터 전송
+    const response = await axios.post(`cp/${route.params.cpVersionSeq}/cpOpinionLocation`, {
+      cpOpinionLocationX: newPositionX,
+      cpOpinionLocationY: newPositionY,
+      cpOpinionLocationPageNum: cpOpinionLocationPageNum
+    });
 
-  if (response.status === 201) {
-    console.log("새로운 CP 의견 위치 생성에 성공하였습니다.");
-    console.log(response.data.data.cpOpinionLocationSeq);
-    return response.data.data.cpOpinionLocationSeq; // 위치 시퀀스 반환
-  } else {
-    console.log("새로운 CP 의견 위치 생성에 실패하였습니다.");
-    throw new Error("Failed to create new opinion location.");
+    if (response === 200 || response.status === 201) {
+      console.log("새로운 CP 의견 위치 생성에 성공하였습니다.");
+      console.log(response.data.data.cpOpinionLocationSeq);
+      cpOpinionLocationSeq = response.data.data.cpOpinionLocationSeq;
+    } else {
+      console.log("새로운 CP 의견 위치 생성에 실패하였습니다.");
+      throw new Error("Failed to create new opinion location.");
+    }
+  } catch (error) {
+    console.error("위치를 생성하는 중 예기치 못한 에러가 발생했습니다.");
+    console.error(error);
+  }
+}
+
+async function deleteLocation() {
+  try {
+    if (cpOpinionLocationSeq === -1) {
+      const response = await axios.delete(`cp/${route.params.cpVersionSeq}/cpOpinionLocation/${cpOpinionLocationSeq}`);
+
+      if (response.status === 200) {
+        console.log("CP 의견 위치를 삭제 했습니다.");
+      } else {
+        throw new Error("CP 의견 위치 삭제에 실패했습니다.");
+      }
+    }
+  } catch (error) {
+    console.error(error);
   }
 }
 
 // 데이터 전송 함수
 async function sendData(formData) {
   try {
-    let cpOpinionLocationSeq = parseInt(route.params.cpOpinionLocationSeq, 10);
-
     // 신규 위치에 의견을 작성하는 경우
-    console.log("check");
-    console.log(cpOpinionLocationSeq === -1);
+    // console.log("check");
+    // console.log(cpOpinionLocationSeq === -1);
     if (cpOpinionLocationSeq === -1) {
       cpOpinionLocationSeq = await createNewLocation(); // await를 사용하여 비동기 처리
     }
 
     const response = await axios.post(`cp/${route.params.cpVersionSeq}/cpOpinionLocation/${cpOpinionLocationSeq}`, formData);
 
-    if (response.status === 201) {
+    // console.log(`상태코드: ${response.status}`);
+    if (response.status === 200 || response.status === 201) {
       console.log("새로운 CP 의견 생성에 성공하였습니다.");
+      cpOpinionSeq.value = response.data.data.cpOpinionSeq;
+      redirectPage();
     } else {
       console.log("새로운 CP 의견 생성에 실패하였습니다.");
+      console.log(response.status);
+      console.log("CP 의견 위치를 삭제합니다.");
+      deleteLocation();
       throw new Error("Failed to register opinion.");
     }
   } catch (error) {
@@ -111,23 +138,16 @@ async function sendData(formData) {
   }
 }
 
-
-// 데이터 조회 함수
-// async function fetchData() {
-//   try {
-//     // 등록한 CP 의견 조회해야함~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//     const response = await axios.get(`cp/${route.params.cpVersion}/cpOpinionLocation/${route.params.cpOpinionLocationSeq}/`);
-//
-//     if (response.status === 200) {
-//       console.log("북마크 토글 성공");
-//       emit('update'); // 데이터 새로고침을 위한 이벤트 발생
-//     } else {
-//       console.log("북마크 토글 실패");
-//     }
-//   } catch (error) {
-//     console.error("북마크 요청 중 오류 발생: ", error);
-//   }
-// }
+function redirectPage() {
+  router.push({
+    name: 'CpOpinionPage',
+    params: {
+      cpVersionSeq: route.params.cpVersionSeq,
+      cpOpinionLocationSeq: cpOpinionLocationSeq,
+      cpOpinionSeq: parseInt(cpOpinionSeq.value, 10)
+    }
+  })
+}
 
 const isModalOpen = ref(false);
 
