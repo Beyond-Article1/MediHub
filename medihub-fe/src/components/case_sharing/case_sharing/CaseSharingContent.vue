@@ -218,7 +218,8 @@ onMounted(fetchCommentedBlocks);
 }
 
 .block.clickable:hover {
-  border: 1px solid #007bff;
+  border: 1px solid #AAAAAA;
+  background-color: #dddddd;
   cursor: pointer;
 }
 
@@ -277,14 +278,25 @@ p {
   top: 80%;
   right: 10px;
   transform: translateY(-50%);
-  font-size: 20px;
+  font-size: 15px;
+  color: #fff; /* 텍스트 색상 흰색 */
+  background-color: #DDDDDD; /* 배경색 검정 */
+  border-radius: 50%; /* 동그라미 모양 */
+  width: 30px; /* 아이콘의 너비 */
+  height: 27px; /* 아이콘의 높이 */
+  display: flex; /* 가운데 정렬 */
+  align-items: center; /* 수직 가운데 정렬 */
+  justify-content: center; /* 수평 가운데 정렬 */
+  border: 1px solid #fff; /* 흰색 테두리 추가 */
   cursor: pointer;
-  transition: transform 0.2s, color 0.3s;
+  transition: transform 0.2s, color 0.3s, background-color 0.3s; /* 애니메이션 추가 */
 }
 
 .comment-icon:hover {
-  transform: scale(1.2); /* 확대 효과 */
+  background-color: #333; /* hover 시 더 밝은 검정 */
+  transform: scale(1.2); /* hover 시 확대 */
 }
+
 
 .image-caption {
   font-size: 12px;

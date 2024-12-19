@@ -8,7 +8,7 @@
           placeholder="댓글을 입력하세요."
           class="comment-input"
       ></textarea>
-      <button class="send-button" @click="saveComment">✈️</button>
+      <button class="send-button" @click="saveComment">등록</button>
     </div>
   </div>
 </template>
@@ -128,7 +128,7 @@ const saveComment = async () => {
   height: 40px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  padding: 0 15px;
+  padding: 7px 15px;
   font-size: 14px;
   outline: none;
 }
@@ -138,20 +138,20 @@ const saveComment = async () => {
 }
 
 .send-button {
-  background: #ffc107;
+  background: #aaaaaa;
   color: white;
   border: none;
   border-radius: 10%;
-  width: 40px;
+  width: 50px;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 16px;
   cursor: pointer;
 }
 
 .send-button:hover {
-  background: #ffa000;
+  background: #666666;
 }
 </style>
