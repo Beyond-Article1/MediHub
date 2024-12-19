@@ -30,7 +30,7 @@ const updateKeywords = (newKeywords) => {
 const handleSave = async () => {
   try {
     // Editor.js에서 데이터와 이미지 파일 가져오기
-    const {content, images} = await caseEditor.value.getEditorData();
+    const {content} = await caseEditor.value.getEditorData();
 
     if (!content || content.blocks.length === 0) {
       alert("본문 내용을 입력해주세요.");
@@ -49,12 +49,7 @@ const handleSave = async () => {
     // FormData에 데이터 추가
     formData.append("data", JSON.stringify(data));
 
-    // 이미지 파일 추가
-    images.forEach((file, index) => {
-      formData.append("images", file, `img-${index + 1}`);
-    });
-
-    console.log("FormData 전송:", data, images);
+    console.log("FormData 전송:", data);
     await sendData(formData);
     alert("저장이 완료되었습니다.");
   } catch (error) {
