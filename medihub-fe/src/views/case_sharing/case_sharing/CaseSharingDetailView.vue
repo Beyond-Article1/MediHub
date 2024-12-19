@@ -1,0 +1,289 @@
+<template>
+  <div class="case-detail-view">
+    <!-- 상단 정보 영역 -->
+    <div class="top-section">
+      <div class="author-info">
+        <img :src="caseData.authorImageUrl" alt="작성자 이미지" class="author-image" />
+        <div class="author-details">
+          <p class="author-name">{{ caseData.author }} <span>({{ caseData.rank }})</span></p>
+          <p class="case-date">{{ formattedDate }}</p>
+        </div>
+      </div>
+      <!-- 버튼 그룹 -->
+      <div class="button-group">
+        <button class="action-button">댓글 달기</button>
+        <button class="action-button" @click="goToEditPage">수정</button>
+        <button class="action-button" @click="deleteCase">삭제</button>
+      </div>
+    </div>
+
+    <!-- 구분선 -->
+    <hr class="divider" />
+
+    <!-- 전체 페이지 레이아웃 -->
+    <div class="content-wrapper">
+      <!-- 왼쪽 본문 영역 -->
+      <div class="main-content">
+        <!-- 제목 영역 -->
+        <h1 class="case-title">{{ caseData.title }}</h1>
+
+        <!-- 키워드 -->
+        <KeywordList :keywords="caseData.keywords" />
+
+        <hr class="divider" />
+        <!-- 본문 -->
+        <CaseContent :content="caseData.content" />
+
+      </div>
+
+      <!-- 오른쪽 Table of Contents -->
+      <div class ="sidebar">
+        <div class="sticky-container">
+          <ContentTable :content="caseData.content" class="table-of-contents" />
+          <CaseSharingVersion />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import axios from "axios";
+import KeywordList from "@/components/case_sharing/case_sharing/KeywordList.vue";
+import CaseContent from "@/components/case_sharing/case_sharing/CaseSharingContent.vue";
+import ContentTable from "@/components/case_sharing/case_sharing/ContentTable.vue";
+import CaseSharingVersion from "@/components/case_sharing/case_sharing/CaseSharingVersion.vue";
+
+const route = useRoute();
+const router = useRouter();
+const caseData = ref({
+  title: "",
+  author: "",
+  rank: "",
+  viewCount: 0,
+  content: "",
+  authorImageUrl: "",
+  keywords: [],
+  createdAt: "",
+});
+
+// API 호출
+const fetchCaseDetail = async () => {
+  try {
+    const response = await axios.get(`/case_sharing/${route.params.id}`);
+    const result = response.data;
+
+    if (result.success) {
+      const data = result.data;
+      caseData.value = {
+        title: data.caseSharingTitle,
+        author: data.caseAuthor,
+        rank: data.caseAuthorRankName,
+        viewCount: data.caseSharingViewCount,
+        content: JSON.parse(data.caseSharingContent), // JSON 파싱
+        authorImageUrl: data.caseAuthorUrl,
+        keywords: data.keywords || [],
+        createdAt: data.createdAt,
+      };
+    } else {
+      console.error("API 응답 오류:", result.error);
+    }
+  } catch (error) {
+    console.error("Error fetching case detail:", error);
+  }
+};
+
+// 등록일자 포맷 (YYYY.MM.DD HH:mm)
+const formattedDate = computed(() => {
+  const date = new Date(caseData.value.createdAt);
+  return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(
+      date.getDate()
+  ).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+});
+
+const goToEditPage = () => {
+  router.push({
+    name: "CaseSharingEditView", // 수정 페이지 라우트 이름
+    params: { id: route.params.id }, // 현재 글 ID를 전달
+  });
+};
+
+// 케이스 공유 삭제
+const deleteCase = async () => {
+  if (!window.confirm("정말로 이 케이스를 삭제하시겠습니까?")) {
+    return; // 사용자가 취소하면 종료
+  }
+
+  try {
+    // 삭제 요청 보내기
+    const response = await axios.delete(`/case_sharing/${route.params.id}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`, // 인증 토큰
+      },
+    });
+
+    if (response.data.success) {
+      alert("케이스가 성공적으로 삭제되었습니다.");
+      await router.push({name: "CaseSharingList"}); // 목록 페이지로 이동
+    } else {
+      console.error("삭제 실패:", response.data.error);
+      alert("삭제에 실패했습니다. 다시 시도해주세요.");
+    }
+  } catch (error) {
+    console.error("Error deleting case:", error);
+    alert("삭제 중 오류가 발생했습니다.");
+  }
+};
+
+
+onMounted(fetchCaseDetail);
+</script>
+
+<style scoped>
+
+.case-detail-view {
+  border: lightgray solid 1px;
+  border-radius: 8px;
+  padding: 20px;
+  width: 1400px;
+  margin-top: 20px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* 상단 정보 영역 */
+.top-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+
+.author-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.author-image {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.author-details{
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.author-name{
+  margin-top: 10px;
+  margin-bottom: 5px;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.author-details .case-date {
+  color: gray;
+  font-size: 12px;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+}
+
+.action-button {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.action-button:hover {
+  background-color: #e0e0e0;
+}
+
+/* 구분선 */
+.divider {
+  margin: 10px 0;
+  border: none;
+  border-top: 1px solid grey;
+}
+
+
+.content-wrapper {
+  display: flex; /* Flexbox 레이아웃 적용 */
+  gap: 30px; /* 본문과 사이드바 간격 */
+}
+
+/* 왼쪽 본문 영역 */
+.main-content {
+  flex: 3; /* 메인 컨텐츠 비율 */
+  padding: 15px;
+  border-right: 1px solid #ddd; /* 테두리 선 추가 */
+}
+
+.sidebar{
+  flex: 1;
+}
+
+/* 오른쪽 Table of Contents 영역 */
+.sticky-container {
+  position: sticky;
+  top: 20px; /* 부모 컨테이너가 sticky로 고정되는 위치 */
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* 두 컴포넌트 사이의 간격 */
+
+}
+.sidebar > * {
+  margin-bottom: 20px; /* 각 컴포넌트 사이 여백 추가 */
+}
+.table-of-contents {
+  width: 100%;
+  top: 20px; /* 상단 여백 */
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-height: calc(100vh - 40px); /* 화면 높이에 맞춤 */
+  overflow-y: auto; /* 내용이 길면 스크롤 */
+}
+
+
+.case-title {
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.case-info p {
+  margin: 5px 0;
+}
+
+.case-actions {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.case-actions button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.case-actions button:hover {
+  background-color: #0056b3;
+}
+</style>

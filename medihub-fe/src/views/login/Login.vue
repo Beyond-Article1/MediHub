@@ -128,6 +128,9 @@ const handleLogin = async () => {
       // 채팅방 구독
       await getUserChatrooms();
 
+      // 유저 정보 저장
+      await fetchUserInfo();
+
       router.push("/main");
 
   } catch (error) {
@@ -136,6 +139,33 @@ const handleLogin = async () => {
 
   } finally {
     loading.value = false;
+  }
+};
+
+// 로그인 한 유저 정보 저장
+const fetchUserInfo = async () => {
+  try {
+    // 사용자 정보 API 호출
+    const response = await axios.get('/api/v1/users', {
+      headers: { Authorization: `Bearer ${authStore.accessToken}` },
+    });
+
+    const userData = response.data.data;
+
+    // 사용자 정보를 Pinia 스토어에 저장
+    authStore.setUserInfo({
+      userId: userData.userId,
+      userName: userData.userName,
+      userEmail: userData.userEmail,
+      userPhone: userData.userPhone,
+      rankingName: userData.rankingName, // 직급
+      partName: userData.partName,       // 부서
+      profileImage: userData.profileImage || null,
+    });
+
+    console.log("사용자 정보 저장 완료:", authStore.userInfo);
+  } catch (error) {
+    console.error("사용자 정보 불러오기 실패:", error);
   }
 };
 

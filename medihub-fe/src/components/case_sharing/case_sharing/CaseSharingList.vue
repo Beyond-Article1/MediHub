@@ -5,7 +5,12 @@
     </div>
     <table>
       <tbody>
-      <tr v-for="(caseItem, index) in caseList" :key="index">
+      <tr
+          v-for="(caseItem, index) in paginatedCaseList"
+          :key="index"
+          @click="goToDetail(caseItem.id)"
+          class="clickable-row"
+      >
         <td>{{ caseItem.id }}</td>
         <td>{{ caseItem.title }}</td>
         <td>{{ caseItem.author }}</td>
@@ -14,19 +19,28 @@
       </tbody>
     </table>
     <!-- Pagination -->
+    <PaginationComponent
+        :totalData="totalCases"
+        :limitPage="12"
+        :page="currentPage"
+        @updatePage="updatePage"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import {ref, onMounted, computed} from 'vue';
 import { useAuthStore } from '@/store/authStore';
-import axios from "axios"; // Pinia 스토어 가져오기
+import axios from "axios";
+import router from "@/router/index.js"; // Pinia 스토어 가져오기
+import PaginationComponent from "@/components/common/Pagination.vue";
 
 const authStore = useAuthStore();
 const accessToken = authStore.accessToken; // accessToken 가져오기
 
 const totalCases = ref(0);
 const caseList = ref([]);
+const currentPage = ref(1); // 현재 페이지 번호
 
 // API 호출 함수
 const fetchCaseList = async () => {
@@ -39,7 +53,9 @@ const fetchCaseList = async () => {
 
     if (result.success && Array.isArray(result.data)) {
       // 데이터 가공
-      caseList.value = result.data.map(item => ({
+      caseList.value =  result.data
+          .sort((a, b) => b.caseSharingSeq - a.caseSharingSeq) // 내림차순 정렬
+          .map(item => ({
         id: item.caseSharingSeq,
         title: item.caseSharingTitle,
         author: `${item.caseAuthor} (${item.caseAuthorRankName || '직급 없음'})`,
@@ -53,6 +69,21 @@ const fetchCaseList = async () => {
     console.error('Error fetching case list:', error);
     caseList.value = [];
   }
+};
+// 페이지당 데이터 계산
+const paginatedCaseList = computed(() => {
+  const startIndex = (currentPage.value - 1) * 12;
+  const endIndex = startIndex + 12;
+  return caseList.value.slice(startIndex, endIndex);
+});
+
+// 페이지 업데이트 이벤트 핸들러
+const updatePage = (page) => {
+  currentPage.value = page;
+};
+
+const goToDetail = (id) => {
+  router.push({ name: 'CaseSharingDetailView', params: { id } });
 };
 
 
@@ -79,16 +110,19 @@ onMounted(() => {
 table {
   width: 100%;
   border-collapse: collapse;
+  margin-bottom: 20px;
 }
 tr {
   border-bottom: 1px solid #ddd;
+  cursor: pointer; /* 클릭 가능한 마우스 커서 추가 */
+  transition: background-color 0.3s ease;
+}
+
+tr:hover {
+  background-color: #f9f9f9; /* 호버 시 배경 색상 변경 */
 }
 td {
   padding: 8px;
 }
-.pagination {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 10px;
-}
+
 </style>
