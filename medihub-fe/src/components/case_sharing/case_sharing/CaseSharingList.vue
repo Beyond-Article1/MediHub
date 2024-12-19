@@ -33,7 +33,7 @@ import {ref, onMounted, computed} from 'vue';
 import { useAuthStore } from '@/store/authStore';
 import axios from "axios";
 import router from "@/router/index.js"; // Pinia 스토어 가져오기
-import PaginationComponent from "@/components/common/Pagenation.vue";
+import PaginationComponent from "@/components/common/Pagination.vue";
 
 const authStore = useAuthStore();
 const accessToken = authStore.accessToken; // accessToken 가져오기
