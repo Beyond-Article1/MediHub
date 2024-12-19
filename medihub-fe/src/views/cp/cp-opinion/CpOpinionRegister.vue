@@ -3,7 +3,7 @@ import html2canvas from "html2canvas";
 import axios from "axios";
 
 import {ref} from "vue";
-import {useAuthStore} from '@/store/authStore';
+import {useAuthStore} from '@/store/authStore.js';
 import {useRoute, useRouter} from "vue-router";
 
 import Button from "@/components/common/button/Button.vue";

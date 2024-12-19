@@ -1,9 +1,9 @@
 import CpMain from "@/views/cp/cp/CpMain.vue";
 import CpDetail from "@/views/cp/cp/CpDetail.vue";
 import CpListBody from "@/components/cp/CpListBody.vue";
-import CpOpinionRegister from "@/views/cp/CpOpinionRegister.vue";
+import CpOpinionRegister from "@/views/cp/cp-opinion/CpOpinionRegister.vue";
 import CpOpinionDetail from "@/views/cp/cp-opinion/CpOpinionDetail.vue";
-import CpOpinionUpdate from "@/views/cp/CpOpinionUpdate.vue";
+import CpOpinionUpdate from "@/views/cp/cp-opinion/CpOpinionUpdate.vue";
 
 export default [
     {
