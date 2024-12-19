@@ -43,6 +43,7 @@ async function fetchData() {
   }
 }
 
+// 데이터 저장(수정 완료) 함수
 async function saveChanges() {
   try {
     const { content } = await caseEditor.value.getEditorData();
@@ -77,7 +78,6 @@ async function saveChanges() {
     alert("저장 중 오류가 발생했습니다.");
   }
 }
-
 
 // 수정 취소 함수
 function cancelEdit() {

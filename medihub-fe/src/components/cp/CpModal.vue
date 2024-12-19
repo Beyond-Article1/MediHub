@@ -29,6 +29,7 @@ const route = useRoute(); // 라우트
 
 // 데이터 저장 변수
 const cpOpinionList = ref([]); // CP 의견 리스트
+const cpOpinionContent = ref();      // 파싱된 CP 의견
 
 // emit 함수
 const closeModal = () => {
@@ -83,11 +84,12 @@ watch(() => props.isVisible, async (newValue) => {
 <template>
   <div class="modal-overlay" v-if="isVisible">
     <div class="modal-content">
-      <button class="close-button" @click="closeModal">×</button>
+      <div class="modal-header">
+        <button class="close-button" @click="closeModal">×</button>
+      </div>
       <div class="modal-body">
         <template v-if="cpOpinionList.length > 0">
           <div style="margin-top: 10px" v-for="cpOpinion in cpOpinionList" :key="cpOpinion.cpOpinionSeq">
-            <!-- 찬성, 반대 투표 기능 만들어야 됨 -->
             <CpOpinionLi :data="cpOpinion" @click="navigateToOpinion(cpOpinion.cpOpinionSeq)"/>
             <LineDivider/>
           </div>
@@ -95,6 +97,8 @@ watch(() => props.isVisible, async (newValue) => {
         <template v-else>
           <p>등록된 의견이 없습니다.</p>
         </template>
+      </div>
+      <div class="button-container">
         <Button @click="registerOpinion" :isDisabled="false">{{ '등록' }}</Button>
       </div>
     </div>
@@ -122,21 +126,35 @@ watch(() => props.isVisible, async (newValue) => {
   width: 80%;
   max-width: 600px;
   height: 400px; /* 고정 높이 설정 */
-  position: relative;
+  display: flex;
+  flex-direction: column; /* 세로 방향으로 배치 */
+}
+
+.modal-header {
+  display: flex;
+  justify-content: flex-end; /* 오른쪽 정렬 */
 }
 
 .modal-body {
+  flex: 1; /* 남은 공간을 차지하도록 설정 */
   max-height: calc(400px - 60px); /* 등록 버튼과 닫기 버튼을 고려한 최대 높이 */
   overflow-y: auto; /* 세로 스크롤 가능 */
 }
 
+.button-container {
+  display: flex;
+  justify-content: flex-end; /* 오른쪽 정렬 */
+  margin-top: 10px; /* 버튼과 내용 사이에 간격 추가 */
+}
+
 .close-button {
-  position: absolute;
-  top: 10px;
-  right: 10px;
   border: none;
   background: transparent;
   font-size: 20px;
   cursor: pointer;
+}
+
+.close-button:hover {
+  color: red; /* 마우스 오버 시 색상 변경 */
 }
 </style>
