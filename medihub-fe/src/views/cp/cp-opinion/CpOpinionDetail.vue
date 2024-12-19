@@ -113,7 +113,6 @@ async function voteInFavor() {
   }
 }
 
-
 // CP 의견 반대 투표 함수
 async function voteAgainst() {
   try {
