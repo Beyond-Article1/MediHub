@@ -9,7 +9,7 @@ export default [
     },
     {
         // MediH 논문 AI
-        path: '/journal/ai',
+        path: '/journal/medi-h',
         component: MediH
     },
 ];

@@ -77,7 +77,7 @@
       </div>
 
       <!-- 페이지네이션 -->
-      <Pagenation
+      <Pagination
           :totalData="filteredUsers.length"
           :limitPage="itemsPerPage"
           :page="currentPage"
@@ -89,7 +89,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import Pagenation from "@/components/common/Pagenation.vue";
+import Pagination from "@/components/common/Pagination.vue";
 import LineDivider from "@/components/common/LineDivider.vue";
 import BookmarkButton from "@/components/common/button/BookmarkButton.vue";
 import axios from "axios";

@@ -29,13 +29,32 @@
 
         <!-- 다른 메뉴 -->
         <li
-            v-for="menu in ['cp', 'journal', 'member', 'admin']"
+            v-for="menu in ['cp', 'member', 'admin']"
             :key="menu"
             :class="{ active: selectedItem === menu }"
             @click="moveToItem(menu)"
         >
           {{ menu.toUpperCase() }}
         </li>
+
+        <li
+            class="menu-item dropdown"
+            @mouseover="showJournalDrop = true"
+            @mouseleave="showJournalDrop = false"
+        >
+          JOURNAL
+          <!-- 드롭다운 메뉴 -->
+          <ul v-if="showJournalDrop" class="dropdown-menu">
+            <li
+                v-for="item in journalDropdownItems"
+                :key="item.value"
+                @click="moveToItem(item)"
+            >
+              {{ item.label }}
+            </li>
+          </ul>
+        </li>
+
       </ul>
     </div>
 
@@ -62,11 +81,17 @@ const webSocketStore = useWebSocketStore();
 const isLogIn = 123;
 const selectedItem = ref('');
 const showDropdown = ref(false);
+const showJournalDrop = ref(false);
 
 const dropdownItems = [
   { label: 'CASE SHARING', value: 'case_sharing' },
   { label: 'MEDICAL LIFE', value: 'medical_life' },
   { label: 'ANONYMOUS', value: 'anonymous' },
+];
+
+const journalDropdownItems = [
+  { label: 'BEST 100', value: 'best_journal'},
+  { label: 'MediH', value: 'medi_h'},
 ];
 
 const logout = async () => {
@@ -93,6 +118,12 @@ function moveToItem(menu) {
       break;
     case 'anonymous':
       route = '/anonymous';
+      break;
+    case 'best_journal':
+      route = '/journal/best';
+      break;
+    case 'medi_h':
+      route = '/journal/medi-h';
       break;
     default:
       route = '/';

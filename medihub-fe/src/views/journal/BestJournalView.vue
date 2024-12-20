@@ -140,7 +140,10 @@ const paginatedData = computed(() => {
         {{ ((currentPage - 1) * pageSize + index + 1).toString().padStart(2, '0') }}
       </div>
       <div class="journal-info align-mid">
-        <div class="journal-title">{{journal.title}}</div>
+        <div class="journal-title">
+          {{ journal.koreanTitle.length > 32 ? journal.koreanTitle.slice(0, 32) + '...' : journal.koreanTitle }}
+          <span class="tooltip">{{ journal.koreanTitle }}</span>
+        </div>
         <div class="journal-detail">{{journal.authors.join(', ')}} | {{journal.source}} | {{journal.pubDate}} | {{journal.size}}</div>
       </div>
       <div class="journal-bookmark">
@@ -215,8 +218,35 @@ const paginatedData = computed(() => {
   .journal-box{
     display: flex;
     justify-content: space-between;
-    height: 70px;
+    height: 100px;
     border-bottom: 1px solid grey;
+  }
+
+  .journal-title {
+    position: relative;
+    display: inline-block;
+  }
+
+  .tooltip {
+    visibility: hidden;
+    width: max-content;
+    background-color: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    text-align: center;
+    border-radius: 5px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%; /* 툴팁이 텍스트 위에 표시되도록 설정 */
+    left: 50%;
+    margin-left: -60px; /* 툴팁을 중앙에 맞추기 위한 offset */
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .journal-title:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
   }
 
   /* == 논문 순위 == */
