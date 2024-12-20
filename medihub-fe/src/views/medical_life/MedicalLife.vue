@@ -98,7 +98,7 @@ import SearchBox from "@/components/common/SearchBox.vue";
 import Pagination from "@/components/common/Pagination.vue";
 import LineDivider from "@/components/common/LineDivider.vue";
 import BookmarkButton from "@/components/common/button/BookmarkButton.vue";
-import LikeButton from "@/components/common/button/HeartButton.vue";
+import LikeButton from "@/components/common/button/LikeButton.vue";
 
 // 게시판 데이터
 const posts = ref([]);
