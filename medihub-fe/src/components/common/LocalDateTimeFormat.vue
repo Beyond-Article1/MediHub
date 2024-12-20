@@ -4,6 +4,7 @@ import { computed, defineProps } from 'vue';
 const props = defineProps({
   data: {
     type: String,
+    default: '',
     required: true
   }
 });

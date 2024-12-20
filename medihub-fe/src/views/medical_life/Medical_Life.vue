@@ -91,9 +91,9 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import Pagination from "@/components/common/Pagination.vue";
 import LineDivider from "@/components/common/LineDivider.vue";
 import axios from "axios";
+import Pagination from "@/components/common/Pagination.vue";
 
 // 상태 변수
 const departments = ref([]);

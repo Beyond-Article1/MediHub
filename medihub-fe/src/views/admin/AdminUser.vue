@@ -91,9 +91,9 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import Pagination from "@/components/common/Pagination.vue";
 import LineDivider from "@/components/common/LineDivider.vue";
 import axios from "axios";
+import Pagination from "@/components/common/Pagination.vue";
 
 const router = useRouter();
 const users = ref([]);

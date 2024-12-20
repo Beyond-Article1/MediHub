@@ -89,10 +89,10 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import Pagination from "@/components/common/Pagination.vue";
 import LineDivider from "@/components/common/LineDivider.vue";
 import BookmarkButton from "@/components/common/button/BookmarkButton.vue";
 import axios from "axios";
+import Pagination from "@/components/common/Pagination.vue";
 
 const users = ref([]);
 const departments = ref([]);
