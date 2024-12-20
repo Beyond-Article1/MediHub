@@ -1,6 +1,11 @@
-<!-- Card.vue -->
 <script setup>
-import { defineProps } from "vue";
+import { defineProps, defineEmits } from "vue";
+
+// Enum 정의
+const ActionType = {
+  UPDATE: 'update',
+  DELETE: 'delete'
+};
 
 const props = defineProps({
   seq: {
@@ -12,6 +17,14 @@ const props = defineProps({
     required: true
   }
 });
+
+// emit 정의
+const emit = defineEmits(['cardAction']);
+
+// 버튼 클릭 시 emit으로 부모에게 이벤트 전파
+const handleAction = (actionType) => {
+  emit('cardAction', { actionType, seq: props.seq });
+};
 </script>
 
 <template>
@@ -20,10 +33,10 @@ const props = defineProps({
       <div class="card-body d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">{{ name }}</h5>
         <div>
-          <button class="btn btn-outline-dark btn-sm me-2">
+          <button class="btn btn-outline-dark btn-sm me-2" @click="handleAction(ActionType.UPDATE)">
             <i class="bi bi-pencil"></i>
           </button>
-          <button class="btn btn-outline-danger btn-sm">
+          <button class="btn btn-outline-danger btn-sm" @click="handleAction(ActionType.DELETE)">
             <i class="bi bi-trash"></i>
           </button>
         </div>
@@ -34,7 +47,8 @@ const props = defineProps({
 
 <style scoped>
 .custom-card {
-  width: 300px; /* 고정 너비 설정 */
+  width: 100%; /* 전체 너비를 사용하도록 설정 */
+  max-width: 300px; /* 최대 너비 설정 */
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   transition: all 0.2s ease-in-out;

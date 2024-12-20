@@ -21,12 +21,9 @@ async function fetchCpSearchCategoryData() {
     if (response.status === 200) {
       console.log("CP 검색 카테고리 데이터 조회 성공");
       cpSearchCategoryList.value = response.data.data;
-
       cpSearchCategoryNameList.value = cpSearchCategoryList.value.map(data => data.cpSearchCategoryName);
     } else {
-      console.error("CP 검색 카테고리 데이터 조회 실패");
-      console.error(`코드: ${response.status}`);
-      console.error(`내용: ${response}`);
+      console.error("CP 검색 카테고리 데이터 조회 실패", response.status);
     }
   } catch (error) {
     console.error("CP 검색 카테고리 조회 중 에러가 발생했습니다.", error);
@@ -36,14 +33,12 @@ async function fetchCpSearchCategoryData() {
 // CP 검색 카테고리 데이터 호출 함수
 async function fetchCpSearchCategoryDataData(cpSearchCategorySeq) {
   try {
-    // cpSearchCategorySeq가 undefined인 경우 기본값 설정
     if (!cpSearchCategorySeq) {
       console.error("cpSearchCategorySeq가 유효하지 않습니다.");
       return;
     }
 
-    // cpSearchCategorySeq에서 숫자만 추출 (정규 표현식 사용)
-    const match = cpSearchCategorySeq.match(/\d+/); // 숫자만 추출
+    const match = cpSearchCategorySeq.match(/\d+/);
     if (match) {
       cpSearchCategorySeq = parseInt(match[0], 10);
     } else {
@@ -51,7 +46,6 @@ async function fetchCpSearchCategoryDataData(cpSearchCategorySeq) {
       return;
     }
 
-    // 숫자로 변환된 값이 유효한지 확인
     if (isNaN(cpSearchCategorySeq)) {
       console.error("cpSearchCategorySeq가 숫자로 변환되지 않았습니다.");
       return;
@@ -62,14 +56,22 @@ async function fetchCpSearchCategoryDataData(cpSearchCategorySeq) {
     if (response.status === 200) {
       console.log("CP 검색 카테고리 데이터 조회 성공");
       cpSearchCategoryDataList.value = response.data.data;
-      console.log(cpSearchCategoryDataList.value);
     } else {
-      console.error("CP 검색 카테고리 데이터 조회 실패");
-      console.error(`코드: ${response.status}`);
-      console.error(`내용: ${response}`);
+      console.error("CP 검색 카테고리 데이터 조회 실패", response.status);
     }
   } catch (error) {
     console.error("CP 검색 카테고리 조회 중 에러가 발생했습니다.", error);
+  }
+}
+
+// Card 클릭하면 발생하는 함수
+const handleCardAction = ({actionType, seq}) => {
+  if (actionType === 'update') {
+    console.log(`Update action for seq: ${seq}`);
+    // 업데이트 관련 로직 추가
+  } else if (actionType === 'delete') {
+    console.log(`Delete action for seq: ${seq}`);
+    // 삭제 관련 로직 추가
   }
 }
 
@@ -87,10 +89,9 @@ watch(selectedOption, (newValue) => {
 
 <template>
   <div>
-    <CpHeader />
-    <div class="d-flex"> <!-- Flexbox 추가 -->
-      <div class="me-3"> <!-- 드롭박스와 보드 간의 여백 -->
-        <!-- 좌측 드롭박스 옵션 구역 -->
+    <CpHeader/>
+    <div class="d-flex">
+      <div class="me-3">
         <DropBox
             :options="cpSearchCategoryNameList"
             :label="'분류'"
@@ -101,7 +102,6 @@ watch(selectedOption, (newValue) => {
         />
       </div>
       <div>
-        <!-- 우측 옵션에 대한 데이터 영역 -->
         <Board>
           <template v-if="cpSearchCategoryDataList.length > 0">
             <Card
@@ -109,7 +109,11 @@ watch(selectedOption, (newValue) => {
                 :key="cpSearchCategoryData.cpSearchCategoryDataSeq"
                 :seq="cpSearchCategoryData.cpSearchCategoryDataSeq"
                 :name="cpSearchCategoryData.cpSearchCategoryDataName"
+                @cardAction="handleCardAction"
             />
+          </template>
+          <template v-else>
+            <div class="text-center">데이터가 없습니다.</div>
           </template>
         </Board>
       </div>
