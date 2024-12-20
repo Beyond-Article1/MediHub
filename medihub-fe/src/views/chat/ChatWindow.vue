@@ -3,20 +3,16 @@ import { ref } from 'vue';
 import Organization from "@/components/chat/Organization.vue";
 import ChatroomList from "@/components/chat/ChatroomList.vue";
 import FileBox from "@/components/chat/FileBox.vue";
-import ChatroomDetail from "@/components/chat/ChatroomDetail.vue"; // 채팅방 상세 화면 컴포넌트
 
 // 채팅창 상태 관리
 const isChatOpen = ref(true);     // 채팅창 열기/닫기 상태
 const currentPage = ref(ChatroomList);  // 초기 페이지 설정 (기본 채팅방)
-const currentRoom = ref(false);   // 현재 선택된 채팅방, 기본값 false (채팅방을 선택하지 않은 상태)
+const activeButton = ref('chatroom'); // 초기값: chatroom 버튼 활성화
 
 // 채팅창 드래그 상태 관리
-const isDragging = ref(false);  // 드래그 중인지 여부
-const offset = ref({ x: 0, y: 0 });  // 드래그 시작 지점에서의 상대적인 위치
+const isDragging = ref(false);  // 드래그 중인지
 const initialPosition = ref({ x:0, y:0 });  // 초기 위치 기록(드래그 시작 위치)
-
-// 현재 선택된 메뉴 버튼 상태 관리
-const activeButton = ref('chatroom'); // 초기값: chatroom 버튼 활성화
+const offset = ref({ x: 0, y: 0 });  // 드래그 시작 지점에서의 상대적인 위치
 
 // 메뉴에서 페이지 전환 시
 const handlePageChange = (page) => {
@@ -24,26 +20,16 @@ const handlePageChange = (page) => {
 
   if (page === 'organization') {
     currentPage.value = Organization;
-    currentRoom.value = false;  // 채팅방 상세 화면에서는 메뉴로 돌아갈 수 있도록 상태 초기화
   } else if (page === 'chatroom') {
     currentPage.value = ChatroomList;
-    currentRoom.value = false;
   } else if (page === 'file') {
     currentPage.value = FileBox;
-    currentRoom.value = false;
   }
-};
-
-// 채팅방을 더블클릭하면 해당 채팅방 상세 화면을 보여줌
-const openChatroom = (room) => {
-  currentRoom.value = room;  // 선택한 채팅방으로 상태 변경
-  currentPage.value = ChatroomDetail;  // 채팅방 상세 화면으로 전환
 };
 
 // 드래그 시작 이벤트
 const startDrag = (event) => {
-  // 마우스 왼쪽 버튼일 때만 드래그 시작
-  if(event.button !== 0) return;
+  if(event.button !== 0) return;    // 마우스 왼쪽 버튼일 때만 드래그 시작
 
   const chatHeader = event.target.closest('.chat-header');  // chat-header 영역에서만 드래그 시작
   if (!chatHeader) return;  // 만약 chat-header가 아니라면 드래그를 시작하지 않음
@@ -64,30 +50,37 @@ const startDrag = (event) => {
     y: rect.top
   };
 
-  // 드래그가 시작되었음을 표시
-  isDragging.value = true;
+  isDragging.value = true;    // 드래그 시작
+
+  // 전역 이벤트 리스너 등록
+  document.addEventListener('mousemove', onDrag);
+  document.addEventListener('mouseup', stopDrag);
 };
 
 // 드래그 이동 이벤트
 const onDrag = (event) => {
-  if (isDragging.value) {
-    const chatWindow = document.querySelector('.chat-window');
-    const left = event.clientX - offset.value.x;
-    const top = event.clientY - offset.value.y;
+  if (!isDragging.value) return;
 
-    // 화면을 벗어나지 않도록 위치 제한
-    const maxLeft = window.innerWidth - chatWindow.offsetWidth;
-    const maxTop = window.innerHeight - chatWindow.offsetHeight;
+  const left = event.clientX - offset.value.x;
+  const top = event.clientY - offset.value.y;
 
-    // 위치를 화면 내로 제한
-    chatWindow.style.left = `${Math.max(0, Math.min(left, maxLeft))}px`;
-    chatWindow.style.top = `${Math.max(0, Math.min(top, maxTop))}px`;
-  }
+  const chatWindow = document.querySelector('.chat-window');
+
+  // 화면을 벗어나지 않도록 위치 제한
+  const maxLeft = window.innerWidth - chatWindow.offsetWidth;
+  const maxTop = window.innerHeight - chatWindow.offsetHeight;
+
+  // 위치를 화면 내로 제한
+  chatWindow.style.left = `${Math.max(0, Math.min(left, maxLeft))}px`;
+  chatWindow.style.top = `${Math.max(0, Math.min(top, maxTop))}px`;
+
 };
 
 // 드래그 종료 이벤트
 const stopDrag = () => {
   isDragging.value = false;
+
+  // 전역 이벤트 리스너 제거
   document.removeEventListener('mousemove', onDrag);
   document.removeEventListener('mouseup', stopDrag);
 };
@@ -95,7 +88,7 @@ const stopDrag = () => {
 </script>
 
 <template>
-  <div v-if="isChatOpen" class="chat-window" @mousedown="startDrag" @mousemove="onDrag" @mouseup="stopDrag" @mouseleave="stopDrag">
+  <div v-if="isChatOpen" class="chat-window" @mousedown="startDrag">
     <header class="chat-header">
       <div class="chat-header-profile">
         <img src="@/assets/images/chat/profile.png" alt="Organization">
@@ -118,14 +111,13 @@ const stopDrag = () => {
         </button>
       </div>
       <div class="chat-header-logo">
-        <img src="@/assets/images/chat/MediHub_LOGO.png" alt="Organization">
+        <img src="@/assets/images/chat/MediHub_LOGO.png" alt="MediHub_LOGO">
       </div>
     </header>
 
     <!-- 메뉴 화면(조직도, 채팅방, 파일함) 또는 채팅방 화면을 동적으로 변경 -->
     <div id="container" class="chat-content">
-      <component :is="currentPage" v-if="!currentRoom" @open-chatroom="openChatroom" />
-      <ChatroomDetail v-if="currentRoom" :room="currentRoom" />
+      <component :is="currentPage" @open-chatroom="$emit('open-chatroom', $event)" />
     </div>
 
     <!-- X (닫기 버튼) -->
@@ -214,7 +206,6 @@ const stopDrag = () => {
 
 .chat-content {
   flex-grow: 1;
-  padding: 10px;
   overflow-y: auto;
 }
 
@@ -222,12 +213,11 @@ const stopDrag = () => {
 .close-button {
   position: absolute;
   top: 10px;
-  right: 10px;
+  right: 15px;
   background: none;
   border: none;
   color: #1A2F69;
   font-size: 20px;
   cursor: pointer;
-  z-index: 10000; /* X 버튼이 다른 요소 위에 보이게 */
 }
 </style>
