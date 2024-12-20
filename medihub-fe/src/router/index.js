@@ -1,14 +1,15 @@
-import {createRouter, createWebHistory} from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
 
 import journalRouter from "@/router/journalRouter.js";
 import cpRouter from "@/router/cpRouter.js";
 import caseSharingRouter from "@/router/caseSharingRouter.js";
-import loginRouter from "@/router/loginRouter.js";
-import mainRouter from "@/router/mainRouter.js";
 import medicalLifeRouter from "@/router/medicalLifeRouter.js";
 import userRouter from "@/router/userRouter.js";
-import adminRouter from "@/router/adminRouter.js";
+import anonymousBoardRouter from "@/router/anonymousBoardRouter.js";
+import loginRouter from "@/router/loginRouter.js";
+import mainRouter from "@/router/mainRouter.js";
 import testRouter from "@/router/testRouter.js";
+import adminRouter from "@/router/adminRouter.js";
 
 const routes = [
 
@@ -16,25 +17,22 @@ const routes = [
         path: "/", // 기본 경로
         redirect: "/login",
     },
-    ...loginRouter,
-    // CP 라우터
-    ...cpRouter,
-    ...caseSharingRouter,
     // 논문 라우터
     ...journalRouter,
-
-    ...mainRouter,
-
+    // CP 라우터
+    ...cpRouter,
+    // 케이스 공유 라우터
+    ...caseSharingRouter,
+    // 메디컬 라이프 라우터
     ...medicalLifeRouter,
-
+    // 직원 라우터
     ...userRouter,
-
-    ...adminRouter,
-
-
-
-
+    // 익명 게시판 라우터
+    ...anonymousBoardRouter,
+    ...loginRouter,
+    ...mainRouter,
     ...testRouter,
+    ...adminRouter
 ]
 
 const router = createRouter({

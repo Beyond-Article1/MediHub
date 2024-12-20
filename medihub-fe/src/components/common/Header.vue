@@ -86,7 +86,7 @@ const showJournalDrop = ref(false);
 const dropdownItems = [
   { label: 'CASE SHARING', value: 'case_sharing' },
   { label: 'MEDICAL LIFE', value: 'medical_life' },
-  { label: 'ANONYMOUS', value: 'anonymous' },
+  { label: 'ANONYMOUS BOARD', value: 'anonymous-board' },
 ];
 
 const journalDropdownItems = [
@@ -117,8 +117,8 @@ function moveToItem(menu) {
     case 'medical_life':
       route = '/medical_life';
       break;
-    case 'anonymous':
-      route = '/anonymous';
+    case 'anonymous-board':
+      route = '/anonymous-board';
       break;
     case 'best_journal':
       route = '/journal/best';
