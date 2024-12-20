@@ -97,6 +97,12 @@ function moveToItem(menu) {
     case 'cp':
       route = '/cp';
       break;
+    case 'member':
+      route = '/allUser';
+      break;
+    case 'admin':
+      route = '/adminUser';
+      break;
     default:
       route = '/';
       break;
@@ -108,13 +114,13 @@ function moveToItem(menu) {
       }
     });
   }
-  // router.push(route);
-  window.location.replace(route);
+ // router.push(route);
+ // window.location.replace(route);
 }
 
 function goToHome() {
   selectedItem.value = '';
-  router.push('/');
+  router.push('/main');
 }
 </script>
 
