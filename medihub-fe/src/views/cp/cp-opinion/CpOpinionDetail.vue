@@ -106,7 +106,7 @@ async function voteInFavor() {
     if (response.status === 200 || response.status === 201) {
       console.log("찬성 투표를 완료하였습니다.");
     } else {
-      throw new Error("찬성 투표 중 에러가 발생했습니다.");
+      console.error("찬성 투표 중 에러가 발생했습니다:", response.data);
     }
   } catch (error) {
     console.error("Error:", error.response ? error.response.data : error.message);
@@ -127,9 +127,9 @@ async function voteAgainst() {
     );
 
     if (response.status === 200 || response.status === 201) {
-      console.log("찬성 투표를 완료하였습니다.");
+      console.log("반대 투표를 완료하였습니다."); // 메시지 수정
     } else {
-      throw new Error("찬성 투표 중 에러가 발생했습니다.");
+      console.error("반대 투표 중 에러가 발생했습니다:", response.data); // throw 대신 console.error 사용
     }
   } catch (error) {
     console.error("Error:", error.response ? error.response.data : error.message);

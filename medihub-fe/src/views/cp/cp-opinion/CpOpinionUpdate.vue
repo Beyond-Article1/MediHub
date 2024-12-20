@@ -157,16 +157,6 @@ function cancelEdit() {
   text-align: center;
 }
 
-.title-input {
-  width: 1200px;
-  padding: 15px;
-  font-size: 1.1em;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-sizing: border-box;
-  margin-bottom: 20px;
-}
-
 .editor-wrapper {
   width: 100%;
   max-width: 1200px;

@@ -78,17 +78,16 @@ async function createNewLocation() {
       cpOpinionLocationPageNum: cpOpinionLocationPageNum
     });
 
-    if (response === 200 || response.status === 201) {
+    if (response.status === 200 || response.status === 201) {
       console.log("새로운 CP 의견 위치 생성에 성공하였습니다.");
       console.log(response.data.data.cpOpinionLocationSeq);
       cpOpinionLocationSeq = response.data.data.cpOpinionLocationSeq;
     } else {
-      console.log("새로운 CP 의견 위치 생성에 실패하였습니다.");
-      throw new Error("Failed to create new opinion location.");
+      console.error("새로운 CP 의견 위치 생성에 실패하였습니다:", response.data);
     }
   } catch (error) {
     console.error("위치를 생성하는 중 예기치 못한 에러가 발생했습니다.");
-    console.error(error);
+    console.error(error.response ? error.response.data : error.message);
   }
 }
 
