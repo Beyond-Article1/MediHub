@@ -66,11 +66,12 @@ const showDropdown = ref(false);
 const dropdownItems = [
   { label: 'CASE SHARING', value: 'case_sharing' },
   { label: 'MEDICAL LIFE', value: 'medical_life' },
-  { label: 'ANONYMOUS', value: 'anonymous' },
+  { label: 'ANONYMOUS BOARD', value: 'anonymous-board' },
 ];
 
 const logout = async () => {
   await webSocketStore.disconnectWebSocket(); // 로그아웃 시, 웹소켓 연결 종료
+  window.dispatchEvent(new Event('logout'));    // logout 이벤트 발생
   await store.logout();
   deleteCookie('token');
   await nextTick();
@@ -91,8 +92,8 @@ function moveToItem(menu) {
     case 'medical_life':
       route = '/medical_life';
       break;
-    case 'anonymous':
-      route = '/anonymous';
+    case 'anonymous-board':
+      route = '/anonymous-board';
       break;
     case 'cp':
       route = '/cp';
@@ -114,8 +115,8 @@ function moveToItem(menu) {
       }
     });
   }
- // router.push(route);
- // window.location.replace(route);
+  // router.push(route);
+  window.location.replace(route);
 }
 
 function goToHome() {
