@@ -48,15 +48,9 @@ async function fetchData() {
   }
 }
 
-// 검색어 처리 함수
-const handleSearch = () => {
-  console.log("검색어:", searchStore.searchText);
-  goToCpList(searchStore.searchText);
-};
-
 // CP 검색 결과 화면으로 이동
 async function goToCpList(cpName) {
-  router.push(`/cp?cpName=${encodeURIComponent(cpName)}`); // cpName을 URL 인코딩
+  router.push(`/cp?cpName=${encodeURIComponent(cpName)}`);
 }
 
 onMounted(() => {
@@ -66,11 +60,10 @@ onMounted(() => {
 
 <template>
   <div class="container">
-    <CpTitleComponent :cpName="cp.cpName" class="cp-title"/>
+    <CpTitleComponent :cpName="cp.cpName || 'CP'" class="cp-title"/>
     <SearchBox
         class="search-box"
-        :placeholder="searchStore.searchText ? searchStore.searchText : '검색어를 입력해주세요.'"
-        @search="handleSearch"
+        placeholder="검색어를 입력해주세요."
     />
   </div>
   <LineDivider/>
