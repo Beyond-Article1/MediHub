@@ -4,6 +4,7 @@ import CpListBody from "@/components/cp/CpListBody.vue";
 import CpOpinionRegister from "@/views/cp/cp-opinion/CpOpinionRegister.vue";
 import CpOpinionDetail from "@/views/cp/cp-opinion/CpOpinionDetail.vue";
 import CpOpinionUpdate from "@/views/cp/cp-opinion/CpOpinionUpdate.vue";
+import CpSearchCategoryDataManagement from "@/views/cp/admin/CpSearchCategoryDataManagement.vue";
 
 export default [
     {
@@ -35,5 +36,16 @@ export default [
         path: '/cp/:cpVersionSeq/cpOpinionLocation/:cpOpinionLocationSeq/cpOpinion/:cpOpinionSeq/update',
         name: 'CpOpinionUpdatePage',
         component: CpOpinionUpdate,
+    }, {
+        path: '/admin/cp/management',
+        name: 'CpSearchCategoryManagementPage',
+        component: CpSearchCategoryDataManagement,
+        // children: [
+        //     {
+        //         path: '',
+        //         name: '',
+        //         component: 'asfd'
+        //     }
+        // ]
     }
 ];
