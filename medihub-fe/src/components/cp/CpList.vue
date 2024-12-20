@@ -6,8 +6,7 @@ import axios from "axios";
 import CpLi from "@/components/cp/CpLi.vue";
 import CpLiInfo from "@/components/cp/CpLiInfo.vue";
 
-// 인증 스토어와 라우터 초기화
-const authStore = useAuthStore();
+// vue 설정 변수
 const router = useRouter();
 const cpList = ref([]); // CP 리스트를 저장할 ref
 
