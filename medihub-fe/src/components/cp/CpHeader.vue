@@ -2,7 +2,6 @@
 import axios from "axios";
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router"; // useRouter 추가
-import { useSearchStore } from "@/store/searchStore.js";
 
 import CpTitleComponent from "@/components/cp/CpTitle.vue";
 import SearchBox from "@/components/common/SearchBox.vue";
@@ -23,7 +22,6 @@ const cp = ref({
   isBookmarked: ''
 });
 
-const searchStore = useSearchStore(); // Pinia 스토어 인스턴스 가져오기
 const router = useRouter(); // router 인스턴스 가져오기
 
 // 데이터 요청 함수
