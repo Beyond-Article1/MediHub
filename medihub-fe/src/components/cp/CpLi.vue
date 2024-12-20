@@ -16,9 +16,6 @@ const props = defineProps({
 // 이벤트 정의
 const emit = defineEmits();
 
-// 인증 스토어 사용
-const useAuth = useAuthStore();
-
 // 파일 다운로드 함수
 const downloadFile = () => {
   const link = document.createElement('a');
