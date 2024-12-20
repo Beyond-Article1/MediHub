@@ -1,16 +1,19 @@
 <script setup>
-import { ref, defineEmits } from 'vue';
+import {ref, defineEmits} from 'vue';
+import {useSearchStore} from '@/store/searchStore.js'; // Pinia 스토어 경로에 맞게 수정
 
-const emit = defineEmits();
+const emit = defineEmits(); // emit 정의
+const searchStore = useSearchStore(); // Pinia 스토어 인스턴스 가져오기
 
 const searchQuery = ref('');
 
 const onInput = () => {
-  emit('update:search', searchQuery.value);
+  searchStore.setSearchText(searchQuery.value); // 입력 시 검색어를 Pinia 스토어에 저장
 };
 
 const submitSearch = () => {
-  emit('search', searchQuery.value);
+  searchStore.setSearchText(searchQuery.value); // 검색어를 스토어에 저장
+  emit('search', searchQuery.value); // 부모 컴포넌트에 검색어 전달
 };
 </script>
 
