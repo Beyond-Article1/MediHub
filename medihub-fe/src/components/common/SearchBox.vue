@@ -54,7 +54,7 @@ input {
 button {
   padding: 12px 16px;
   border: none;
-  background-color: #007bff;
+  background-color: var(--symbol-blue);
   color: white;
   border-radius: 4px;
   cursor: pointer;

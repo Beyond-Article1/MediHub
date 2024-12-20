@@ -254,7 +254,6 @@ async function voteAgainst() {
   border-top: 1px solid grey;
 }
 
-
 .content-wrapper {
   display: flex; /* Flexbox 레이아웃 적용 */
   gap: 30px; /* 본문과 사이드바 간격 */
@@ -286,6 +285,7 @@ async function voteAgainst() {
 }
 
 .table-of-contents {
+  min-height: 200px;
   width: 100%;
   top: 20px; /* 상단 여백 */
   background-color: #f9f9f9;
