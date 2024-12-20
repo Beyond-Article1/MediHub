@@ -71,6 +71,7 @@ const dropdownItems = [
 
 const logout = async () => {
   await webSocketStore.disconnectWebSocket(); // 로그아웃 시, 웹소켓 연결 종료
+  window.dispatchEvent(new Event('logout'));    // logout 이벤트 발생
   await store.logout();
   deleteCookie('token');
   await nextTick();
@@ -108,8 +109,6 @@ function moveToItem(menu) {
       }
     });
   }
-  // router.push(route);
-  window.location.replace(route);
 }
 
 function goToHome() {
