@@ -1,7 +1,22 @@
 <script setup>
 import { ref, defineEmits, watch } from 'vue';
+import { useSearchStore } from '@/store/searchStore.js'; // Pinia 스토어 경로에 맞게 수정
 
 import axios from 'axios';
+
+const emit = defineEmits(); // emit 정의
+const searchStore = useSearchStore(); // Pinia 스토어 인스턴스 가져오기
+
+const props = defineProps({
+
+const onInput = () => {
+  searchStore.setSearchText(searchQuery.value); // 입력 시 검색어를 Pinia 스토어에 저장
+};
+
+const submitSearch = () => {
+  searchStore.setSearchText(searchQuery.value); // 검색어를 스토어에 저장
+  emit('search', searchQuery.value); // 부모 컴포넌트에 검색어 전달
+};
 
 const props = defineProps({
 
@@ -150,6 +165,14 @@ document.addEventListener('click', handleClickOutside);
   overflow-y: auto; /* 세로로 스크롤 가능 */
   z-index: 1000;
   scrollbar-width: none; /* Firefox에서 스크롤바 숨기기 */
+}
+
+button {
+  padding: 12px 16px;
+  border: none;
+  background-color: var(--symbol-blue);
+  color: white;
+  border-radius: 4px;
 }
 
 /* Chrome, Safari, Edge에서 스크롤바 숨기기 */

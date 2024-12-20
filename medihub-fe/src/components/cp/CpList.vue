@@ -1,20 +1,21 @@
 <script setup>
-import {onMounted, ref} from "vue";
-import {useRouter} from "vue-router";
-import {useAuthStore} from "@/store/authStore.js";
+import { onMounted, ref } from "vue";
+import { useRouter, useRoute } from "vue-router"; // useRoute 추가
 import axios from "axios";
 import CpLi from "@/components/cp/CpLi.vue";
 import CpLiInfo from "@/components/cp/CpLiInfo.vue";
 
-// 인증 스토어와 라우터 초기화
-const authStore = useAuthStore();
+// vue 설정 변수
 const router = useRouter();
+const route = useRoute(); // 현재 라우트 정보를 가져옴
 const cpList = ref([]); // CP 리스트를 저장할 ref
 
 // 데이터 호출 함수
-async function fetchData() {
+async function fetchData(cpName = null) {
+  console.log("데이터 호출 함수 실행");
   try {
-    const response = await axios.get("cp");
+    const url = cpName ? `cp?cpName=${encodeURIComponent(cpName)}` : "cp"; // cpName이 있을 경우 URL 설정
+    const response = await axios.get(url);
 
     if (response.status === 200) {
       console.log("CP 리스트 조회 성공");
@@ -35,10 +36,10 @@ const moveCpVersionPage = (cpVersionSeq) => {
 
 // 컴포넌트 마운트 시 데이터 호출
 onMounted(() => {
-  fetchData();
+  const cpName = route.query.cpName; // URL에서 cpName 가져오기
+  fetchData(cpName); // cpName이 있을 경우 해당 이름으로 데이터 호출
 });
 </script>
-
 
 <template>
   <div class="cp-container">
