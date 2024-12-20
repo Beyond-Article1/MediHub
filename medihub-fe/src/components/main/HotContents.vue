@@ -21,11 +21,12 @@
               class="case-image"
           />
           <p class="case-title">{{ truncateTitle(caseItem.caseSharingTitle) }}</p>
-          <p class="case-author">
-            작성자: {{ caseItem.caseAuthor }} ({{ caseItem.caseAuthorRankName }})
-          </p>
-          <p class="case-part"> {{ caseItem.partName }}</p>
-          <p class="case-date">{{ formatDate(caseItem.createdAt) }}</p>
+          <div class="case-info">
+            <span class="case-author">
+              {{ caseItem.caseAuthor }} ({{ caseItem.caseAuthorRankName }})
+            </span>
+            <span class="case-part"> - {{ caseItem.partName }} </span>
+          </div>
         </div>
       </div>
     </div>
@@ -137,7 +138,8 @@ onMounted(fetchCaseSharingTop3);
 .hot-contents {
   background: #f9f9f9;
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 16px;
+  border: 1px solid #dddddd;
 }
 
 .section {
@@ -187,8 +189,7 @@ onMounted(fetchCaseSharingTop3);
 }
 
 .case-author,
-.case-part,
-.case-date {
+.case-part {
   font-size: 0.9em;
   color: #666;
 }
@@ -238,4 +239,19 @@ onMounted(fetchCaseSharingTop3);
   color: #999;
   text-align: right;
 }
+.more-button{
+  border: none;
+  background-color: #f9f9f9;
+  font-size: 1.5em;
+}
+
+.case-info {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  gap: 10px;
+  font-size: 0.9em;
+  color: #666;
+}
+
 </style>
