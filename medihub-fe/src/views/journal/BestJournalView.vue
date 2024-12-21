@@ -109,7 +109,6 @@ function updateBookmark(journalSeq) {
 // 페이지 변경 핸들러
 const handlePageChange = (page) => {
   currentPage.value = page;
-  console.log("현재 페이지: ", page);
 };
 
 // 현재 페이지에 맞는 데이터 반환
@@ -124,7 +123,6 @@ function goToDetails(journalData) {
     name: "MediH",
     query: {
       journalData: JSON.stringify(journalData), // 문자열로 변환하여 전달
-      pmid: journalData.pmid,
     },
   });
 }

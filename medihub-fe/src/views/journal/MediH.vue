@@ -17,22 +17,21 @@ const articles = ref(); // 챗 데이터
 
 const route = useRoute();
 const journalData = ref([]);
-const pmid = ref("");
 
 // 최하단 스크롤을 위함
 const chatWindow = ref(null);
 
 onMounted(() => {
-  if (route.query.journalData) {
+  if (route.query.journalData && !sessionStorage.getItem('journalProcessed')) {
     journalData.value = JSON.parse(route.query.journalData);
-    pmid.value = route.query.pmid;
 
     userInput.value = `${journalData.value.koreanTitle}에 대해 요약해줘`;
-    console.log(userInput.value);
-    console.log(journalData.value);
+
     chatMessages.value.push({ sender: "user", type: "text", text: userInput.value});
     userInput.value = "";
     journalInfo(journalData.value, 'move');
+
+    sessionStorage.setItem('journalProcessed', 'true'); // journalData가 처리되었음을 기록
   }
 });
 
@@ -157,8 +156,8 @@ const formatPubmedResponse = (articles, type) => {
 
 async function journalInfo(journal, move) {
   try {
-    console.log(journal);
-    console.log(move);
+    isLoading.value = true;
+
     if (move === 'move'){
       await axios.post(`/journal/${journal.pmid}`, {
         title: journal.title,
@@ -166,13 +165,12 @@ async function journalInfo(journal, move) {
         source: journal.source,
         pubDate: journal.pubData,
         size: journal.size,
-        authors: journal.authors,
+        authors: journal.authors.join(', '),
         doi: journal.doi,
         pmid: journal.pmid
       })
           .then(res => {
             if (res.status === 200) {
-              console.log(res.data.data);
               articles.value = res.data.data;
             } else {
               console.log('예상한 값이 아님: ', res.status);
@@ -408,13 +406,13 @@ async function journalInfo(journal, move) {
 }
 
 /* 그라데이션 효과 */
-.scroll-gradient {
+/*.scroll-gradient {
   position: absolute;
   bottom: 14%;
   width: 1000px;
-  height: 50px; /* 그라데이션 높이 */
+  height: 50px;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
-  pointer-events: none; /* 클릭 이벤트를 차단하여 다른 요소를 가리지 않도록 함 */
-}
+  pointer-events: none;
+} */
 
 </style>
