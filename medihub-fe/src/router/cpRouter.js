@@ -13,7 +13,7 @@ export default [
         children: [
             {
                 path: '',
-                name: 'CpList',
+                name: 'CpListPage',
                 component: CpListBody,
             },
             {

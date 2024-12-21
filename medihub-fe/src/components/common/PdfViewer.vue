@@ -155,7 +155,7 @@ async function loadPage(pdfUrlToLoad) {
     const pdf = await pdfjsLib.getDocument(pdfUrlToLoad).promise;
     totalPages.value = pdf.numPages;
     const page = await pdf.getPage(currentPage.value);
-    const viewport = page.getViewport({scale: 1.2});
+    const viewport = page.getViewport({scale: 1.14});
 
     pdfCanvas.value.width = viewport.width;
     pdfCanvas.value.height = viewport.height;

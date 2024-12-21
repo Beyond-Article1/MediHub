@@ -77,10 +77,10 @@ export const useWebSocketStore = defineStore('webSocket', ws => {
             console.error('WebSocket이 연결되지 않았습니다.');
         }
 
-        if (subscriptions.value[chatroomSeq]) {
-            console.log(`채팅방 ${chatroomSeq}은 이미 구독 중입니다.`);
-            return;
-        }
+        // if (subscriptions.value[chatroomSeq]) {
+        //     console.log(`채팅방 ${chatroomSeq}은 이미 구독 중입니다.`);
+        //     return;
+        // }
 
         const subscription = stompClient.value.subscribe(
             `/subscribe/${chatroomSeq}`,

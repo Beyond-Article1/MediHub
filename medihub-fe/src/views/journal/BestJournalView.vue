@@ -5,6 +5,7 @@ import axios from "axios";
 import SortButtonGroup from "@/components/common/button/JournalSortButtonGroup.vue";
 import BookmarkButton from "@/components/common/button/BookmarkButton.vue";
 import Pagination from "@/components/common/Pagination.vue";
+import {useRouter} from "vue-router";
 
 // 논문 데이터
 const journalData = ref([]);
@@ -14,6 +15,8 @@ const sortByValue = ref("bookmark");
 
 // 논문 내림차순(true), 오름차순(false)
 const isSorted = ref(true);
+
+const router = useRouter();
 
 // 페이지네이션 관련 데이터
 const currentPage = ref(1); // 현재 페이지
@@ -54,11 +57,12 @@ const bookmarkMethod = async (journal) => {
 
           if (journal.bookmark) {
             journal.count += 1; // 북마크 추가
-            alert('북마크 완료')
           } else {
             journal.count -= 1; // 북마크 삭제
             alert('북마크 해제');
           }
+
+          sortedJournals();
         } else {
           console.log('성공 코드와 다름', res.data);
         }
@@ -73,13 +77,14 @@ const bookmarkMethod = async (journal) => {
 }
 
 // 카운트순 조회
-function sortedJournals(){
-  const sorted = [...journalData.value].sort((a,b) => {
+function sortedJournals() {
+  journalData.value = [...journalData.value].sort((a, b) => {
     return isSorted.value
         ? b.count - a.count // 내림차순
         : a.count - b.count; // 오름차순
   });
 }
+
 
 // 조회 조건 변경
 function changeCondition(condition){
@@ -114,6 +119,16 @@ const paginatedData = computed(() => {
   return journalData.value.slice(start, end);
 });
 
+function goToDetails(journalData) {
+  router.push({
+    name: "MediH",
+    query: {
+      journalData: JSON.stringify(journalData), // 문자열로 변환하여 전달
+      pmid: journalData.pmid,
+    },
+  });
+}
+
 </script>
 
 <template>
@@ -140,7 +155,7 @@ const paginatedData = computed(() => {
         {{ ((currentPage - 1) * pageSize + index + 1).toString().padStart(2, '0') }}
       </div>
       <div class="journal-info align-mid">
-        <div class="journal-title">
+        <div class="journal-title" @click="goToDetails(journal)">
           {{ journal.koreanTitle.length > 32 ? journal.koreanTitle.slice(0, 32) + '...' : journal.koreanTitle }}
           <span class="tooltip">{{ journal.koreanTitle }}</span>
         </div>
@@ -158,16 +173,23 @@ const paginatedData = computed(() => {
 
     </div>
 
-    <Pagination
-        :totalData=journalData.length
-        :limitPage=pageSize
-        :page="currentPage"
-        @updatePage="handlePageChange"
-    />
+      <Pagination
+          :totalData=journalData.length
+          :limitPage=pageSize
+          :page="currentPage"
+          @updatePage="handlePageChange"
+      />
   </div>
 </template>
 
 <style scoped>
+.journal-content{
+  -ms-overflow-style: none;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
   .journal-content{
     display: flex;
     flex-direction: column;
@@ -180,6 +202,7 @@ const paginatedData = computed(() => {
     border: 1px solid #999999;
     border-radius: 5px;
     overflow: scroll;
+    margin-top: 25px;
   }
 
   /* == BEST 100, 북마크 순, 조회 순 == */
@@ -286,4 +309,9 @@ const paginatedData = computed(() => {
   .align-mid{
     align-content: center;
   }
+
+nav{
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
 </style>

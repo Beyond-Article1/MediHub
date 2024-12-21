@@ -146,8 +146,7 @@ function moveToItem(menu) {
       }
     });
   }
-  // router.push(route);
-  window.location.replace(route);
+  router.push(route);
 }
 
 function goToHome() {
