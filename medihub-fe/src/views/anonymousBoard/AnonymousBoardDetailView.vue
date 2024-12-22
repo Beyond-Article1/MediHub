@@ -121,9 +121,10 @@ const addComment = async () => {
     const commentSeq = createCommentResponse.data.data; // 댓글 ID를 가져옴
     // 새 댓글 객체 생성
     const newComment = {
-      id: commentSeq,  // 서버에서 반환된 댓글 ID 추가
-      commentContent: newCommentContent.value, // 새 댓글 내용
-      createdAt: new Date().toISOString() // 현재 시간으로 createdAt 설정
+
+      id: commentSeq,
+      commentContent: newCommentContent.value,
+      createdAt: new Date().toISOString()
     };
 
     // 댓글 작성 성공 후 상태 초기화 및 리스트 갱신
@@ -164,15 +165,14 @@ onMounted(() => {
       </p> <!-- 변환된 날짜 사용 -->
       <p class="view-count">조회수&nbsp : &nbsp{{ boardDetail.anonymousBoardViewCount }}</p>
 
-      <div class="actions"> <!-- 버튼들을 감싸는 div 추가 -->
-        <div class="like-btn align-mid" @click.stop="toggleLike(boardDetail)">
-          <img :src="boardDetail.isLiked ? afterLike : beforeLike" :alt="boardDetail.isLiked ? 'After' : 'Before'"/>
+      <div class="actions">
+
+        <div class="like-btn align-mid" @click="toggleLike">
+
+          <img :src="boardDetail.isLiked ? afterLike : beforeLike" alt="좋아요" />
         </div>
-        <div class="bookmark-btn align-mid" @click.stop="toggleBookmark(boardDetail)">
-          <img
-              :src="boardDetail.isBookmark ? afterBookmark : beforeBookmark"
-              :alt="boardDetail.isBookmark ? 'After' : 'Before'"
-          />
+        <div class="bookmark-btn align-mid" @click="toggleBookmark">
+          <img :src="boardDetail.isBookmark ? afterBookmark : beforeBookmark" alt="북마크" />
         </div>
       </div>
     </div>
