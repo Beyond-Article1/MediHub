@@ -5,6 +5,7 @@ import axios from "axios";
 import SortButtonGroup from "@/components/common/button/JournalSortButtonGroup.vue";
 import BookmarkButton from "@/components/common/button/BookmarkButton.vue";
 import Pagination from "@/components/common/Pagination.vue";
+import {useRouter} from "vue-router";
 
 // 논문 데이터
 const journalData = ref([]);
@@ -14,6 +15,8 @@ const sortByValue = ref("bookmark");
 
 // 논문 내림차순(true), 오름차순(false)
 const isSorted = ref(true);
+
+const router = useRouter();
 
 // 페이지네이션 관련 데이터
 const currentPage = ref(1); // 현재 페이지
@@ -54,11 +57,12 @@ const bookmarkMethod = async (journal) => {
 
           if (journal.bookmark) {
             journal.count += 1; // 북마크 추가
-            alert('북마크 완료')
           } else {
             journal.count -= 1; // 북마크 삭제
             alert('북마크 해제');
           }
+
+          sortedJournals();
         } else {
           console.log('성공 코드와 다름', res.data);
         }
@@ -73,13 +77,14 @@ const bookmarkMethod = async (journal) => {
 }
 
 // 카운트순 조회
-function sortedJournals(){
-  const sorted = [...journalData.value].sort((a,b) => {
+function sortedJournals() {
+  journalData.value = [...journalData.value].sort((a, b) => {
     return isSorted.value
         ? b.count - a.count // 내림차순
         : a.count - b.count; // 오름차순
   });
 }
+
 
 // 조회 조건 변경
 function changeCondition(condition){
@@ -104,7 +109,6 @@ function updateBookmark(journalSeq) {
 // 페이지 변경 핸들러
 const handlePageChange = (page) => {
   currentPage.value = page;
-  console.log("현재 페이지: ", page);
 };
 
 // 현재 페이지에 맞는 데이터 반환
@@ -113,6 +117,15 @@ const paginatedData = computed(() => {
   const end = start + pageSize;
   return journalData.value.slice(start, end);
 });
+
+function goToDetails(journalData) {
+  router.push({
+    name: "MediH",
+    query: {
+      journalData: JSON.stringify(journalData), // 문자열로 변환하여 전달
+    },
+  });
+}
 
 </script>
 
@@ -140,7 +153,10 @@ const paginatedData = computed(() => {
         {{ ((currentPage - 1) * pageSize + index + 1).toString().padStart(2, '0') }}
       </div>
       <div class="journal-info align-mid">
-        <div class="journal-title">{{journal.title}}</div>
+        <div class="journal-title" @click="goToDetails(journal)">
+          {{ journal.koreanTitle.length > 32 ? journal.koreanTitle.slice(0, 32) + '...' : journal.koreanTitle }}
+          <span class="tooltip">{{ journal.koreanTitle }}</span>
+        </div>
         <div class="journal-detail">{{journal.authors.join(', ')}} | {{journal.source}} | {{journal.pubDate}} | {{journal.size}}</div>
       </div>
       <div class="journal-bookmark">
@@ -155,16 +171,23 @@ const paginatedData = computed(() => {
 
     </div>
 
-    <Pagination
-        :totalData=journalData.length
-        :limitPage=pageSize
-        :page="currentPage"
-        @updatePage="handlePageChange"
-    />
+      <Pagination
+          :totalData=journalData.length
+          :limitPage=pageSize
+          :page="currentPage"
+          @updatePage="handlePageChange"
+      />
   </div>
 </template>
 
 <style scoped>
+.journal-content{
+  -ms-overflow-style: none;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
   .journal-content{
     display: flex;
     flex-direction: column;
@@ -177,6 +200,7 @@ const paginatedData = computed(() => {
     border: 1px solid #999999;
     border-radius: 5px;
     overflow: scroll;
+    margin-top: 25px;
   }
 
   /* == BEST 100, 북마크 순, 조회 순 == */
@@ -215,8 +239,35 @@ const paginatedData = computed(() => {
   .journal-box{
     display: flex;
     justify-content: space-between;
-    height: 70px;
+    height: 100px;
     border-bottom: 1px solid grey;
+  }
+
+  .journal-title {
+    position: relative;
+    display: inline-block;
+  }
+
+  .tooltip {
+    visibility: hidden;
+    width: max-content;
+    background-color: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    text-align: center;
+    border-radius: 5px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%; /* 툴팁이 텍스트 위에 표시되도록 설정 */
+    left: 50%;
+    margin-left: -60px; /* 툴팁을 중앙에 맞추기 위한 offset */
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .journal-title:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
   }
 
   /* == 논문 순위 == */
@@ -256,4 +307,9 @@ const paginatedData = computed(() => {
   .align-mid{
     align-content: center;
   }
+
+nav{
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
 </style>
