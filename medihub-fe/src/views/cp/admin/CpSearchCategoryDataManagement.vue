@@ -210,7 +210,7 @@ watch(selectedOption, (newValue) => {
   <div>
     <CpHeader/>
     <div class="d-flex">
-      <div class="me-3">
+      <div class="me-3 position-relative">
         <DropBox
             :options="cpSearchCategoryNameList"
             :label="'분류'"
@@ -218,6 +218,11 @@ watch(selectedOption, (newValue) => {
             :isOpen="true"
             @update:modelValue="selectedOption = $event"
             @update:isOpen="(value) => {}"
+        />
+        <IconButton
+            :iconClass="'bi bi-plus-circle-fill'"
+        class="add-button-top"
+        @click="openAddModal"
         />
       </div>
       <div class="board-container">
@@ -288,6 +293,28 @@ watch(selectedOption, (newValue) => {
   justify-content: center; /* 중앙 정렬 */
   align-items: center; /* 수직 중앙 정렬 */
   transition: background-color 0.3s; /* 배경색 변경 시 부드러운 전환 효과 */
+}
+
+.add-button-top {
+  position: absolute; /* 버튼을 절대 위치로 설정 */
+  top: 5px; /* 드롭박스 상단에서의 여백 */
+  right: 5px; /* 드롭박스 우측에서의 여백 */
+  padding: 5px; /* 버튼 패딩 */
+  cursor: pointer; /* 커서 포인터 */
+  width: 30px; /* 버튼 너비 */
+  height: 30px; /* 버튼 높이 */
+  border-radius: 50%; /* 버튼을 둥글게 만들기 */
+  background-color: var(--symbol-blue); /* 배경색 추가 */
+  border: none; /* 테두리 제거 */
+  display: flex; /* Flexbox 사용하여 아이콘 중앙 배치 */
+  justify-content: center; /* 중앙 정렬 */
+  align-items: center; /* 수직 중앙 정렬 */
+  transition: background-color 0.3s; /* 배경색 변경 시 부드러운 전환 효과 */
+  z-index: 1; /* 버튼이 다른 요소 위에 보이도록 z-index 추가 */
+}
+
+.position-relative {
+  position: relative; /* 드롭박스 부모 요소에 상대 위치 설정 */
 }
 </style>
 
