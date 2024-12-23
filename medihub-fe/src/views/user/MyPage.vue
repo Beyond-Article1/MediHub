@@ -1,3 +1,113 @@
+<script setup>
+import { ref, computed, onMounted } from "vue";
+import axios from "axios";
+import Sidebar from "@/components/user/MyPage.vue";
+
+const posts = ref([]);
+const filteredPosts = ref([]); // 필터링된 게시물 저장
+const currentPage = ref(1);
+const itemsPerPage = 5;
+const currentFilter = ref("");
+
+// 내가 쓴 게시물 가져오기
+const fetchMyPosts = async () => {
+  try {
+    const response = await axios.get("/medical-life/mypage", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
+    });
+
+    posts.value = response.data.data.map((post) => {
+      const parsedContent = parseMedicalLifeContent(post.medicalLifeContent);
+      return {
+        title: post.medicalLifeTitle,
+        content: parsedContent,
+        keywords: post.keywords,
+        author: post.userName,
+        date: new Date(post.createdAt).toLocaleDateString(),
+        bookmarked: post.bookmarked,
+      };
+    });
+
+    filteredPosts.value = [...posts.value]; // 필터링된 게시물 초기화
+  } catch (error) {
+    console.error("내 메디컬 라이프 불러오기 실패:", error);
+  }
+};
+
+// 내가 북마크한 게시물 가져오기
+const fetchBookmarkedPosts = async () => {
+  try {
+    const response = await axios.get("/medical-life/mypage/bookmark", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
+    });
+
+    console.log("북마크 데이터 확인:", response.data.data); // 데이터 구조 확인
+
+    posts.value = response.data.data.map((post) => {
+      const parsedContent = parseMedicalLifeContent(post.medicalLifeContent);
+      return {
+        title: post.medicalLifeTitle,
+        content: parsedContent,
+        keywords: post.keywords || [], // 키워드 처리
+        author: post.userName,
+        date: new Date(post.createdAt).toLocaleDateString(),
+        bookmarked: post.bookmarked,
+      };
+    });
+
+    filteredPosts.value = [...posts.value]; // 필터링된 게시물 초기화
+  } catch (error) {
+    console.error("북마크된 게시물 불러오기 실패:", error);
+  }
+};
+
+const parseMedicalLifeContent = (content) => {
+  try {
+    const parsedContent = JSON.parse(content);
+    const textBlocks = parsedContent.blocks
+        .filter((block) => block.type === "paragraph")
+        .map((block) => block.data.text);
+    return textBlocks.join(" ");
+  } catch (error) {
+    console.error("콘텐츠 파싱 실패:", error);
+    return "내용 없음";
+  }
+};
+
+// 페이지네이션 데이터
+const paginatedPosts = computed(() => {
+const start = (currentPage.value - 1) * itemsPerPage;
+return filteredPosts.value.slice(start, start + itemsPerPage);
+});
+
+// 총 페이지 계산
+const totalPages = computed(() => Math.ceil(filteredPosts.value.length / itemsPerPage));
+
+// 페이지 변경
+const changePage = (page) => {
+if (page > 0 && page <= totalPages.value) {
+currentPage.value = page;
+}
+};
+
+// 조회 버튼 클릭
+const filterByMyPosts = () => {
+currentFilter.value = "myPosts";
+fetchMyPosts(); // 내가 쓴 게시물 API 호출
+currentPage.value = 1;
+};
+
+// 북마크 버튼 클릭
+const filterByBookmarks = () => {
+currentFilter.value = "bookmarks";
+fetchBookmarkedPosts(); // 북마크된 게시물 API 호출
+currentPage.value = 1;
+};
+
+// 초기 데이터 로드
+onMounted(fetchMyPosts);
+</script>
+
 <template>
   <div class="d-flex">
     <!-- 사이드바 -->
@@ -11,17 +121,17 @@
       <div class="filter-buttons">
         <button
             class="filter-btn"
-            :class="{ active: currentFilter === 'views' }"
-            @click="filterByViews"
+            :class="{ active: currentFilter === 'myPosts' }"
+            @click="filterByMyPosts"
         >
-          조회
+          내가 쓴 게시물
         </button>
         <button
             class="filter-btn"
             :class="{ active: currentFilter === 'bookmarks' }"
             @click="filterByBookmarks"
         >
-          북마크
+          북마크된 게시물
         </button>
       </div>
 
@@ -90,61 +200,6 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { ref, computed, onMounted } from "vue";
-import axios from "axios";
-import Sidebar from "@/components/user/MyPage.vue"; // 사이드바 컴포넌트 추가
-
-const posts = ref([]);
-const currentPage = ref(1);
-const itemsPerPage = 5;
-const currentFilter = ref("");
-
-const fetchMyPosts = async () => {
-  try {
-    const response = await axios.get("/medical-life/mypage", {
-      headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
-    });
-    posts.value = response.data.data.map((post) => ({
-      title: post.medicalLifeTitle,
-      content: post.medicalLifeContent || "내용 없음",
-      keywords: post.keywords || [],
-      author: post.userName,
-      date: new Date(post.createdAt).toLocaleDateString(),
-      bookmarked: post.bookmarked,
-      views: post.views,
-    }));
-  } catch (error) {
-    console.error("내 메디컬 라이프 불러오기 실패:", error);
-  }
-};
-
-const paginatedPosts = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  return posts.value.slice(start, start + itemsPerPage);
-});
-
-const totalPages = computed(() => Math.ceil(posts.value.length / itemsPerPage));
-
-const changePage = (page) => {
-  if (page > 0 && page <= totalPages.value) {
-    currentPage.value = page;
-  }
-};
-
-const filterByViews = () => {
-  currentFilter.value = "views";
-  posts.value = [...posts.value].sort((a, b) => b.views - a.views);
-};
-
-const filterByBookmarks = () => {
-  currentFilter.value = "bookmarks";
-  posts.value = posts.value.filter((post) => post.bookmarked);
-};
-
-onMounted(fetchMyPosts);
-</script>
 
 <style scoped>
 .d-flex {
