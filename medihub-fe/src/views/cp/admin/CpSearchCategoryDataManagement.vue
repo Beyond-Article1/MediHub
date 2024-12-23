@@ -1,7 +1,7 @@
 <script setup>
 import axios from "axios";
-import { ref, onMounted, watch } from "vue";
-import { useRoute } from "vue-router";
+import {ref, onMounted, watch} from "vue";
+import {useRoute} from "vue-router";
 
 import CpHeader from "@/components/cp/CpHeader.vue";
 import DropBox from "@/components/common/SingleSelectDropBox.vue";
@@ -21,7 +21,7 @@ const cpSearchCategoryDataList = ref([]);   // 선택된 CP 검색 카테고리 
 const showModal = ref(false);               // 모달의 표시 상태를 관리하는 변수
 const selectedData = ref(null);             // 선택된 데이터 정보를 저장하는 변수
 const updatedName = ref('');                // 사용자가 입력한 새로운 이름을 저장하는 변수
-const isCreatingNewData = ref(true);        // 생성 여부 확인 변수
+const isCreatingNewData = ref(true);        // 카테고리 데이터 생성 여부 확인 변수
 
 // CP 검색 카테고리 데이터 호출 함수
 async function fetchCpSearchCategoryData() {
@@ -73,7 +73,7 @@ async function fetchCpSearchCategoryDataData(cpSearchCategorySeq) {
 }
 
 // Card 클릭하면 발생하는 함수
-const handleCardAction = ({ actionType, seq }) => {
+const handleCardAction = ({actionType, seq}) => {
   if (actionType === 'update') {
     selectedData.value = cpSearchCategoryDataList.value.find(data => data.cpSearchCategoryDataSeq === seq);
     updatedName.value = selectedData.value ? selectedData.value.cpSearchCategoryDataName : '';
@@ -221,8 +221,8 @@ watch(selectedOption, (newValue) => {
         />
         <IconButton
             :iconClass="'bi bi-plus-circle-fill'"
-        class="add-button-top"
-        @click="openAddModal"
+            class="add-button-top"
+            @click="openAddModal"
         />
       </div>
       <div class="board-container">
