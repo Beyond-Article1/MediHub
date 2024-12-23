@@ -1,10 +1,13 @@
 <script setup>
 import {computed, ref, watch} from 'vue';
 import Header from "@/components/common/Header.vue";
-import { useRoute } from 'vue-router'; // useRoute 불러오기
+import { useRoute } from 'vue-router';
+import { useChatStore } from "@/store/chatStore";
 import ChatButton from "@/components/chat/ChatButton.vue";
 import ChatWindow from "@/views/chat/ChatWindow.vue";
 import ChatroomWindow from "@/views/chat/ChatroomWindow.vue"
+import ChatbotButton from "@/components/chatbot/ChatbotButton.vue";
+import ChatbotWindow from "@/views/chatbot/ChatbotWindow.vue";
 
 const route = useRoute(); // 현재 경로 정보 가져오기
 const isLoginPage = computed(() => route.path === '/login');  // 로그인 페이지인지 확인하는 변수
@@ -14,36 +17,42 @@ const toggleChatWindow = () => {  // ChatWindow 열기/닫기
   isChatOpen.value = !isChatOpen.value;
 };
 
-const openedChatrooms = ref([]);  // 열린 채팅방(ChatroomWindow) 목록
+const chatStore = useChatStore();
 const openChatroomWindow = (room) => {
-  if (!openedChatrooms.value.find((r) => r.chatroomSeq === room.chatroomSeq)) {
-    openedChatrooms.value.push(room);
-  }
+  chatStore.openChatroom(room);
 };
 const closeChatroomWindow = (chatroomSeq) => {
-  openedChatrooms.value = openedChatrooms.value.filter((room) => room.chatroomSeq !== chatroomSeq);
+  chatStore.closeChatroom(chatroomSeq);
 };
 
 // 로그아웃 시, 열린 채팅방 목록 초기화
 const resetOpenedChatrooms = () => {
-  openedChatrooms.value = [];
+  chatStore.openedChatrooms = [];
   console.log('openedChatrooms 초기화 완료');
 };
 
 // 로그아웃 이벤트 리스너 등록
 window.addEventListener('logout', resetOpenedChatrooms);
 
-// Event Listener 등록 (Organization.vue에서 발생한 이벤트 처리)
-window.addEventListener('open-chatroom', (event) => {
-  const chatroomSeq = event.detail.chatroomSeq;
-  openChatroomWindow({ chatroomSeq });
-})
-
 // 라우트가 변경될 때 채팅창 상태 초기화
 watch(
     () => route.path,
     () => {
       isChatOpen.value = false; // 라우트 변경 시 채팅창 닫기
+    }
+);
+
+// 챗봇(ChatbotWindow) 상태 관리
+const isChatbotOpen = ref(false);
+const toggleChatbotWindow = () => {
+  isChatbotOpen.value = !isChatbotOpen.value;
+};
+
+// 라우트가 변경될 때 챗봇 상태 초기화
+watch(
+    () => route.path,
+    () => {
+      isChatbotOpen.value = false; // 라우트 변경 시 챗봇 창 닫기
     }
 );
 
@@ -64,14 +73,22 @@ watch(
     />
 
     <!-- 열린 채팅방 리스트 -->
-    <div v-for="room in openedChatrooms" :key="room.chatroomSeq">
+    <div v-for="room in chatStore.openedChatrooms" :key="room.chatroomSeq">
       <ChatroomWindow
           v-if="!isLoginPage"
           :room="room"
-          @close-chatroom="closeChatroomWindow"
+          @close-chatroom="closeChatroomWindow(room.chatroomSeq)"
       />
     </div>
   </div>
+  <!-- 챗봇 버튼 -->
+  <ChatbotButton v-if="!isLoginPage" @toggle-chatbot-window="toggleChatbotWindow" />
+
+  <!-- 챗봇 창 -->
+  <ChatbotWindow
+      v-if="isChatbotOpen && !isLoginPage"
+      :isOpen="isChatbotOpen"
+  />
 </template>
 
 <style scoped>

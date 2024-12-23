@@ -2,6 +2,10 @@
 import { onMounted, ref, computed } from 'vue';
 import axios from 'axios';
 import { useWebSocketStore } from "@/store/webSocket.js";
+import { useChatStore } from "@/store/chatStore.js";
+
+const webSocketStore = useWebSocketStore();
+const chatStore = useChatStore();
 
 const departments = ref([]);  //  부서 목록
 const parts = ref([]);  // 과 목록
@@ -21,8 +25,8 @@ const getUserData = async () => {
       axios.get("/api/v1/users/allUser"),
     ]);
 
-    departments.value = deptRes.data;
-    parts.value = partRes.data;
+    departments.value = deptRes.data.data;
+    parts.value = partRes.data.data;
     users.value = userRes.data.data;
   } catch (error) {
     console.error("데이터 불러오기 실패:", error);
@@ -81,13 +85,12 @@ onMounted(getUserData);
 const createChatroom = async (userSeq) => {
   try {
     console.log('1:1 채팅방 생성 버튼 클릭됨, 선택된 사용자: ', userSeq)
-    const response = await axios.post('/chatroom', { users:[userSeq] });
+    const response = await axios.post('/chatroom', { users : [userSeq] });
     const chatroomSeq = response.data.data;
     console.log('생성된 1:1 채팅방 Seq 확인: ', chatroomSeq);
-    // 채팅방 구독 요청
-    useWebSocketStore().subscribeChatroom(chatroomSeq);
-    // App.vue의 openChatroomWindow method 호출
-    window.dispatchEvent(new CustomEvent('open-chatroom', { detail: { chatroomSeq }}));
+
+    await webSocketStore.subscribeChatroom(chatroomSeq);
+    await chatStore.addChatroom(chatroomSeq);
   } catch(error) {
     console.error('1:1 채팅방 생성 실패: ', error);
     alert('1:1 채팅방 생성 중 오류가 발생하였습니다.');

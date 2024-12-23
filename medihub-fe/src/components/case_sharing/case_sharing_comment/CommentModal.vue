@@ -57,6 +57,9 @@ const saveComment = async () => {
   };
 
   try {
+
+    console.log(requestBody);
+
     // API 호출
     const response = await axios.post(
         `/case_sharing_comment/${route.params.id}`, // URL에 caseSharingSeq 포함

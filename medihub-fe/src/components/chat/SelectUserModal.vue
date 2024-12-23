@@ -91,11 +91,11 @@ onMounted(getUsers);
 
 .modal-content {
   position: absolute;
-  top: 60px; /* 버튼 바로 아래로 위치 (버튼 높이에 따라 조정 가능) */
-  left: 50%; /* 화면 중앙 정렬 */
-  transform: translateX(-50%); /* X축 중앙 정렬 */
-  width: 350px; /* 모달 너비 */
-  height: auto; /* 내용에 따라 높이 자동 조정 */
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 350px;
+  height: auto;
   background: white;
   padding: 20px;
   border-radius: 8px;
@@ -103,16 +103,16 @@ onMounted(getUsers);
 }
 
 .modal-content h4 {
-  text-align: center; /* 제목 중앙 정렬 */
-  margin-bottom: 20px; /* 제목과 목록 사이 간격 */
+  text-align: center;
+  margin-bottom: 20px;
 }
 
 .user-list {
   list-style: none;
   padding: 0;
   margin: 0;
-  max-height: 400px; /* 최대 높이 설정 */
-  overflow-y: auto; /* 세로 스크롤 활성화 */
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 .user-list li {
@@ -125,7 +125,7 @@ onMounted(getUsers);
 }
 
 .user-list li:hover {
-  background-color: #f9f9f9; /* 호버 시 배경색 변경 */
+  background-color: #f9f9f9;
 }
 
 .user-list li.selected {
@@ -144,7 +144,7 @@ onMounted(getUsers);
 .user-profile img {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* 이미지 비율 유지 */
+  object-fit: cover;
 }
 
 .user-info {
@@ -180,27 +180,26 @@ onMounted(getUsers);
 }
 
 .modal-actions button {
-  padding: 7px 20px; /* 버튼 크기 */
-  font-size: 14px; /* 글자 크기 */
-  border-radius: 5px; /* 둥근 모서리 */
-  border: none; /* 테두리 제거 */
+  padding: 7px 20px;
+  font-size: 14px;
+  border-radius: 5px;
+  border: none;
   cursor: pointer;
 }
 
 .modal-actions button:first-child {
-  background-color: #ffc653; /* 확인 버튼 색상 */
-  color: white;
+  background-color: #ffc653;
 }
 
 .modal-actions button:first-child:hover {
-  background-color: #e5b34c; /* 확인 버튼 호버 색상 */
+  background-color: #e5b34c;
 }
 
 .modal-actions button:last-child {
-  background-color: #ddd; /* 취소 버튼 색상 */
+  background-color: #ddd;
 }
 
 .modal-actions button:last-child:hover {
-  background-color: #bbb; /* 취소 버튼 호버 색상 */
+  background-color: #bbb;
 }
 </style>

@@ -5,11 +5,13 @@ export default [
     {
         // BEST 100 논문 조회
         path: '/journal/best',
-        component: BestJournalView
+        component: BestJournalView,
+        name: "BestJournal",
     },
     {
         // MediH 논문 AI
-        path: '/journal/ai',
-        component: MediH
+        path: '/journal/medi-h',
+        component: MediH,
+        name: "MediH",
     },
 ];
