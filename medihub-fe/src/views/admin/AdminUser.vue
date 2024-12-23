@@ -117,8 +117,8 @@ const fetchDepartmentsAndParts = async () => {
         headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
       }),
     ]);
-    departments.value = deptRes.data;
-    parts.value = partRes.data;
+    departments.value = deptRes.data.data;
+    parts.value = partRes.data.data;
     users.value = userRes.data.data;
   } catch (error) {
     console.error("데이터 불러오기 실패:", error);
