@@ -71,7 +71,7 @@ async function updateCpSearchCategory(newName) {
     console.log("수정할 이름: ", newName); // 로그 추가
     try {
       const response = await axios.put(
-          `cp/cpSearchCategory/${selectedData.value.cpSearchCategorySeq}/cpSearchCategoryData/${selectedData.value.cpSearchCategoryDataSeq}`,
+          `cp/cpSearchCategory/${selectedData.value.cpSearchCategorySeq}`,
           newName,
           {
             headers: {
@@ -82,7 +82,7 @@ async function updateCpSearchCategory(newName) {
 
       if (response.status === 200) {
         console.log("CP 검색 카테고리 수정 성공");
-        await fetchCpSearchCategoryDataData(selectedOption.value); // 데이터 갱신
+        await fetchCpSearchCategory();
       } else {
         console.error("CP 검색 카테고리 수정 실패", response.status);
       }
@@ -94,8 +94,29 @@ async function updateCpSearchCategory(newName) {
 }
 
 // CP 검색 카테고리 삭제 요청 함수
-async function deleteCpSearchCategory() {
-  alert("미구현");
+async function deleteCpSearchCategory(seq) {
+  try {
+    const response = await axios.delete(`cp/cpSearchCategory/${seq}`);
+    // 응답이 성공적으로 오면
+    if (response.status === 200) {
+      console.log("삭제 성공");
+      await fetchCpSearchCategory(); // 카테고리 목록 갱신
+    }
+  } catch (error) {
+    // 에러가 발생한 경우
+    if (error.response) {
+      // 서버가 응답을 보냈지만 상태 코드가 2xx가 아닌 경우
+      if (error.response.status === 409) {
+        alert("CP 검색 카테고리 데이터가 존재하여 삭제가 불가능합니다.");
+        console.log("CP 검색 카테고리 데이터가 존재하여 삭제가 불가능합니다.");
+      } else {
+        console.error("삭제 실패", error.response.status);
+      }
+    } else {
+      // 요청을 보내지 못한 경우
+      console.error("삭제 중 에러가 발생했습니다.", error);
+    }
+  }
 }
 
 // Card 클릭하면 발생하는 함수
@@ -108,7 +129,7 @@ const handleCardAction = ({actionType, seq}) => {
   } else if (actionType === 'delete') {
     console.log(`Delete action for seq: ${seq}`);
     selectedData.value = cpSearchCategoryList.value.find(data => data.cpSearchCategoryDataSeq === seq);
-    deleteCpSearchCategory();
+    deleteCpSearchCategory(seq);
   }
 };
 
