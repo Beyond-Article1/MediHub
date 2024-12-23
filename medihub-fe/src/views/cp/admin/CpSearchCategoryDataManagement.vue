@@ -6,12 +6,15 @@ import CpHeader from "@/components/cp/CpHeader.vue";
 import DropBox from "@/components/common/SingleSelectDropBox.vue";
 import Card from "@/components/common/Card.vue";
 import Board from "@/components/common/Board.vue";
+import Modal from "@/components/common/InputModal.vue";
 
-// 데이터 저장 변수
-const cpSearchCategoryList = ref([]);       // CP 검색 카테고리 리스트
-const cpSearchCategoryNameList = ref([]);   // CP 검색 카테고리 이름 리스트
-const selectedOption = ref('');             // 선택된 옵션
-const cpSearchCategoryDataList = ref([]);   // CP 검색 카테고리 데이터 리스트
+const cpSearchCategoryList = ref([]);
+const cpSearchCategoryNameList = ref([]);
+const selectedOption = ref('');
+const cpSearchCategoryDataList = ref([]);
+const showModal = ref(false);
+const selectedData = ref(null);
+const updatedName = ref(''); // 새로 입력받은 이름을 저장할 변수
 
 // CP 검색 카테고리 데이터 호출 함수
 async function fetchCpSearchCategoryData() {
@@ -55,7 +58,7 @@ async function fetchCpSearchCategoryDataData(cpSearchCategorySeq) {
 
     if (response.status === 200) {
       console.log("CP 검색 카테고리 데이터 조회 성공");
-      cpSearchCategoryDataList.value = response.data.data;
+      cpSearchCategoryDataList.value = response.data.data; // 데이터를 리스트에 저장
     } else {
       console.error("CP 검색 카테고리 데이터 조회 실패", response.status);
     }
@@ -67,12 +70,36 @@ async function fetchCpSearchCategoryDataData(cpSearchCategorySeq) {
 // Card 클릭하면 발생하는 함수
 const handleCardAction = ({actionType, seq}) => {
   if (actionType === 'update') {
-    console.log(`Update action for seq: ${seq}`);
-    // 업데이트 관련 로직 추가
+    selectedData.value = cpSearchCategoryDataList.value.find(data => data.cpSearchCategoryDataSeq === seq);
+    updatedName.value = selectedData.value ? selectedData.value.cpSearchCategoryDataName : ''; // 선택된 데이터의 이름 초기화
+    showModal.value = true; // 모달 열기
   } else if (actionType === 'delete') {
     console.log(`Delete action for seq: ${seq}`);
     // 삭제 관련 로직 추가
   }
+};
+
+// CP 검색 데이터 수정 함수
+async function updateCpSearchData() {
+  try {
+    console.log("수정 버튼 눌림: ", updatedName.value); // 로그 추가
+    // 실제 업데이트 API 호출 부분
+    // const response = await axios.put(`/cp/cpSearchCategory/${selectedData.value.cpSearchCategoryDataSeq}`, { name: updatedName.value });
+    // if (response.status === 200) {
+    //   console.log("업데이트 성공");
+    //   fetchCpSearchCategoryDataData(selectedOption.value); // 데이터 갱신
+    // } else {
+    //   console.error("업데이트 실패", response.status);
+    // }
+    showModal.value = false; // 모달 닫기
+  } catch (error) {
+    console.error("업데이트 중 에러가 발생했습니다.", error);
+  }
+}
+
+// 모달 닫는 함수
+function closeModal() {
+  showModal.value = false;
 }
 
 // 마운트 시점 실행 함수
@@ -118,6 +145,19 @@ watch(selectedOption, (newValue) => {
         </Board>
       </div>
     </div>
+
+    <Modal
+        v-if="showModal"
+        :show="showModal"
+        :title="selectedOption"
+        @update="updateCpSearchData"
+        @close="closeModal"
+    >
+      <div>
+        <label for="dataName" class="form-label">이름</label>
+        <input type="text" id="dataName" class="form-control" v-model="updatedName"/>
+      </div>
+    </Modal>
   </div>
 </template>
 
