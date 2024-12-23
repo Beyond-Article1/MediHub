@@ -125,9 +125,6 @@ const handleLogin = async () => {
       // 로그인 후 웹소켓 연결
       await useWebSocketStore().connectWebSocket();
 
-      // 채팅방 구독
-      await getUserChatrooms();
-
       // 유저 정보 저장
       await fetchUserInfo();
 
@@ -168,29 +165,6 @@ const fetchUserInfo = async () => {
     console.error("사용자 정보 불러오기 실패:", error);
   }
 };
-
-const getUserChatrooms = async () => {
-  try {
-    const response = await axios.get("/chatroom", {
-      headers: {
-        'Authorization': `Bearer ${authStore.accessToken}`,
-      }
-    });
-
-    const userChatrooms = response.data.data;  // 사용자 채팅방 리스트 받아오기
-    console.log("사용자가 참여한 채팅방 리스트:", userChatrooms);
-
-    userChatrooms.forEach((chatroom) => {
-      const chatroomSeq = chatroom.chatroomSeq;
-      // 채팅방 구독 요청
-      useWebSocketStore().subscribeChatroom(chatroomSeq);
-    });
-  } catch (error) {
-    console.error("채팅방 목록을 가져오는 데 실패했습니다:", error);
-    alert("채팅방 목록을 가져오는 데 실패했습니다. 다시 시도해주세요.");
-  }
-};
-
 </script>
 
 <style scoped>
