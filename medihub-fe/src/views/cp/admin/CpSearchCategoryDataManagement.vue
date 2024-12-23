@@ -1,6 +1,7 @@
 <script setup>
 import axios from "axios";
 import {ref, onMounted, watch} from "vue";
+import {useRoute} from "vue-router";
 
 import CpHeader from "@/components/cp/CpHeader.vue";
 import DropBox from "@/components/common/SingleSelectDropBox.vue";
@@ -8,19 +9,22 @@ import Card from "@/components/common/Card.vue";
 import Board from "@/components/common/Board.vue";
 import Modal from "@/components/common/InputModal.vue";
 
-const cpSearchCategoryList = ref([]);
-const cpSearchCategoryNameList = ref([]);
-const selectedOption = ref('');
-const cpSearchCategoryDataList = ref([]);
-const showModal = ref(false);
-const selectedData = ref(null);
-const updatedName = ref(''); // 새로 입력받은 이름을 저장할 변수
+// vue 변수
+const route = useRoute();
+
+// 데이터 저장 변수
+const cpSearchCategoryList = ref([]);       // CP 검색 카테고리 목록을 저장하는 변수
+const cpSearchCategoryNameList = ref([]);   // CP 검색 카테고리의 이름 목록을 저장하는 변수
+const selectedOption = ref('');             // 선택된 옵션을 저장하는 변수
+const cpSearchCategoryDataList = ref([]);   // 선택된 CP 검색 카테고리 데이터 목록을 저장하는 변수
+const showModal = ref(false);               // 모달의 표시 상태를 관리하는 변수 (true: 모달 표시, false: 모달 비표시)
+const selectedData = ref(null);             // 선택된 데이터 정보를 저장하는 변수
+const updatedName = ref('');                // 사용자가 입력한 새로운 이름을 저장하는 변수
 
 // CP 검색 카테고리 데이터 호출 함수
 async function fetchCpSearchCategoryData() {
   try {
     const response = await axios.get(`/cp/cpSearchCategory`);
-
     if (response.status === 200) {
       console.log("CP 검색 카테고리 데이터 조회 성공");
       cpSearchCategoryList.value = response.data.data;
@@ -55,7 +59,6 @@ async function fetchCpSearchCategoryDataData(cpSearchCategorySeq) {
     }
 
     const response = await axios.get(`/cp/cpSearchCategory/${cpSearchCategorySeq}/cpSearchCategoryData`);
-
     if (response.status === 200) {
       console.log("CP 검색 카테고리 데이터 조회 성공");
       cpSearchCategoryDataList.value = response.data.data; // 데이터를 리스트에 저장
@@ -79,18 +82,26 @@ const handleCardAction = ({actionType, seq}) => {
   }
 };
 
-// CP 검색 데이터 수정 함수
-async function updateCpSearchData() {
+// 검색 카테고리 수정 함수
+async function updateCpSearchData(newName) {
+  console.log("수정할 이름: ", newName); // 로그 추가
   try {
-    console.log("수정 버튼 눌림: ", updatedName.value); // 로그 추가
-    // 실제 업데이트 API 호출 부분
-    // const response = await axios.put(`/cp/cpSearchCategory/${selectedData.value.cpSearchCategoryDataSeq}`, { name: updatedName.value });
-    // if (response.status === 200) {
-    //   console.log("업데이트 성공");
-    //   fetchCpSearchCategoryDataData(selectedOption.value); // 데이터 갱신
-    // } else {
-    //   console.error("업데이트 실패", response.status);
-    // }
+    const response = await axios.put(
+        `cp/cpSearchCategory/${selectedData.value.cpSearchCategorySeq}/cpSearchCategoryData/${selectedData.value.cpSearchCategoryDataSeq}`,
+        newName,
+        {
+          headers: {
+            'Content-Type': 'text/plain'
+          }
+        }
+    );
+
+    if (response.status === 200) {
+      console.log("업데이트 성공");
+      fetchCpSearchCategoryDataData(selectedOption.value); // 데이터 갱신
+    } else {
+      console.error("업데이트 실패", response.status);
+    }
     showModal.value = false; // 모달 닫기
   } catch (error) {
     console.error("업데이트 중 에러가 발생했습니다.", error);
@@ -149,15 +160,10 @@ watch(selectedOption, (newValue) => {
     <Modal
         v-if="showModal"
         :show="showModal"
-        :title="selectedOption"
+        :title="`${selectedData?.cpSearchCategoryDataName}`"
         @update="updateCpSearchData"
         @close="closeModal"
-    >
-      <div>
-        <label for="dataName" class="form-label">이름</label>
-        <input type="text" id="dataName" class="form-control" v-model="updatedName"/>
-      </div>
-    </Modal>
+    />
   </div>
 </template>
 
