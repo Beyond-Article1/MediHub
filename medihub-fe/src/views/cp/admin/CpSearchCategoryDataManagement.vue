@@ -1,7 +1,7 @@
 <script setup>
 import axios from "axios";
 import {ref, onMounted, watch} from "vue";
-import {useRoute} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 
 import CpHeader from "@/components/cp/CpHeader.vue";
 import DropBox from "@/components/common/SingleSelectDropBox.vue";
@@ -11,7 +11,7 @@ import Modal from "@/components/common/InputModal.vue";
 import IconButton from "@/components/common/button/IconButton.vue";
 
 // vue 변수
-const route = useRoute();
+const router = useRouter();
 
 // 데이터 저장 변수
 const cpSearchCategoryList = ref([]);       // CP 검색 카테고리 목록을 저장하는 변수
@@ -22,6 +22,13 @@ const showModal = ref(false);               // 모달의 표시 상태를 관리
 const selectedData = ref(null);             // 선택된 데이터 정보를 저장하는 변수
 const updatedName = ref('');                // 사용자가 입력한 새로운 이름을 저장하는 변수
 const isCreatingNewData = ref(true);        // 카테고리 데이터 생성 여부 확인 변수
+
+// CP 검색 카테고리 이동 함수
+function goToCpCategoryManagementPage() {
+  router.push({
+    name: 'CpSearchCategoryManagementPage'
+  })
+}
 
 // CP 검색 카테고리 데이터 호출 함수
 async function fetchCpSearchCategoryData() {
@@ -220,9 +227,9 @@ watch(selectedOption, (newValue) => {
             @update:isOpen="(value) => {}"
         />
         <IconButton
-            :iconClass="'bi bi-plus-circle-fill'"
+            :iconClass="'bi bi-gear-wide-connected'"
             class="add-button-top"
-            @click="openAddModal"
+            @click="goToCpCategoryManagementPage"
         />
       </div>
       <div class="board-container">

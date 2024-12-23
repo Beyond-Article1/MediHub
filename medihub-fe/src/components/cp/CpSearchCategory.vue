@@ -73,7 +73,7 @@ const combinedSelectedData = computed(() => {
 
 // 검색 카테고리 수정 페이지로 이동하는 함수
 function goToSearchCategoryUpdatePage() {
-  router.push({name: 'CpSearchCategoryManagementPage'});
+  router.push({name: 'CpSearchCategoryDataManagementPage'});
 }
 
 // 컴포넌트 마운트 시 데이터 호출
