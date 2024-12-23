@@ -33,10 +33,16 @@
         </li>
       </ul>
 
-      <!-- 부서 관리 버튼 -->
+      <!-- 관리 버튼들 -->
       <div class="text-center mt-3">
-        <button class="btn btn-sm btn-secondary" @click="goToManageDepartments">
+        <button class="btn btn-sm btn-secondary mb-2" @click="goToManageDepartments">
           <i class="bi bi-gear"></i> 부서 관리
+        </button>
+        <button class="btn btn-sm btn-secondary mb-2" @click="goToManageParts">
+          <i class="bi bi-gear"></i> 과 관리
+        </button>
+        <button class="btn btn-sm btn-secondary" @click="goToManageRankings">
+          <i class="bi bi-gear"></i> 직급 관리
         </button>
       </div>
     </div>
@@ -162,7 +168,9 @@ const changePage = (page) => {
 
 const registerUser = () => router.push("/CreateUser");
 const goToDetail = (userSeq) => router.push({ name: "AdminUserDetail", params: { userSeq } });
-const goToManageDepartments = () => router.push("/PartManage"); // 수정된 라우터 경로
+const goToManageDepartments = () => router.push("/DeptManage");
+const goToManageParts = () => router.push("/PartManage");
+const goToManageRankings = () => router.push("/RankManage");
 
 onMounted(fetchDepartmentsAndParts);
 </script>
