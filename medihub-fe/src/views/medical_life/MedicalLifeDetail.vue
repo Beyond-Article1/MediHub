@@ -30,7 +30,13 @@ const fetchBoardDetail = async () => {
     boardDetail.value.isLiked = false;
     boardDetail.value.isBookmark = false;
 
+    await Promise.all([
+      checkLikeStatus(medicalLifeSeq),
+      checkBookmarkStatus(medicalLifeSeq)
+    ]);
+
     await fetchComment(medicalLifeSeq);
+
   } catch (error) {
     console.error('Error fetching board detail:', error);
   }
@@ -40,6 +46,7 @@ const fetchComment = async (medicalLifeSeq) => {
   try {
     const response = await axios.get(`/medical-life/${medicalLifeSeq}/comments`);
     comment.value = response.data.data.map(item => ({
+      commentSeq: item.commentSeq,
       userName: item.userName,
       part: item.part,
       rankingName: item.rankingName,
@@ -53,21 +60,68 @@ const fetchComment = async (medicalLifeSeq) => {
   }
 };
 
-const toggleLike = () => {
-  boardDetail.value.isLiked = !boardDetail.value.isLiked;
+const toggleLike = async () => {
+  const medicalLifeSeq = route.params.id;
+
+  try {
+    const response = await axios.patch(`/medical-life/${medicalLifeSeq}/prefer`);
+    boardDetail.value.isLiked = response.data.data;
+    alert(boardDetail.value.isLiked ? '좋아요가 등록되었습니다.' : '좋아요가 취소되었습니다.');
+  } catch (error) {
+    console.error('좋아요 처리 중 오류 발생:', error);
+    alert('좋아요 처리에 실패했습니다.');
+  }
 };
 
-const toggleBookmark = () => {
-  boardDetail.value.isBookmark = !boardDetail.value.isBookmark;
+const checkLikeStatus = async (medicalLifeSeq) => {
+  try {
+    const response = await axios.get(`/medical-life/${medicalLifeSeq}/prefer`);
+    boardDetail.value.isLiked = response.data.data; // 서버에서 반환된 좋아요 상태
+  } catch (error) {
+    console.error('좋아요 상태 확인 중 오류 발생:', error);
+    boardDetail.value.isLiked = false; // 오류 시 기본값 설정
+  }
 };
 
-const data = computed(() => {
+const toggleBookmark = async () => {
+  const medicalLifeSeq = route.params.id;
+
+  try {
+    const response = await axios.patch(`/medical-life/${medicalLifeSeq}/bookmark`);
+    boardDetail.value.isBookmark = response.data.data;
+    alert(boardDetail.value.isBookmark ? '북마크가 등록되었습니다.' : '북마크가 해제되었습니다.');
+  } catch (error) {
+    console.error('북마크 처리 중 오류 발생:', error);
+    alert('북마크 처리에 실패했습니다.');
+  }
+};
+
+const checkBookmarkStatus = async (medicalLifeSeq) => {
+  try {
+    const response = await axios.get(`/medical-life/${medicalLifeSeq}/bookmark`);
+    boardDetail.value.isBookmark = response.data.data; // 서버에서 반환된 북마크 상태
+  } catch (error) {
+    console.error('북마크 상태 확인 중 오류 발생:', error);
+    boardDetail.value.isBookmark = false; // 오류 시 기본값 설정
+  }
+};
+
+const contentBlocks = computed(() => {
   try {
     const medicalLifeContent = JSON.parse(boardDetail.value.medicalLifeContent);
-    return medicalLifeContent.blocks.map(block => block.data.text).join(' ');
+
+    return medicalLifeContent.blocks.map((block) => {
+      if (block.type === "paragraph") {
+        return { type: "text", content: block.data.text };
+      } else if (block.type === "image") {
+        return { type: "image", content: block.data.file.url };
+      } else {
+        return null;
+      }
+    }).filter(Boolean);
   } catch (error) {
-    console.error('Error parsing board content:', error);
-    return '';
+    console.error("Error parsing board content:", error);
+    return [];
   }
 });
 
@@ -97,9 +151,55 @@ const addComment = async () => {
 
     alert('댓글 등록이 완료되었습니다.');
     newCommentContent.value = '';
-    fetchComment(medicalLifeSeq); // 댓글 새로고침
+    fetchComment(medicalLifeSeq);
   } catch (error) {
     console.error('Error adding comment:', error);
+  }
+};
+
+const updateComment = async (medicalLifeSeq, commentSeq, newContent) => {
+  try {
+    await axios.put(`/medical-life/${medicalLifeSeq}/comment/${commentSeq}`, {
+      commentContent: newContent,
+    });
+    alert('댓글이 성공적으로 수정되었습니다.');
+    fetchComment(medicalLifeSeq);
+  } catch (error) {
+    console.error('댓글 수정 중 오류 발생:', error);
+    alert('댓글 수정에 실패했습니다.');
+  }
+};
+
+const deleteComment = async (medicalLifeSeq, commentSeq) => {
+  console.log(`Attempting to delete comment with commentSeq: ${commentSeq}`);
+  try {
+    await axios.delete(`/medical-life/${medicalLifeSeq}/comment/${commentSeq}`);
+    alert('댓글이 성공적으로 삭제되었습니다.');
+    fetchComment(medicalLifeSeq);
+  } catch (error) {
+    console.error('댓글 삭제 중 오류 발생:', error);
+    alert('댓글 삭제에 실패했습니다.');
+  }
+};
+
+const handleEditClick = (commentSeq) => {
+  const targetComment = comment.value.find(c => c.commentSeq === commentSeq);
+  if (!targetComment) {
+    console.error(`Comment with commentSeq ${commentSeq} not found`);
+    return;
+  }
+
+  const newContent = prompt('댓글 내용을 수정하세요:', targetComment.commentContent || '');
+  if (newContent !== null) {
+    const medicalLifeSeq = route.params.id;
+    updateComment(medicalLifeSeq, commentSeq, newContent);
+  }
+};
+
+const handleDeleteClick = (commentSeq) => {
+  if (confirm('정말로 이 댓글을 삭제하시겠습니까?')) {
+    const medicalLifeSeq = route.params.id;
+    deleteComment(medicalLifeSeq, commentSeq);
   }
 };
 
@@ -114,9 +214,9 @@ onMounted(() => {
 
 <template>
   <div class="board-detail" v-if="boardDetail.userName">
+    <!-- 제목과 기본 정보 -->
     <h1 class="board-title">{{ boardDetail.medicalLifeTitle }}</h1>
     <div class="board-info">
-      <!-- 프로필 이미지가 존재하면 표시하고, 없으면 기본 이미지 사용 -->
       <img
           class="profile-pic"
           :src="boardDetail.profileImage || '@/assets/images/anonymousBoard/empty-profile.png'"
@@ -126,10 +226,10 @@ onMounted(() => {
       <p class="date"><LocalDateTimeFormat :data="boardDetail.createdAt" /></p>
       <p class="view-count">조회수: {{ boardDetail.medicalLifeViewCount }}</p>
       <div class="actions">
-        <div class="like-btn align-mid" @click="toggleLike">
+        <div class="like-btn" @click="toggleLike">
           <img :src="boardDetail.isLiked ? afterLike : beforeLike" alt="좋아요" />
         </div>
-        <div class="bookmark-btn align-mid" @click="toggleBookmark">
+        <div class="bookmark-btn" @click="toggleBookmark">
           <img :src="boardDetail.isBookmark ? afterBookmark : beforeBookmark" alt="북마크" />
         </div>
       </div>
@@ -137,8 +237,9 @@ onMounted(() => {
 
     <LineDivider />
 
+    <!-- 키워드 -->
     <div v-if="boardDetail.keywords && boardDetail.keywords.length">
-      <h2 class="keyword-title">Keywords</h2>
+      <h2 class="keyword-title">키워드</h2>
       <div class="keyword-list">
         <span v-for="(keyword, index) in boardDetail.keywords" :key="index" class="keyword-item">
           # {{ keyword.keywordName }}
@@ -147,8 +248,18 @@ onMounted(() => {
     </div>
 
     <LineDivider />
-    <p class="content">{{ data }}</p>
 
+    <!-- 콘텐츠 표시 -->
+    <div class="content">
+      <div v-for="(block, index) in contentBlocks" :key="index">
+        <p v-if="block.type === 'text'" class="text-block">{{ block.content }}</p>
+        <img v-if="block.type === 'image'" :src="block.content" class="image-block" alt="Content Image" />
+      </div>
+    </div>
+
+    <LineDivider />
+
+    <!-- 댓글 섹션 -->
     <div class="comment-section">
       <h2>댓글 ({{ commentCount }})</h2>
       <div v-for="(commentItem, index) in paginatedComment" :key="index" class="comment">
@@ -157,7 +268,12 @@ onMounted(() => {
         </p>
         <p class="comment-content">{{ commentItem.commentContent }}</p>
         <p class="comment-date"><LocalDateTimeFormat :data="commentItem.createdAt" /></p>
+        <div class="comment-actions">
+          <button @click="handleEditClick(commentItem.commentSeq)" class="action-btn">수정</button>
+          <button @click="handleDeleteClick(commentItem.commentSeq)" class="action-btn">삭제</button>
+        </div>
       </div>
+
       <Pagination
           :totalData="totalComment"
           :limitPage="commentItemCount"
@@ -166,6 +282,7 @@ onMounted(() => {
       />
     </div>
 
+    <!-- 댓글 입력 -->
     <div class="comment-input">
       <span class="char-count">{{ characterCount }} / 1000</span>
       <textarea
@@ -390,5 +507,20 @@ onMounted(() => {
   font-weight: bold;
   width: 90px;
   height: 30px;
+}
+.comment-actions {
+  display: flex;
+  gap: 10px;
+}
+.action-btn {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: underline;
+}
+.action-btn:hover {
+  color: #0056b3;
 }
 </style>
