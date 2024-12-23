@@ -48,7 +48,7 @@ const handleAction = (actionType) => {
 <style scoped>
 .custom-card {
   width: 100%; /* 전체 너비를 사용하도록 설정 */
-  max-width: 300px; /* 최대 너비 설정 */
+  min-width: 300px; /* 최대 너비 설정 */
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   transition: all 0.2s ease-in-out;
