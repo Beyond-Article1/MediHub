@@ -8,6 +8,7 @@ import DropBox from "@/components/common/SingleSelectDropBox.vue";
 import Card from "@/components/common/Card.vue";
 import Board from "@/components/common/Board.vue";
 import Modal from "@/components/common/InputModal.vue";
+import IconButton from "@/components/common/button/IconButton.vue";
 
 // vue 변수
 const route = useRoute();
@@ -71,7 +72,7 @@ async function fetchCpSearchCategoryDataData(cpSearchCategorySeq) {
 }
 
 // Card 클릭하면 발생하는 함수
-const handleCardAction = ({ actionType, seq }) => {
+const handleCardAction = ({actionType, seq}) => {
   if (actionType === 'update') {
     selectedData.value = cpSearchCategoryDataList.value.find(data => data.cpSearchCategoryDataSeq === seq);
     updatedName.value = selectedData.value ? selectedData.value.cpSearchCategoryDataName : ''; // 선택된 데이터의 이름 초기화
@@ -158,7 +159,7 @@ watch(selectedOption, (newValue) => {
             @update:isOpen="(value) => {}"
         />
       </div>
-      <div>
+      <div class="board-container">
         <Board>
           <template v-if="cpSearchCategoryDataList.length > 0">
             <Card
@@ -173,6 +174,7 @@ watch(selectedOption, (newValue) => {
             <div class="text-center">데이터가 없습니다.</div>
           </template>
         </Board>
+        <IconButton :iconClass="'bi bi-plus-circle-fill'" class="add-button" />
       </div>
     </div>
 
@@ -194,5 +196,26 @@ watch(selectedOption, (newValue) => {
 
 .me-3 {
   margin-right: 1rem; /* 드롭박스와 보드 간의 여백 */
+}
+
+.board-container {
+  position: relative; /* 버튼을 절대 위치로 설정하기 위해 부모를 상대 위치로 설정 */
+}
+
+.add-button {
+  position: absolute; /* 버튼을 절대 위치로 설정 */
+  bottom: 20px; /* 하단 여백 */
+  right: 20px; /* 우측 여백 */
+  padding: 10px; /* 버튼 패딩 */
+  cursor: pointer; /* 커서 포인터 */
+  width: 50px; /* 버튼 너비 */
+  height: 50px; /* 버튼 높이 */
+  border-radius: 50%; /* 버튼을 둥글게 만들기 */
+  background-color: var(--symbol-blue); /* 배경색 추가 */
+  border: none; /* 테두리 제거 */
+  display: flex; /* Flexbox 사용하여 아이콘 중앙 배치 */
+  justify-content: center; /* 중앙 정렬 */
+  align-items: center; /* 수직 중앙 정렬 */
+  transition: background-color 0.3s; /* 배경색 변경 시 부드러운 전환 효과 */
 }
 </style>
