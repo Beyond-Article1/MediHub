@@ -1,11 +1,15 @@
 <script setup>
 import axios from "axios";
+
 import { computed, onMounted, ref } from "vue";
-import { useAuthStore } from "@/store/authStore.js";
+import {useRouter} from "vue-router";
+
 import DropBox from "@/components/common/MultiSelectDropBox.vue";
 
-// 인증 스토어 초기화
-const authStore = useAuthStore();
+// vue 설정 변수
+const router = useRouter();
+
+// 데이터 저장 변수
 const cpSearchCategoryList = ref([]);
 const selectedDataList = ref([]); // 선택된 옵션을 저장할 배열
 const openDropdown = ref(null); // 현재 펼쳐진 드롭박스의 인덱스
@@ -67,6 +71,11 @@ const combinedSelectedData = computed(() => {
   }));
 });
 
+// 검색 카테고리 수정 페이지로 이동하는 함수
+function goToSearchCategoryUpdatePage() {
+  router.push({name: 'CpSearchCategoryDataManagementPage'});
+}
+
 // 컴포넌트 마운트 시 데이터 호출
 onMounted(() => {
   fetchData();
@@ -84,8 +93,18 @@ onMounted(() => {
           :isOpen="openDropdown === index"
       />
     </div>
+    <div class="span-container" @click="goToSearchCategoryUpdatePage()">
+      <span>검색 카테고리를 수정하시려면 클릭하여주세요.</span>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.span-container {
+  width: 100%; /* 부모 컨테이너의 너비에 맞춤 */
+  max-width: 100%; /* 최대 너비 설정 (DropBox와 동일하게 하려면 필요) */
+  display: flex;
+  justify-content: flex-start; /* 텍스트를 왼쪽 정렬 */
+  color: gray;
+}
 </style>
