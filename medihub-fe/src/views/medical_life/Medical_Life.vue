@@ -44,7 +44,7 @@
           <SearchBox @update:search="updateSearch" />
         </div>
         <div class="col-auto text-end">
-          <button class="btn custom-btn">글쓰기</button>
+          <button class="btn custom-btn" @click="goToCreate">글쓰기</button>
         </div>
       </div>
 
@@ -84,9 +84,18 @@
           <tbody>
           <tr v-for="(post, index) in paginatedPosts" :key="index">
             <td>{{ post.id }}</td>
-            <td class="text-start">{{ post.title }}</td>
+            <!-- 제목 클릭 시 상세 조회 이동 -->
+            <td class="text-start">
+              <a @click.prevent="goToDetail(post.id)" class="text-decoration-none cursor-pointer">
+                {{ post.title }}
+              </a>
+            </td>
             <td>
-                <span v-for="(tag, tIndex) in post.tags" :key="tIndex" class="badge bg-warning text-dark me-1">
+                <span
+                    v-for="(tag, tIndex) in post.tags"
+                    :key="tIndex"
+                    class="badge bg-warning text-dark me-1"
+                >
                   # {{ tag }}
                 </span>
             </td>
@@ -112,6 +121,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import LineDivider from "@/components/common/LineDivider.vue";
 import Pagination from "@/components/common/Pagination.vue";
 import SearchBox from "@/components/common/SearchBox.vue";
@@ -133,12 +143,17 @@ const sortOption = ref("latest");
 const itemsPerPage = ref(5);
 const currentPage = ref(1);
 
+const router = useRouter(); // 라우터 사용
+
 // API 데이터 가져오기
 const fetchDepartmentsAndParts = async () => {
   try {
-    const [deptRes, partRes] = await Promise.all([axios.get("/api/v1/dept"), axios.get("/api/v1/part")]);
-    departments.value = deptRes.data;
-    parts.value = partRes.data;
+    const [deptRes, partRes] = await Promise.all([
+      axios.get("/api/v1/dept"),
+      axios.get("/api/v1/part"),
+    ]);
+    departments.value = deptRes.data.data;
+    parts.value = partRes.data.data;
   } catch (error) {
     console.error("부서/과 데이터 가져오기 실패:", error);
   }
@@ -151,7 +166,10 @@ const fetchPosts = async () => {
       id: item.medicalLifeSeq,
       title: item.medicalLifeTitle,
       tags: item.keywords || [], // 키워드 리스트
-      author: `${item.userName} (${item.rankingName})`, // 작성자와 랭킹 이름
+      author: `${item.userName} (${item.rankingName})`,
+      userSeq: item.userSeq,
+      deptSeq: item.deptSeq, // 작성자의 부서 번호
+      partSeq: item.partSeq, // 작성자의 과 번호
       date: new Date(item.createdAt).toLocaleDateString(), // 작성일 포맷
       views: item.medicalLifeViewCount, // 조회수
     }));
@@ -160,20 +178,26 @@ const fetchPosts = async () => {
   }
 };
 
+
 // 컴퓨티드
-const filteredParts = computed(() => parts.value.filter((part) => part.deptSeq === openDept.value));
+const filteredParts = computed(() =>
+    parts.value.filter((part) => part.deptSeq === openDept.value)
+);
 const filteredPosts = computed(() =>
-    posts.value.filter((post) =>
-        post.title.includes(searchQuery.value) || post.tags.some((tag) => tag.includes(searchQuery.value))
+    posts.value.filter(
+        (post) =>
+            post.title.includes(searchQuery.value) ||
+            post.tags.some((tag) => tag.includes(searchQuery.value))
     )
 );
-// 정렬 로직 수정
 const sortedPosts = computed(() => {
   switch (sortOption.value) {
     case "views":
       return [...filteredPosts.value].sort((a, b) => b.views - a.views); // 조회순
     case "latest":
-      return [...filteredPosts.value].sort((a, b) => new Date(b.date) - new Date(a.date)); // 최신순
+      return [...filteredPosts.value].sort(
+          (a, b) => new Date(b.date) - new Date(a.date)
+      ); // 최신순
     case "createdAt":
     default:
       return [...filteredPosts.value]; // 작성순 (기본)
@@ -207,6 +231,14 @@ const updateSearch = (query) => {
 
 const changePage = (page) => {
   currentPage.value = page;
+};
+
+const goToDetail = (id) => {
+  router.push({ name: "MedicalLifeDetail", params: { id } });
+};
+
+const goToCreate = () => {
+  router.push({ name: 'MedicalLifeCreate' });
 };
 
 // 컴포넌트 초기화

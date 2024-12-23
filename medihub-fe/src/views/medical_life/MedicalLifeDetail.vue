@@ -39,7 +39,13 @@ const fetchBoardDetail = async () => {
 const fetchComment = async (medicalLifeSeq) => {
   try {
     const response = await axios.get(`/medical-life/${medicalLifeSeq}/comments`);
-    comment.value = response.data.data || [];
+    comment.value = response.data.data.map(item => ({
+      userName: item.userName,
+      part: item.part,
+      rankingName: item.rankingName,
+      commentContent: item.commentContent,
+      createdAt: item.createdAt,
+    }));
     commentCount.value = comment.value.length;
     totalComment.value = commentCount.value;
   } catch (error) {
@@ -83,23 +89,15 @@ const addComment = async () => {
   const medicalLifeSeq = route.params.id;
 
   try {
-    const response = await axios.post(`/medical-life/${medicalLifeSeq}/comments`, {
+    await axios.post(`/medical-life/${medicalLifeSeq}/comments`, {
       commentContent: newCommentContent.value
     }, {
       headers: { 'Content-Type': 'application/json' },
     });
 
-    const commentSeq = response.data.data;
-    comment.value.push({
-      id: commentSeq,
-      commentContent: newCommentContent.value,
-      createdAt: new Date().toISOString(),
-    });
-    newCommentContent.value = '';
-    totalComment.value++;
-    commentCount.value = comment.value.length;
-
     alert('댓글 등록이 완료되었습니다.');
+    newCommentContent.value = '';
+    fetchComment(medicalLifeSeq); // 댓글 새로고침
   } catch (error) {
     console.error('Error adding comment:', error);
   }
@@ -118,8 +116,13 @@ onMounted(() => {
   <div class="board-detail" v-if="boardDetail.userName">
     <h1 class="board-title">{{ boardDetail.medicalLifeTitle }}</h1>
     <div class="board-info">
-      <img class="profile-pic" src="@/assets/images/anonymousBoard/empty-profile.png" alt="Profile Picture" />
-      <p class="author">{{ boardDetail.userName }} ({{ boardDetail.rankingName || '정보 없음' }})</p>
+      <!-- 프로필 이미지가 존재하면 표시하고, 없으면 기본 이미지 사용 -->
+      <img
+          class="profile-pic"
+          :src="boardDetail.profileImage || '@/assets/images/anonymousBoard/empty-profile.png'"
+          alt="Profile Picture"
+      />
+      <p class="author">{{ boardDetail.userName }} ({{ boardDetail.rankingName }})</p>
       <p class="date"><LocalDateTimeFormat :data="boardDetail.createdAt" /></p>
       <p class="view-count">조회수: {{ boardDetail.medicalLifeViewCount }}</p>
       <div class="actions">
@@ -149,7 +152,9 @@ onMounted(() => {
     <div class="comment-section">
       <h2>댓글 ({{ commentCount }})</h2>
       <div v-for="(commentItem, index) in paginatedComment" :key="index" class="comment">
-        <p class="comment-author">{{ commentItem.userName || '익명' }}</p>
+        <p class="comment-author">
+          {{ commentItem.userName }} ({{ commentItem.part }}, {{ commentItem.rankingName }})
+        </p>
         <p class="comment-content">{{ commentItem.commentContent }}</p>
         <p class="comment-date"><LocalDateTimeFormat :data="commentItem.createdAt" /></p>
       </div>
