@@ -5,6 +5,8 @@ import { useRoute } from 'vue-router'; // useRoute 불러오기
 import ChatButton from "@/components/chat/ChatButton.vue";
 import ChatWindow from "@/views/chat/ChatWindow.vue";
 import ChatroomWindow from "@/views/chat/ChatroomWindow.vue"
+import ChatbotButton from "@/components/chatbot/ChatbotButton.vue";
+import ChatbotWindow from "@/views/chatbot/ChatbotWindow.vue";
 
 const route = useRoute(); // 현재 경로 정보 가져오기
 const isLoginPage = computed(() => route.path === '/login');  // 로그인 페이지인지 확인하는 변수
@@ -47,6 +49,20 @@ watch(
     }
 );
 
+// 챗봇(ChatbotWindow) 상태 관리
+const isChatbotOpen = ref(false);
+const toggleChatbotWindow = () => {
+  isChatbotOpen.value = !isChatbotOpen.value;
+};
+
+// 라우트가 변경될 때 챗봇 상태 초기화
+watch(
+    () => route.path,
+    () => {
+      isChatbotOpen.value = false; // 라우트 변경 시 챗봇 창 닫기
+    }
+);
+
 </script>
 
 <template>
@@ -72,6 +88,14 @@ watch(
       />
     </div>
   </div>
+  <!-- 챗봇 버튼 -->
+  <ChatbotButton v-if="!isLoginPage" @toggle-chatbot-window="toggleChatbotWindow" />
+
+  <!-- 챗봇 창 -->
+  <ChatbotWindow
+      v-if="isChatbotOpen && !isLoginPage"
+      :isOpen="isChatbotOpen"
+  />
 </template>
 
 <style scoped>

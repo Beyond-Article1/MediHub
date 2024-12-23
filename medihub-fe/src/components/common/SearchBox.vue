@@ -3,6 +3,18 @@ import { ref, defineEmits } from 'vue';
 
 import axios from 'axios';
 
+const searchStore = useSearchStore(); // Pinia 스토어 인스턴스 가져오기
+
+
+const onInput = () => {
+  searchStore.setSearchText(searchQuery.value); // 입력 시 검색어를 Pinia 스토어에 저장
+};
+
+const submitSearch = () => {
+  searchStore.setSearchText(searchQuery.value); // 검색어를 스토어에 저장
+  emit('search', searchQuery.value); // 부모 컴포넌트에 검색어 전달
+};
+
 const props = defineProps({
 
   modelValue: String // 부모에서 전달 받는 검색어
