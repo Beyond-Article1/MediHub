@@ -58,6 +58,23 @@
       </ul>
     </div>
 
+    <div class="notify-div" @click="toggleModal">
+      <img :src='BeforeNotify' alt="알림 없음" v-if="!hasNewNotification"/>
+      <img :src='AfterNotify' alt="알림 있음" v-if="hasNewNotification"/>
+    </div>
+    <div class="modal-wrapper">
+      <NotificationModal
+        v-if="isNotifyModalOpen"
+        :events="events"
+        @close="toggleModal"
+        :has-new-notification="hasNewNotification"
+        @update-notifications="updateHasNewNotification"
+        @update-read="markAsRead"
+        @delete-notification="deleteNotification"
+        @update-read-all="markAsReadAll"
+        @delete-notification-all="deleteNotificationAll"
+      />
+    </div>
     <!-- 로그인/로그아웃 버튼 -->
     <div class="login-logout">
       <template v-if="isLogIn">
@@ -71,10 +88,16 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue';
+import {ref, nextTick, onMounted, onBeforeUnmount} from 'vue';
 import router from '@/router/index.js';
 import { useAuthStore } from '@/store/authStore.js';
 import { useWebSocketStore } from "@/store/webSocket.js";
+import { EventSourcePolyfill } from "event-source-polyfill";
+import NotificationModal from "@/components/NotificationModal.vue";
+
+import BeforeNotify from '@/assets/images/before-notify.png';
+import AfterNotify from '@/assets/images/after-notify.png';
+import axios from "axios";
 
 const store = useAuthStore();
 const webSocketStore = useWebSocketStore();
@@ -82,6 +105,19 @@ const isLogIn = 123;
 const selectedItem = ref('');
 const showDropdown = ref(false);
 const showJournalDrop = ref(false);
+
+// SSE와 Notify 관련
+const isNotifyModalOpen = ref(false); // modal Open 상태
+const eventSource = ref(null); // EventSource 객체
+const events = ref([]);        // 수신된 이벤트 저장
+const connected = ref(false);  // 연결 상태
+const hasNewNotification = ref(false);  // 새로운 알림 유무
+const baseUrl = "http://localhost:8088";
+
+// 자식 컴포넌트에서 알림 업데이트 이벤트 처리
+const updateHasNewNotification = (value) => {
+  hasNewNotification.value = value;
+};
 
 const dropdownItems = [
   { label: 'CASE SHARING', value: 'case_sharing' },
@@ -94,11 +130,24 @@ const journalDropdownItems = [
   { label: 'MediH', value: 'medi_h'},
 ];
 
+onMounted(() => {
+  // 연결 유무에 따른 재연결
+  connectSSE();
+  // 초기 알림 불러오기
+  getNotify();
+});
+
+// 컴포넌트 언마운트 시 연결 해제
+onBeforeUnmount(() => {
+  disconnectSSE();
+});
+
 const logout = async () => {
   await webSocketStore.disconnectWebSocket(); // 로그아웃 시, 웹소켓 연결 종료
   window.dispatchEvent(new Event('logout'));    // logout 이벤트 발생
   await store.logout();
   deleteCookie('token');
+  await disconnectSSE();  // logout시 SSE 연결 종료
   await nextTick();
   router.push('/');
 };
@@ -153,6 +202,117 @@ function goToHome() {
   selectedItem.value = '';
   router.push('/main');
 }
+
+// SSE 연결 함수
+const connectSSE = () => {
+  if (eventSource.value) {
+    eventSource.value.close(); // 기존 연결 종료
+  }
+
+  const accessToken = store.accessToken;
+  // SSE 서버 URL
+  const sseUrl = `${baseUrl}/notify/connect`; // 백엔드 SSE 엔드포인트
+
+  eventSource.value = new EventSourcePolyfill(sseUrl, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  }, {withCredentials: true});
+
+  eventSource.value.addEventListener("sse", (event) => {
+    console.log("New event: ", event.data);
+    const parsedData = JSON.parse(event.data);
+    console.log("seq: ", parsedData.notiSeq);
+
+
+    // parsedData가 String이거나 undefined인 경우 처리 중단
+    if (typeof parsedData === "string" || typeof parsedData === "undefined") {
+      console.warn("Invalid data type:", parsedData);
+      return;
+    }
+
+    events.value.push(parsedData);
+    hasNewNotification.value = true;
+  });
+
+  // 연결이 열렸을 때
+  eventSource.value.onopen = () => {
+    console.log("SSE 연결 성공");
+    connected.value = true;
+  };
+
+  // 에러 발생 시
+  eventSource.value.onerror = (error) => {
+    console.error("SSE 연결 에러", error);
+    eventSource.value.close();
+    connected.value = false;
+  };
+};
+
+// SSE 연결 해제 함수
+const disconnectSSE = () => {
+  if (eventSource.value) {
+    eventSource.value.close();
+    console.log("SSE 연결 해제");
+    connected.value = false;
+    eventSource.value = null;
+  }
+};
+
+// 전체 알림 불러오기
+const getNotify = async () => {
+  await axios.get('/notify')
+      .then(res => {
+        console.log('전체 알림 불러오기: ', res.data.data);
+
+        if (res.data.data.length > 0){
+          res.data.data.forEach(noti => {
+            events.value.push(noti)
+          });
+          checkNewNotifications();
+        }
+
+      })
+      .catch(err => {
+        console.error('불러오기 실패', err);
+      });
+}
+
+
+// 알림 단일 읽음 처리
+const markAsRead = (notiSeq) => {
+  const noti = events.value.find((n) => n.notiSeq === notiSeq);
+  if (noti) noti.read = true;
+  checkNewNotifications();
+};
+
+// 알림 단일 삭제 처리
+const deleteNotification = (notiSeq) => {
+  events.value = events.value.filter((n) => n.notiSeq !== notiSeq);
+  checkNewNotifications();
+};
+
+// 알림 전체 읽음 처리
+const markAsReadAll = () => {
+  events.value.forEach((noti) => {
+    noti.read = true;
+  });
+};
+
+// 알림 전체 삭제 처리
+const deleteNotificationAll = () => {
+  events.value = [];
+};
+
+// 새 알림 여부 체크
+const checkNewNotifications = () => {
+  hasNewNotification.value = events.value.some((noti) => !noti.read);
+};
+
+// 모달 열기/닫기
+const toggleModal = () => {
+  isNotifyModalOpen.value = !isNotifyModalOpen.value;
+};
 </script>
 
 <style scoped>
@@ -256,5 +416,17 @@ function goToHome() {
   font-weight: bold !important;
 
 }
-
+.notify-div{
+  margin-left: 150px;
+  margin-top: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+.notify-div img{
+  width: 35px;
+}
+.modal-wrapper{
+  z-index: 999;
+}
 </style>
