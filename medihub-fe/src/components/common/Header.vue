@@ -62,19 +62,19 @@
       <img :src='BeforeNotify' alt="알림 없음" v-if="!hasNewNotification"/>
       <img :src='AfterNotify' alt="알림 있음" v-if="hasNewNotification"/>
     </div>
-
-    <NotificationModal
-      v-if="isNotifyModalOpen"
-      :events="events"
-      @close="toggleModal"
-      :has-new-notification="hasNewNotification"
-      @update-notifications="updateHasNewNotification"
-      @update-read="markAsRead"
-      @delete-notification="deleteNotification"
-      @update-read-all="markAsReadAll"
-      @delete-notification-all="deleteNotificationAll"
-    />
-
+    <div class="modal-wrapper">
+      <NotificationModal
+        v-if="isNotifyModalOpen"
+        :events="events"
+        @close="toggleModal"
+        :has-new-notification="hasNewNotification"
+        @update-notifications="updateHasNewNotification"
+        @update-read="markAsRead"
+        @delete-notification="deleteNotification"
+        @update-read-all="markAsReadAll"
+        @delete-notification-all="deleteNotificationAll"
+      />
+    </div>
     <!-- 로그인/로그아웃 버튼 -->
     <div class="login-logout">
       <template v-if="isLogIn">
@@ -425,5 +425,8 @@ const toggleModal = () => {
 }
 .notify-div img{
   width: 35px;
+}
+.modal-wrapper{
+  z-index: 999;
 }
 </style>

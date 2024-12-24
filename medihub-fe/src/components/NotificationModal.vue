@@ -50,7 +50,6 @@ async function deleteNoti(event, index) {
       .then(res => {
         if (res.status === 200 || res.data.data === 'OK') {
           emit("delete-notification", event.notiSeq);
-          // events.value.splice(index, 1);
         }
       })
       .catch(err => {
@@ -60,21 +59,20 @@ async function deleteNoti(event, index) {
 
 // 전체 읽음
 async function allReadNoti() {
-  await axios.get('/notify/read')
+  await axios.get('/notify/read-all')
       .then(res => {
         if (res.status === 200 || res.data.data === 'OK') {
-          events.value.forEach(event => event.read = true);
           emit("update-read-all");
         }
       })
       .catch(err => {
-        console.error('전체 삭제 처리중 에러 발생: ', err);
+        console.error('전체 읽음 처리중 에러 발생: ', err);
       });
 }
 
 // 전체 삭제
 async function allDeleteNoti() {
-  await axios.delete('/notify')
+  await axios.delete('/notify/delete-all')
       .then(res => {
         if (res.status === 200 || res.data.data === 'OK') {
           emit("delete-notification-all");
