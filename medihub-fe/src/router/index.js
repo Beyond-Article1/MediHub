@@ -31,7 +31,6 @@ const routes = [
     ...anonymousBoardRouter,
     ...loginRouter,
     ...mainRouter,
-    ...testRouter,
     ...adminRouter
 ]
 
