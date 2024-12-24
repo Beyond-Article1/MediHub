@@ -121,9 +121,9 @@ const fetchMetadata = async () => {
       axios.get("/api/v1/part"),
       axios.get("/api/v1/ranking"),
     ]);
-    depts.value = deptRes.data;
-    parts.value = partRes.data;
-    rankings.value = rankRes.data;
+    depts.value = deptRes.data.data;
+    parts.value = partRes.data.data;
+    rankings.value = rankRes.data.data;
   } catch (error) {
     console.error("메타데이터 가져오기 실패:", error);
   }
