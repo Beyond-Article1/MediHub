@@ -2,7 +2,6 @@
 import axios from "axios";
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router"; // useRouter 추가
-import { useSearchStore } from "@/store/searchStore.js";
 
 import CpTitleComponent from "@/components/cp/CpTitle.vue";
 import SearchBox from "@/components/common/SearchBox.vue";
@@ -23,7 +22,6 @@ const cp = ref({
   isBookmarked: ''
 });
 
-const searchStore = useSearchStore(); // Pinia 스토어 인스턴스 가져오기
 const router = useRouter(); // router 인스턴스 가져오기
 
 // 데이터 요청 함수
@@ -50,15 +48,9 @@ async function fetchData() {
   }
 }
 
-// 검색어 처리 함수
-const handleSearch = () => {
-  console.log("검색어:", searchStore.searchText);
-  goToCpList(searchStore.searchText);
-};
-
 // CP 검색 결과 화면으로 이동
 async function goToCpList(cpName) {
-  router.push(`/cp?cpName=${encodeURIComponent(cpName)}`); // cpName을 URL 인코딩
+  router.push(`/cp?cpName=${encodeURIComponent(cpName)}`);
 }
 
 onMounted(() => {
@@ -68,11 +60,10 @@ onMounted(() => {
 
 <template>
   <div class="container">
-    <CpTitleComponent :cpName="cp.cpName" class="cp-title"/>
+    <CpTitleComponent :cpName="cp.cpName || 'CP'" class="cp-title"/>
     <SearchBox
         class="search-box"
-        :placeholder="searchStore.searchText ? searchStore.searchText : '검색어를 입력해주세요.'"
-        @search="handleSearch"
+        placeholder="검색어를 입력해주세요."
     />
   </div>
   <LineDivider/>
