@@ -29,7 +29,7 @@
 
         <!-- 다른 메뉴 -->
         <li
-            v-for="menu in ['cp', 'member', 'admin']"
+            v-for="menu in ['cp']"
             :key="menu"
             :class="{ active: selectedItem === menu }"
             @click="moveToItem(menu)"
@@ -47,6 +47,33 @@
           <ul v-if="showJournalDrop" class="dropdown-menu">
             <li
                 v-for="item in journalDropdownItems"
+                :key="item.value"
+                @click="moveToItem(item)"
+            >
+              {{ item.label }}
+            </li>
+          </ul>
+        </li>
+
+        <li
+            v-for="menu in ['admin']"
+            :key="menu"
+            :class="{ active: selectedItem === menu }"
+            @click="moveToItem(menu)"
+        >
+          {{ menu.toUpperCase() }}
+        </li>
+
+        <li
+            class="menu-item dropdown"
+            @mouseover="showMemberDrop = true"
+            @mouseleave="showMemberDrop = false"
+        >
+          MEMBER
+          <!-- 드롭다운 메뉴 -->
+          <ul v-if="showMemberDrop" class="dropdown-menu">
+            <li
+                v-for="item in memberDropdownItems"
                 :key="item.value"
                 @click="moveToItem(item)"
             >
@@ -105,6 +132,7 @@ const isLogIn = 123;
 const selectedItem = ref('');
 const showDropdown = ref(false);
 const showJournalDrop = ref(false);
+const showMemberDrop = ref(false);
 
 // SSE와 Notify 관련
 const isNotifyModalOpen = ref(false); // modal Open 상태
@@ -128,6 +156,12 @@ const dropdownItems = [
 const journalDropdownItems = [
   { label: 'BEST 100', value: 'best_journal'},
   { label: 'MediH', value: 'medi_h'},
+];
+
+const memberDropdownItems = [
+  { label: '전체 회원 조회', value: 'allUser' },
+  { label: '내 정보 수정', value: 'editProfile' },
+  { label: '마이페이지', value: 'myPage'}
 ];
 
 onMounted(() => {
@@ -164,7 +198,7 @@ function moveToItem(menu) {
       route = '/case_sharing';
       break;
     case 'medical_life':
-      route = '/medical_life';
+      route = '/medicallife';
       break;
     case 'anonymous-board':
       route = '/anonymous-board';
@@ -178,11 +212,17 @@ function moveToItem(menu) {
     case 'cp':
       route = '/cp';
       break;
-    case 'member':
-      route = '/allUser';
+    case 'allUser': // 전체 회원 조회
+      route = '/AllUser';
+      break;
+    case 'editProfile': // 내 정보 수정
+      route = '/userDetail';
+      break;
+    case 'myPage':
+      route = '/myPage';
       break;
     case 'admin':
-      route = '/adminUser';
+      route = '/admin/user';
       break;
     default:
       route = '/';
