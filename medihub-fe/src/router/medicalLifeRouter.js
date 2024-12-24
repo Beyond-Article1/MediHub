@@ -4,18 +4,18 @@ import MedicalLifeCreate from "@/views/medical_life/MedicalLifeCreate.vue";
 
 export default [
     {
-        path: "/medical_Life",
+        path: "/medicalLife",
         name: "medical_Life",
         component: Medical_Life,
     },
     {
 
-        path: '/medical_Life/:id',
+        path: '/medicalLife/:id',
         name: 'MedicalLifeDetail',
         component: MedicalLifeDetail
     },
     {
-        path: '/medical_Life/create',
+        path: '/medicalLife/create',
         name: 'MedicalLifeCreate',
         component: MedicalLifeCreate
     },
