@@ -121,10 +121,9 @@ const addComment = async () => {
     const commentSeq = createCommentResponse.data.data; // 댓글 ID를 가져옴
     // 새 댓글 객체 생성
     const newComment = {
-
-      id: commentSeq,
-      commentContent: newCommentContent.value,
-      createdAt: new Date().toISOString()
+      id: commentSeq,  // 서버에서 반환된 댓글 ID 추가
+      commentContent: newCommentContent.value, // 새 댓글 내용
+      createdAt: new Date().toISOString() // 현재 시간으로 createdAt 설정
     };
 
     // 댓글 작성 성공 후 상태 초기화 및 리스트 갱신
@@ -158,21 +157,22 @@ onMounted(() => {
       <!-- 프로필 사진 추가 -->
       <img class="profile-pic" src="@/assets/images/anonymousBoard/empty-profile.png" alt="Profile Picture" />
 
-<!--      <p class="author">{{ boardDetail.userName }}</p>-->
+      <!--      <p class="author">{{ boardDetail.userName }}</p>-->
       <p class="author">익명</p>
       <p class="date">
         <LocalDateTimeFormat :data="boardDetail.createdAt" />
       </p> <!-- 변환된 날짜 사용 -->
       <p class="view-count">조회수&nbsp : &nbsp{{ boardDetail.anonymousBoardViewCount }}</p>
 
-      <div class="actions">
-
-        <div class="like-btn align-mid" @click="toggleLike">
-
-          <img :src="boardDetail.isLiked ? afterLike : beforeLike" alt="좋아요" />
+      <div class="actions"> <!-- 버튼들을 감싸는 div 추가 -->
+        <div class="like-btn align-mid" @click.stop="toggleLike(boardDetail)">
+          <img :src="boardDetail.isLiked ? afterLike : beforeLike" :alt="boardDetail.isLiked ? 'After' : 'Before'"/>
         </div>
-        <div class="bookmark-btn align-mid" @click="toggleBookmark">
-          <img :src="boardDetail.isBookmark ? afterBookmark : beforeBookmark" alt="북마크" />
+        <div class="bookmark-btn align-mid" @click.stop="toggleBookmark(boardDetail)">
+          <img
+              :src="boardDetail.isBookmark ? afterBookmark : beforeBookmark"
+              :alt="boardDetail.isBookmark ? 'After' : 'Before'"
+          />
         </div>
       </div>
     </div>
