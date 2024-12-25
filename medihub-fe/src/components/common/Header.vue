@@ -219,7 +219,7 @@ function moveToItem(menu) {
       route = '/userDetail';
       break;
     case 'myPage':
-      route = '/myPage';
+      route = '/myPage/journal';
       break;
     case 'admin':
       route = '/admin/user';

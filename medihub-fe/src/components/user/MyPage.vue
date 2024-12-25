@@ -1,46 +1,33 @@
 <template>
   <div class="sidebar p-3">
-    <button
+    <!-- 사이드바 메뉴 -->
+    <router-link
         v-for="item in menuItems"
         :key="item.name"
+        :to="item.path"
         class="sidebar-btn"
-        :class="{ active: currentRoute === item.route }"
-        @click="navigateTo(item.route)"
+        :class="{ active: $route.path === item.path }"
     >
       {{ item.name }}
-    </button>
+    </router-link>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import { useRouter, useRoute } from "vue-router";
+import { ref } from "vue";
 
-const router = useRouter();
-const route = useRoute();
-
+// 사이드바 메뉴 항목 정의
 const menuItems = ref([
-  { name: "JOURNAL", route: "/journal" },
-  { name: "CASE SHAREING", route: "/case-shareing" },
-  { name: "MEDICALLIFE", route: "/medical_life" },
-  { name: "Anonymous Board", route: "/anonymous-board" },
-  { name: "CP", route: "/cp" },
-  { name: "FOLLOWMEMBER", route: "/followmember" },
+  { name: "JOURNAL", path: "/myPage/journal" },
+  { name: "CASE-SHARING", path: "/myPage/CaseSharing" },
+  { name: "MEDICALLIFE", path: "/myPage/MedicalLife" },
+  { name: "Anonymous-Board", path: "/myPage/anonymousboard" },
+  { name: "CP", path: "/myPage/CP" },
+  { name: "FOLLOWMEMBER", path: "/myPage/followmember" },
 ]);
-
-const currentRoute = ref("");
-
-const navigateTo = (route) => {
-  router.push(route);
-};
-
-onMounted(() => {
-  currentRoute.value = route.path;
-});
 </script>
 
 <style scoped>
-
 .sidebar {
   display: flex;
   flex-direction: column;
@@ -52,8 +39,8 @@ onMounted(() => {
 
 .sidebar-btn {
   background-color: white;
-  border: 1px solid #007bff;
-  color: #007bff;
+  border: 1px solid #003366;
+  color: #003366;
   padding: 15px 15px;
   margin-bottom: 30px;
   text-align: center;
@@ -61,6 +48,7 @@ onMounted(() => {
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
+  text-decoration: none;
 }
 
 .sidebar-btn.active {
@@ -70,7 +58,7 @@ onMounted(() => {
 }
 
 .sidebar-btn:hover {
-  background-color: #0056b3;
+  background-color: #003366;
   color: white;
 }
 </style>

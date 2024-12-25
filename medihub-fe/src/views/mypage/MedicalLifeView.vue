@@ -48,7 +48,6 @@ const fetchBookmarkedPosts = async () => {
       return {
         title: post.medicalLifeTitle,
         content: parsedContent,
-        keywords: post.keywords || [], // 키워드 처리
         author: post.userName,
         date: new Date(post.createdAt).toLocaleDateString(),
         bookmarked: post.bookmarked,
@@ -76,8 +75,8 @@ const parseMedicalLifeContent = (content) => {
 
 // 페이지네이션 데이터
 const paginatedPosts = computed(() => {
-const start = (currentPage.value - 1) * itemsPerPage;
-return filteredPosts.value.slice(start, start + itemsPerPage);
+  const start = (currentPage.value - 1) * itemsPerPage;
+  return filteredPosts.value.slice(start, start + itemsPerPage);
 });
 
 // 총 페이지 계산
@@ -85,23 +84,28 @@ const totalPages = computed(() => Math.ceil(filteredPosts.value.length / itemsPe
 
 // 페이지 변경
 const changePage = (page) => {
-if (page > 0 && page <= totalPages.value) {
-currentPage.value = page;
-}
+  if (page > 0 && page <= totalPages.value) {
+    currentPage.value = page;
+  }
 };
 
 // 조회 버튼 클릭
 const filterByMyPosts = () => {
-currentFilter.value = "myPosts";
-fetchMyPosts(); // 내가 쓴 게시물 API 호출
-currentPage.value = 1;
+  currentFilter.value = "myPosts";
+  fetchMyPosts(); // 내가 쓴 게시물 API 호출
+  currentPage.value = 1;
 };
 
 // 북마크 버튼 클릭
 const filterByBookmarks = () => {
-currentFilter.value = "bookmarks";
-fetchBookmarkedPosts(); // 북마크된 게시물 API 호출
-currentPage.value = 1;
+  currentFilter.value = "bookmarks";
+  fetchBookmarkedPosts(); // 북마크된 게시물 API 호출
+  currentPage.value = 1;
+};
+
+const truncateText = (text, maxLength) => {
+  if (!text) return "내용 없음";
+  return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
 };
 
 // 초기 데이터 로드
@@ -111,7 +115,7 @@ onMounted(fetchMyPosts);
 <template>
   <div class="d-flex">
     <!-- 사이드바 -->
-    <Sidebar />
+    <Sidebar/>
 
     <!-- 메인 콘텐츠 -->
     <div class="content-container flex-grow-1">
@@ -142,23 +146,17 @@ onMounted(fetchMyPosts);
           <tr>
             <th>제목</th>
             <th>내용</th>
-            <th>키워드</th>
             <th>작성자</th>
             <th>작성일</th>
           </tr>
           </thead>
           <tbody>
           <tr v-for="(post, index) in paginatedPosts" :key="index">
-            <td>{{ post.title }}</td>
-            <td>{{ post.content }}</td>
-            <td>
-                <span
-                    v-for="tag in post.keywords"
-                    :key="tag"
-                    class="badge"
-                >
-                  #{{ tag }}
-                </span>
+            <td :title="post.title">
+              {{ truncateText(post.content, 5) }}
+            </td>
+            <td :content="post.content">
+              {{ truncateText(post.content, 20) }}
             </td>
             <td>{{ post.author }}</td>
             <td>{{ post.date }}</td>
@@ -257,16 +255,22 @@ onMounted(fetchMyPosts);
   text-align: left;
   font-size: 1.2rem;
 }
-
 .custom-table th,
 .custom-table td {
   padding: 15px;
-  border: 1px solid #dee2e6;
+  border-bottom: 1px solid #dee2e6;
+  border-left: none;
+  border-right: none;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .custom-table thead th {
   background-color: #f8f9fa;
   font-weight: bold;
+  border-bottom: 2px solid #dee2e6;
 }
 
 .pagination-container {
@@ -316,4 +320,5 @@ onMounted(fetchMyPosts);
   padding: 5px 10px;
   font-size: 1rem;
 }
+
 </style>

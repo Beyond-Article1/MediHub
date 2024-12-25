@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 import axios from 'axios';
 import LocalDateTimeFormat from '@/components/common/LocalDateTimeFormat.vue';
@@ -20,6 +20,11 @@ const totalComment = ref(0);
 const newCommentContent = ref('');
 const characterCount = ref(0);
 const route = useRoute();
+const router = useRouter(); // 라우터 추가
+const token = localStorage.getItem('accessToken');
+const decodedToken = token ? JSON.parse(atob(token.split('.')[1])) : null;
+const loggedInUserSeq = decodedToken ? decodedToken.userSeq : null;
+
 
 const fetchBoardDetail = async () => {
   const medicalLifeSeq = route.params.id;
@@ -27,16 +32,16 @@ const fetchBoardDetail = async () => {
   try {
     const response = await axios.get(`/medical-life/detail/${medicalLifeSeq}`);
     boardDetail.value = response.data.data || {};
-    boardDetail.value.isLiked = false;
-    boardDetail.value.isBookmark = false;
+    boardDetail.value.isLiked = false; // 좋아요 초기값
+    boardDetail.value.isBookmark = false; // 북마크 초기값
+    boardDetail.value.isAuthor = response.data.data.isAuthor; // 작성자 여부 추가
 
     await Promise.all([
       checkLikeStatus(medicalLifeSeq),
-      checkBookmarkStatus(medicalLifeSeq)
+      checkBookmarkStatus(medicalLifeSeq),
     ]);
 
     await fetchComment(medicalLifeSeq);
-
   } catch (error) {
     console.error('Error fetching board detail:', error);
   }
@@ -45,7 +50,7 @@ const fetchBoardDetail = async () => {
 const fetchComment = async (medicalLifeSeq) => {
   try {
     const response = await axios.get(`/medical-life/${medicalLifeSeq}/comments`);
-    comment.value = response.data.data.map(item => ({
+    comment.value = response.data.data.map((item) => ({
       commentSeq: item.commentSeq,
       userName: item.userName,
       part: item.part,
@@ -60,6 +65,7 @@ const fetchComment = async (medicalLifeSeq) => {
   }
 };
 
+// 좋아요 토글
 const toggleLike = async () => {
   const medicalLifeSeq = route.params.id;
 
@@ -73,16 +79,7 @@ const toggleLike = async () => {
   }
 };
 
-const checkLikeStatus = async (medicalLifeSeq) => {
-  try {
-    const response = await axios.get(`/medical-life/${medicalLifeSeq}/prefer`);
-    boardDetail.value.isLiked = response.data.data; // 서버에서 반환된 좋아요 상태
-  } catch (error) {
-    console.error('좋아요 상태 확인 중 오류 발생:', error);
-    boardDetail.value.isLiked = false; // 오류 시 기본값 설정
-  }
-};
-
+// 북마크 토글
 const toggleBookmark = async () => {
   const medicalLifeSeq = route.params.id;
 
@@ -96,6 +93,18 @@ const toggleBookmark = async () => {
   }
 };
 
+// 좋아요 상태 확인
+const checkLikeStatus = async (medicalLifeSeq) => {
+  try {
+    const response = await axios.get(`/medical-life/${medicalLifeSeq}/prefer`);
+    boardDetail.value.isLiked = response.data.data; // 서버에서 반환된 좋아요 상태
+  } catch (error) {
+    console.error('좋아요 상태 확인 중 오류 발생:', error);
+    boardDetail.value.isLiked = false; // 오류 시 기본값 설정
+  }
+};
+
+// 북마크 상태 확인
 const checkBookmarkStatus = async (medicalLifeSeq) => {
   try {
     const response = await axios.get(`/medical-life/${medicalLifeSeq}/bookmark`);
@@ -103,6 +112,25 @@ const checkBookmarkStatus = async (medicalLifeSeq) => {
   } catch (error) {
     console.error('북마크 상태 확인 중 오류 발생:', error);
     boardDetail.value.isBookmark = false; // 오류 시 기본값 설정
+  }
+};
+
+// 게시글 수정
+const handleEdit = () => {
+  router.push(`/medicalLife/edit/${route.params.id}`);
+};
+
+// 게시글 삭제
+const handleDelete = async () => {
+  if (confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
+    try {
+      await axios.delete(`/medical-life/${route.params.id}`);
+      alert('게시글이 삭제되었습니다.');
+      router.push('/medicalLife');
+    } catch (error) {
+      console.error('게시글 삭제 실패:', error);
+      alert('게시글 삭제에 실패했습니다.');
+    }
   }
 };
 
@@ -125,15 +153,13 @@ const contentBlocks = computed(() => {
   }
 });
 
+// 댓글 페이지네이션
 const paginatedComment = computed(() => {
   const start = (currentCommentPage.value - 1) * commentItemCount.value;
   return comment.value.slice(start, start + commentItemCount.value);
 });
 
-const changePage = (page) => {
-  currentCommentPage.value = page;
-};
-
+// 댓글 추가
 const addComment = async () => {
   if (!newCommentContent.value.trim()) {
     alert('댓글 내용을 입력해 주세요.');
@@ -157,6 +183,7 @@ const addComment = async () => {
   }
 };
 
+// 댓글 수정
 const updateComment = async (medicalLifeSeq, commentSeq, newContent) => {
   try {
     await axios.put(`/medical-life/${medicalLifeSeq}/comment/${commentSeq}`, {
@@ -170,8 +197,8 @@ const updateComment = async (medicalLifeSeq, commentSeq, newContent) => {
   }
 };
 
+// 댓글 삭제
 const deleteComment = async (medicalLifeSeq, commentSeq) => {
-  console.log(`Attempting to delete comment with commentSeq: ${commentSeq}`);
   try {
     await axios.delete(`/medical-life/${medicalLifeSeq}/comment/${commentSeq}`);
     alert('댓글이 성공적으로 삭제되었습니다.');
@@ -182,6 +209,7 @@ const deleteComment = async (medicalLifeSeq, commentSeq) => {
   }
 };
 
+// 댓글 수정 이벤트
 const handleEditClick = (commentSeq) => {
   const targetComment = comment.value.find(c => c.commentSeq === commentSeq);
   if (!targetComment) {
@@ -196,6 +224,7 @@ const handleEditClick = (commentSeq) => {
   }
 };
 
+// 댓글 삭제 이벤트
 const handleDeleteClick = (commentSeq) => {
   if (confirm('정말로 이 댓글을 삭제하시겠습니까?')) {
     const medicalLifeSeq = route.params.id;
@@ -203,8 +232,14 @@ const handleDeleteClick = (commentSeq) => {
   }
 };
 
+// 문자 수 업데이트
 const updateCharacterCount = () => {
   characterCount.value = newCommentContent.value.length;
+};
+
+// 페이지 변경
+const changePage = (page) => {
+  currentCommentPage.value = page;
 };
 
 onMounted(() => {
@@ -225,6 +260,8 @@ onMounted(() => {
       <p class="author">{{ boardDetail.userName }} ({{ boardDetail.rankingName }})</p>
       <p class="date"><LocalDateTimeFormat :data="boardDetail.createdAt" /></p>
       <p class="view-count">조회수: {{ boardDetail.medicalLifeViewCount }}</p>
+
+      <!-- 좋아요, 북마크 버튼 -->
       <div class="actions">
         <div class="like-btn" @click="toggleLike">
           <img :src="boardDetail.isLiked ? afterLike : beforeLike" alt="좋아요" />
@@ -232,6 +269,10 @@ onMounted(() => {
         <div class="bookmark-btn" @click="toggleBookmark">
           <img :src="boardDetail.isBookmark ? afterBookmark : beforeBookmark" alt="북마크" />
         </div>
+
+        <!-- 수정/삭제 버튼 -->
+        <button v-if="loggedInUserSeq === boardDetail.userSeq" @click="handleEdit">수정</button>
+        <button v-if="loggedInUserSeq === boardDetail.userSeq" @click="handleDelete">삭제</button>
       </div>
     </div>
 
@@ -262,6 +303,7 @@ onMounted(() => {
     <!-- 댓글 섹션 -->
     <div class="comment-section">
       <h2>댓글 ({{ commentCount }})</h2>
+      <!-- 댓글 목록 -->
       <div v-for="(commentItem, index) in paginatedComment" :key="index" class="comment">
         <p class="comment-author">
           {{ commentItem.userName }} ({{ commentItem.part }}, {{ commentItem.rankingName }})
