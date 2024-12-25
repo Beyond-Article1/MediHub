@@ -20,20 +20,27 @@ const openDept = ref(null);
 // 데이터 로드
 const fetchDepartmentsAndParts = async () => {
   try {
-    const [deptRes, partRes, userRes] = await Promise.all([
-      axios.get("/api/v1/dept"),
-      axios.get("/api/v1/part"),
+    const [deptRes, partRes, userRes, followRes] = await Promise.all([
+      axios.get("/api/v1/dept"), // 부서 목록 조회
+      axios.get("/api/v1/part"), // 과 목록 조회
       axios.get("/api/v1/admin/users", {
         headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
-      }),
+      }), // 사용자 목록 조회
+      axios.get("/follow", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
+      }), // 내 팔로잉 목록 조회
     ]);
 
     departments.value = deptRes.data.data;
     parts.value = partRes.data.data;
 
+    // 팔로우한 사용자 목록을 userSeq 배열로 변환
+    const followings = followRes.data.data.map((follow) => follow.userSeq);
+
+    // 사용자 목록과 병합하여 팔로우 상태 추가
     users.value = userRes.data.data.map((user) => ({
       ...user,
-      isFollowing: user.isFollowing || false, // 초기 팔로우 상태 추가
+      isFollowing: followings.includes(user.userSeq), // 팔로우 여부 확인
     }));
   } catch (error) {
     console.error("데이터 불러오기 실패:", error);
