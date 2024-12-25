@@ -31,7 +31,7 @@
       </div>
     </div>
 
-    <!-- MEDICAL LIFE -->
+    <!-- MEDICAL LIFE Section -->
     <div class="section">
       <h5>MEDICAL LIFE</h5>
       <ul class="detailed-list">
@@ -39,13 +39,16 @@
           <div class="list-content">
             <h6 class="list-title">{{ truncateTitle(lifeItem.title) }}</h6>
             <div class="list-author-info">
-              <span>{{ lifeItem.author }} ({{ lifeItem.rank }}) - {{ lifeItem.part }}</span>
-              <span class="list-date">{{ formatDate(lifeItem.date) }}</span>
+          <span>
+            {{ lifeItem.author }} ({{ lifeItem.rank }}) - {{ lifeItem.part }}
+          </span>
+              <span class="list-date">{{ lifeItem.date }}</span>
             </div>
           </div>
         </li>
       </ul>
     </div>
+
 
     <!-- ANONYMOUS BOARD -->
     <div class="section">
@@ -68,33 +71,28 @@ import axios from "axios";
 import { useRouter } from "vue-router";
 
 const caseList = ref([]);
+const medicalLifeList = ref([]);
 const router = useRouter();
 const defaultImage = "https://via.placeholder.com/150";
 
 // MEDICAL LIFE 더미 데이터
-const medicalLifeList = ref([
-  {
-    title: "의학계 최신 연구 발표",
-    author: "김현수",
-    rank: "교수",
-    part: "신경외과",
-    date: "2023-12-20",
-  },
-  {
-    title: "건강한 생활 습관 가이드",
-    author: "이수진",
-    rank: "전문의",
-    part: "가정의학과",
-    date: "2023-12-18",
-  },
-  {
-    title: "유전자 치료의 미래",
-    author: "박진호",
-    rank: "전공의",
-    part: "유전학과",
-    date: "2023-12-15",
-  },
-]);
+const fetchTop3MedicalLife = async () => {
+  try {
+    const response = await axios.get("/medical-life/top3", {
+    });
+
+
+    medicalLifeList.value = response.data.data.map((item) => ({
+      title: item.medicalLifeTitle,
+      author: item.userName,
+      rank: item.rankingName,
+      part: item.partName,
+      date: new Date(item.createdAt).toLocaleDateString("ko-KR"), // 작성일
+    }));
+  } catch (error) {
+    console.error("Error fetching Top 3 Medical Life:", error);
+  }
+};
 
 // ANONYMOUS BOARD 더미 데이터
 const anonymousBoardList = ref([
@@ -131,7 +129,10 @@ const goToCaseSharingList = () => {
   router.push("/case_sharing");
 };
 
-onMounted(fetchCaseSharingTop3);
+onMounted(() => {
+  fetchCaseSharingTop3();
+  fetchTop3MedicalLife();
+});
 </script>
 
 <style scoped>
