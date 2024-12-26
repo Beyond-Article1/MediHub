@@ -1,15 +1,35 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
 import BoardEditor from "@/components/medicallife/MedicalLifeEditor.vue";
 import BoardKeywordInput from "@/components/medicallife/MedicalLifeKeywordinput.vue";
 import BoardActionButton from "@/components/medicallife/MedicalLifeSaveButtion.vue";
 import axios from "axios";
-import router from "@/router/index.js";
 
 const medicalLifeTitle = ref("");
 const keywords = ref([]);
 const boardEditor = ref(null);
+const route = useRoute();
+const router = useRouter();
+
+const fetchExistingData = async () => {
+  const medicalLifeSeq = route.params.id;
+
+  try {
+    const response = await axios.get(`/medical-life/detail/${medicalLifeSeq}`);
+    const data = response.data.data;
+
+    medicalLifeTitle.value = data.medicalLifeTitle;
+    keywords.value = data.keywords.map((keyword) => keyword.keywordName);
+
+    // Editor.js 데이터를 설정
+    await boardEditor.value.setEditorData(JSON.parse(data.medicalLifeContent));
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    alert("기존 데이터를 불러오는 중 오류가 발생했습니다.");
+  }
+};
 
 const updateKeywords = (newKeywords) => {
   keywords.value = newKeywords;
@@ -17,7 +37,6 @@ const updateKeywords = (newKeywords) => {
 
 const handleSave = async () => {
   try {
-    // Editor.js에서 데이터와 이미지 파일 가져오기
     const { medicalLifeContent, images } = await boardEditor.value.getEditorData();
 
     if (!medicalLifeTitle.value.trim()) {
@@ -31,57 +50,61 @@ const handleSave = async () => {
 
     const formData = new FormData();
 
-    // 데이터 직렬화 (medicalLifeContent를 JSON 문자열로 변환)
     const data = {
       medicalLifeTitle: medicalLifeTitle.value,
       medicalLifeContent: JSON.stringify(medicalLifeContent),
       keywords: keywords.value.length > 0 ? keywords.value : [],
     };
 
-    // FormData에 데이터 추가
     formData.append("data", JSON.stringify(data));
 
-    // 이미지 파일 추가
     images.forEach((file, index) => {
       formData.append("pictures", file, `img-${index + 1}`);
     });
 
     console.log("FormData 전송:", data, images);
 
+    const medicalLifeSeq = route.params.id;
+
     // API 호출
-    const response = await axios.post("/medical-life", formData, {
+    const response = await axios.put(`/medical-life/${medicalLifeSeq}`, formData, {
       headers: {
-        "Content-Type": "multipart/form-data", // FormData 사용 시 필요
+        "Content-Type": "multipart/form-data",
       },
     });
 
-    // 성공 확인
-    console.log("저장 완료:", response.data);
+    console.log("수정 완료:", response.data);
 
-    alert("저장이 완료되었습니다.");
-
-    // 게시글 목록으로 리다이렉트
-    await router.push("/medicalLife");
+    alert("수정이 완료되었습니다.");
+    router.push(`/medicalLife/${medicalLifeSeq}`);
   } catch (error) {
-    console.error("Error saving data:", error);
-    alert("저장 중 오류가 발생했습니다.");
+    console.error("Error updating data:", error);
+    alert("수정 중 오류가 발생했습니다.");
   }
 };
+
+onMounted(() => {
+  fetchExistingData();
+});
 </script>
 
 <template>
-  <div class="medical-life-create">
+  <div class="medical-life-edit">
     <!-- 페이지 제목 및 저장 버튼 -->
     <div class="board-header">
-      <div class="board-title">메디컬 라이프 게시글 작성</div>
-
+      <div class="board-title">메디컬 라이프 게시글 수정</div>
       <div class="board-action">
         <BoardActionButton @save="handleSave" />
       </div>
     </div>
 
     <!-- 제목 입력 -->
-    <input class="title-input" v-model="medicalLifeTitle" type="text" placeholder="제목을 입력하세요." />
+    <input
+        class="title-input"
+        v-model="medicalLifeTitle"
+        type="text"
+        placeholder="제목을 입력하세요."
+    />
 
     <!-- Editor.js 에디터 -->
     <div class="editor-wrapper">
@@ -91,7 +114,7 @@ const handleSave = async () => {
     <!-- 키워드 입력 -->
     <div class="board-keywords">
       <div class="keyword-list">
-        <BoardKeywordInput @update:keywords="updateKeywords" />
+        <BoardKeywordInput @update:keywords="updateKeywords" :initialKeywords="keywords" />
       </div>
     </div>
   </div>
@@ -120,7 +143,7 @@ const handleSave = async () => {
   margin-bottom: 10px;
 }
 
-.medical-life-create {
+.medical-life-edit {
   display: flex;
   flex-direction: column;
   align-items: center;

@@ -3,109 +3,79 @@ import { ref, computed, onMounted } from "vue";
 import axios from "axios";
 import Sidebar from "@/components/user/MyPage.vue";
 
-const posts = ref([]);
-const filteredPosts = ref([]); // 필터링된 게시물 저장
+const cpOpinions = ref([]); // CP 의견 데이터
+const filteredOpinions = ref([]); // 필터링된 데이터
 const currentPage = ref(1);
 const itemsPerPage = 5;
-const currentFilter = ref("");
+const currentFilter = ref("myPosts"); // 현재 필터 상태 ("myPosts" or "bookmarks")
 
-// 내가 쓴 게시물 가져오기
+// CP 의견 데이터 가져오기 (내가 쓴 게시물)
 const fetchMyPosts = async () => {
   try {
-    const response = await axios.get("/medical-life/mypage", {
-      headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
-    });
-
-    posts.value = response.data.data.map((post) => {
-      const parsedContent = parseMedicalLifeContent(post.medicalLifeContent);
-      return {
-        title: post.medicalLifeTitle,
-        content: parsedContent,
-        keywords: post.keywords,
-        author: post.userName,
-        date: new Date(post.createdAt).toLocaleDateString(),
-        bookmarked: post.bookmarked,
-      };
-    });
-
-    filteredPosts.value = [...posts.value]; // 필터링된 게시물 초기화
+    const response = await axios.get(""); // 내가 쓴 게시물 API
+    cpOpinions.value = response.data.data.map((opinion) => ({
+      content: opinion.cpOpinionContent, // 의견 내용
+      author: opinion.userName, // 작성자
+      part: opinion.partName, // 과명
+      updatedAt: new Date(opinion.updatedAt).toLocaleDateString(), // 수정일
+    }));
+    filteredOpinions.value = [...cpOpinions.value]; // 필터 초기화
   } catch (error) {
-    console.error("내 메디컬 라이프 불러오기 실패:", error);
+    console.error("내가 쓴 게시물 데이터 가져오기 실패:", error);
   }
 };
 
-// 내가 북마크한 게시물 가져오기
+// 북마크된 게시물 가져오기
 const fetchBookmarkedPosts = async () => {
   try {
-    const response = await axios.get("/medical-life/mypage/bookmark", {
-      headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
-    });
-
-    console.log("북마크 데이터 확인:", response.data.data); // 데이터 구조 확인
-
-    posts.value = response.data.data.map((post) => {
-      const parsedContent = parseMedicalLifeContent(post.medicalLifeContent);
-      return {
-        title: post.medicalLifeTitle,
-        content: parsedContent,
-        keywords: post.keywords || [], // 키워드 처리
-        author: post.userName,
-        date: new Date(post.createdAt).toLocaleDateString(),
-        bookmarked: post.bookmarked,
-      };
-    });
-
-    filteredPosts.value = [...posts.value]; // 필터링된 게시물 초기화
+    const response = await axios.get(""); // 북마크된 게시물 API
+    cpOpinions.value = response.data.data.map((opinion) => ({
+      content: opinion.cpOpinionContent, // 의견 내용
+      author: opinion.userName, // 작성자
+      part: opinion.partName, // 과명
+      updatedAt: new Date(opinion.updatedAt).toLocaleDateString(), // 수정일
+    }));
+    filteredOpinions.value = [...cpOpinions.value]; // 필터 초기화
   } catch (error) {
-    console.error("북마크된 게시물 불러오기 실패:", error);
-  }
-};
-
-const parseMedicalLifeContent = (content) => {
-  try {
-    const parsedContent = JSON.parse(content);
-    const textBlocks = parsedContent.blocks
-        .filter((block) => block.type === "paragraph")
-        .map((block) => block.data.text);
-    return textBlocks.join(" ");
-  } catch (error) {
-    console.error("콘텐츠 파싱 실패:", error);
-    return "내용 없음";
+    console.error("북마크된 게시물 데이터 가져오기 실패:", error);
   }
 };
 
 // 페이지네이션 데이터
-const paginatedPosts = computed(() => {
-const start = (currentPage.value - 1) * itemsPerPage;
-return filteredPosts.value.slice(start, start + itemsPerPage);
+const paginatedOpinions = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  return filteredOpinions.value.slice(start, start + itemsPerPage);
 });
 
 // 총 페이지 계산
-const totalPages = computed(() => Math.ceil(filteredPosts.value.length / itemsPerPage));
+const totalPages = computed(() =>
+    Math.ceil(filteredOpinions.value.length / itemsPerPage)
+);
 
 // 페이지 변경
 const changePage = (page) => {
-if (page > 0 && page <= totalPages.value) {
-currentPage.value = page;
-}
+  if (page > 0 && page <= totalPages.value) {
+    currentPage.value = page;
+  }
 };
 
 // 조회 버튼 클릭
-const filterByMyPosts = () => {
-currentFilter.value = "myPosts";
-fetchMyPosts(); // 내가 쓴 게시물 API 호출
-currentPage.value = 1;
+const filterByMyPosts = async () => {
+  currentFilter.value = "myPosts";
+  await fetchMyPosts(); // 내가 쓴 게시물 데이터 가져오기
+  currentPage.value = 1;
 };
 
 // 북마크 버튼 클릭
-const filterByBookmarks = () => {
-currentFilter.value = "bookmarks";
-fetchBookmarkedPosts(); // 북마크된 게시물 API 호출
-currentPage.value = 1;
+const filterByBookmarks = async () => {
+  currentFilter.value = "bookmarks";
+  await fetchBookmarkedPosts(); // 북마크된 게시물 데이터 가져오기
+  currentPage.value = 1;
 };
 
 // 초기 데이터 로드
 onMounted(fetchMyPosts);
+
 </script>
 
 <template>
@@ -115,9 +85,9 @@ onMounted(fetchMyPosts);
 
     <!-- 메인 콘텐츠 -->
     <div class="content-container flex-grow-1">
-      <h3 class="title">나의 메디컬 라이프</h3>
+      <h3 class="title">CP</h3>
 
-      <!-- 필터 및 북마크 버튼 -->
+      <!-- 필터 버튼 -->
       <div class="filter-buttons">
         <button
             class="filter-btn"
@@ -140,28 +110,18 @@ onMounted(fetchMyPosts);
         <table class="custom-table">
           <thead>
           <tr>
-            <th>제목</th>
             <th>내용</th>
-            <th>키워드</th>
             <th>작성자</th>
-            <th>작성일</th>
+            <th>과</th>
+            <th>수정일</th>
           </tr>
           </thead>
           <tbody>
-          <tr v-for="(post, index) in paginatedPosts" :key="index">
-            <td>{{ post.title }}</td>
-            <td>{{ post.content }}</td>
-            <td>
-                <span
-                    v-for="tag in post.keywords"
-                    :key="tag"
-                    class="badge"
-                >
-                  #{{ tag }}
-                </span>
-            </td>
-            <td>{{ post.author }}</td>
-            <td>{{ post.date }}</td>
+          <tr v-for="(opinion, index) in paginatedOpinions" :key="index">
+            <td>{{ opinion.content }}</td>
+            <td>{{ opinion.author }}</td>
+            <td>{{ opinion.part }}</td>
+            <td>{{ opinion.updatedAt }}</td>
           </tr>
           </tbody>
         </table>
@@ -257,16 +217,22 @@ onMounted(fetchMyPosts);
   text-align: left;
   font-size: 1.2rem;
 }
-
 .custom-table th,
 .custom-table td {
   padding: 15px;
-  border: 1px solid #dee2e6;
+  border-bottom: 1px solid #dee2e6;
+  border-left: none;
+  border-right: none;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .custom-table thead th {
   background-color: #f8f9fa;
   font-weight: bold;
+  border-bottom: 2px solid #dee2e6;
 }
 
 .pagination-container {
@@ -316,4 +282,5 @@ onMounted(fetchMyPosts);
   padding: 5px 10px;
   font-size: 1rem;
 }
+
 </style>

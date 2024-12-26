@@ -166,11 +166,11 @@ const changePage = (page) => {
   currentPage.value = page;
 };
 
-const registerUser = () => router.push("/CreateUser");
+const registerUser = () => router.push("/create/user");
 const goToDetail = (userSeq) => router.push({ name: "AdminUserDetail", params: { userSeq } });
-const goToManageDepartments = () => router.push("/DeptManage");
-const goToManageParts = () => router.push("/PartManage");
-const goToManageRankings = () => router.push("/RankManage");
+const goToManageDepartments = () => router.push("/deptManage");
+const goToManageParts = () => router.push("/partManage");
+const goToManageRankings = () => router.push("/rankManage");
 
 onMounted(fetchDepartmentsAndParts);
 </script>

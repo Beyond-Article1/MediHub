@@ -140,7 +140,7 @@ const selectedPartName = ref("");
 
 const searchQuery = ref("");
 const sortOption = ref("latest");
-const itemsPerPage = ref(5);
+const itemsPerPage = ref(10);
 const currentPage = ref(1);
 
 const router = useRouter(); // 라우터 사용

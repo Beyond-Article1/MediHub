@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import {createRouter, createWebHistory} from "vue-router";
 
 import journalRouter from "@/router/journalRouter.js";
 import cpRouter from "@/router/cpRouter.js";
@@ -9,7 +9,7 @@ import anonymousBoardRouter from "@/router/anonymousBoardRouter.js";
 import loginRouter from "@/router/loginRouter.js";
 import mainRouter from "@/router/mainRouter.js";
 import adminRouter from "@/router/adminRouter.js";
-import MyPageRouter from "@/router/MyPageRouter.js";
+import mypagedetailRouter from "@/router/mypagedetailRouter.js";
 
 const routes = [
 
@@ -32,7 +32,7 @@ const routes = [
     ...loginRouter,
     ...mainRouter,
     ...adminRouter,
-    ...MyPageRouter
+    ...mypagedetailRouter,
 
 ]
 

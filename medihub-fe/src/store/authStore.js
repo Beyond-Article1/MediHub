@@ -1,5 +1,6 @@
 import {defineStore} from "pinia";
 import {onMounted, ref} from "vue";
+import axios from "axios";
 
 export const useAuthStore = defineStore('auth', () => {
     const accessToken = ref(null);
@@ -58,7 +59,7 @@ export const useAuthStore = defineStore('auth', () => {
 
         const payload = decodeToken(token);
         if (payload) {
-            userRole.value = payload.auth[0]; // `auth`에서 역할 설정
+            userRole.value = payload.auth; // `auth`에서 역할 설정
             userSeq.value = payload.userSeq;
             console.log("[AuthStore] userRole:" , userRole.value);
             console.log("[AuthStore] userSeq:" , userSeq.value);
@@ -79,8 +80,23 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     // 로그아웃 처리
-    function logout() {
-        console.log("[AuthStore] Logout"); // 로그아웃 디버깅
+    async function logout() {
+        console.log("[AuthStore] Logout 시작"); // 로그아웃 디버깅
+
+        try {
+            if (accessToken.value) {
+                // 로그아웃 API 호출
+                await axios.post("/api/v1/token/logout", {}, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken.value}`,
+                    },
+                });
+                console.log("[AuthStore] 로그아웃 API 호출 성공");
+            }
+        } catch (error) {
+            console.error("[AuthStore] 로그아웃 API 호출 실패:", error.response || error.message);
+        }
+
         isLogined.value = false;
         accessToken.value = null;
         refreshToken.value = null;
@@ -90,8 +106,6 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
     }
-
-
 
     // 권한 확인
     function isAuthorized(requiredRole) {

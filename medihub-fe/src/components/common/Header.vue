@@ -29,7 +29,7 @@
 
         <!-- 다른 메뉴 -->
         <li
-            v-for="menu in ['cp', 'member', 'admin']"
+            v-for="menu in ['cp']"
             :key="menu"
             :class="{ active: selectedItem === menu }"
             @click="moveToItem(menu)"
@@ -47,6 +47,23 @@
           <ul v-if="showJournalDrop" class="dropdown-menu">
             <li
                 v-for="item in journalDropdownItems"
+                :key="item.value"
+                @click="moveToItem(item)"
+            >
+              {{ item.label }}
+            </li>
+          </ul>
+        </li>
+        <li
+            class="menu-item dropdown"
+            @mouseover="showMemberDrop = true"
+            @mouseleave="showMemberDrop = false"
+        >
+          MEMBER
+          <!-- 드롭다운 메뉴 -->
+          <ul v-if="showMemberDrop" class="dropdown-menu">
+            <li
+                v-for="item in roleBasedMemberItems"
                 :key="item.value"
                 @click="moveToItem(item)"
             >
@@ -88,7 +105,7 @@
 </template>
 
 <script setup>
-import {ref, nextTick, onMounted, onBeforeUnmount} from 'vue';
+import {ref, nextTick, onMounted, onBeforeUnmount, computed} from 'vue';
 import router from '@/router/index.js';
 import { useAuthStore } from '@/store/authStore.js';
 import { useWebSocketStore } from "@/store/webSocket.js";
@@ -100,11 +117,13 @@ import AfterNotify from '@/assets/images/after-notify.png';
 import axios from "axios";
 
 const store = useAuthStore();
+const userRole = computed(() => store.userRole);
 const webSocketStore = useWebSocketStore();
 const isLogIn = 123;
 const selectedItem = ref('');
 const showDropdown = ref(false);
 const showJournalDrop = ref(false);
+const showMemberDrop = ref(false);
 
 // SSE와 Notify 관련
 const isNotifyModalOpen = ref(false); // modal Open 상태
@@ -129,6 +148,21 @@ const journalDropdownItems = [
   { label: 'BEST 100', value: 'best_journal'},
   { label: 'MediH', value: 'medi_h'},
 ];
+
+const roleBasedMemberItems = computed(() => {
+  if (userRole.value === 'ADMIN') {
+    return [
+      { label: '회원 관리', value: 'AdminUser' },
+      { label: '내 정보 수정', value: 'editProfile' },
+    ];
+  } else {
+    return [
+      { label: '전체 회원 조회', value: 'allUser' },
+      { label: '내 정보 수정', value: 'editProfile' },
+      { label: '마이페이지', value: 'myPage' },
+    ];
+  }
+});
 
 onMounted(() => {
   // 연결 유무에 따른 재연결
@@ -164,7 +198,7 @@ function moveToItem(menu) {
       route = '/case_sharing';
       break;
     case 'medical_life':
-      route = '/medical_life';
+      route = '/medicallife';
       break;
     case 'anonymous-board':
       route = '/anonymous-board';
@@ -178,11 +212,17 @@ function moveToItem(menu) {
     case 'cp':
       route = '/cp';
       break;
-    case 'member':
-      route = '/allUser';
+    case 'AdminUser':
+      route = '/admin/user';
       break;
-    case 'admin':
-      route = '/adminUser';
+    case 'allUser': // 전체 회원 조회
+      route = '/AllUser';
+      break;
+    case 'editProfile': // 내 정보 수정
+      route = '/userDetail';
+      break;
+    case 'myPage':
+      route = '/myPage/journal';
       break;
     default:
       route = '/';
@@ -326,6 +366,10 @@ const toggleModal = () => {
   padding: 0 20px;
 }
 
+.logo {
+  margin-right: 50px;
+}
+
 /* 로고 스타일 */
 .logo img {
   cursor: pointer;
@@ -348,7 +392,7 @@ const toggleModal = () => {
 /* 메뉴 리스트 스타일 */
 .menu-list ul {
   display: flex; /* 가로 정렬 */
-  gap: 150px; /* 메뉴 간격 조정 */
+  gap: 180px; /* 메뉴 간격 조정 */
   margin: 0;
   padding: 0;
   list-style: none;
