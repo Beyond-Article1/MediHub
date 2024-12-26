@@ -54,16 +54,6 @@
             </li>
           </ul>
         </li>
-
-        <li
-            v-for="menu in ['admin']"
-            :key="menu"
-            :class="{ active: selectedItem === menu }"
-            @click="moveToItem(menu)"
-        >
-          {{ menu.toUpperCase() }}
-        </li>
-
         <li
             class="menu-item dropdown"
             @mouseover="showMemberDrop = true"
@@ -73,7 +63,7 @@
           <!-- 드롭다운 메뉴 -->
           <ul v-if="showMemberDrop" class="dropdown-menu">
             <li
-                v-for="item in memberDropdownItems"
+                v-for="item in roleBasedMemberItems"
                 :key="item.value"
                 @click="moveToItem(item)"
             >
@@ -115,7 +105,7 @@
 </template>
 
 <script setup>
-import {ref, nextTick, onMounted, onBeforeUnmount} from 'vue';
+import {ref, nextTick, onMounted, onBeforeUnmount, computed} from 'vue';
 import router from '@/router/index.js';
 import { useAuthStore } from '@/store/authStore.js';
 import { useWebSocketStore } from "@/store/webSocket.js";
@@ -127,6 +117,7 @@ import AfterNotify from '@/assets/images/after-notify.png';
 import axios from "axios";
 
 const store = useAuthStore();
+const userRole = computed(() => store.userRole);
 const webSocketStore = useWebSocketStore();
 const isLogIn = 123;
 const selectedItem = ref('');
@@ -158,11 +149,20 @@ const journalDropdownItems = [
   { label: 'MediH', value: 'medi_h'},
 ];
 
-const memberDropdownItems = [
-  { label: '전체 회원 조회', value: 'allUser' },
-  { label: '내 정보 수정', value: 'editProfile' },
-  { label: '마이페이지', value: 'myPage'}
-];
+const roleBasedMemberItems = computed(() => {
+  if (userRole.value === 'ADMIN') {
+    return [
+      { label: '회원 관리', value: 'AdminUser' },
+      { label: '내 정보 수정', value: 'editProfile' },
+    ];
+  } else {
+    return [
+      { label: '전체 회원 조회', value: 'allUser' },
+      { label: '내 정보 수정', value: 'editProfile' },
+      { label: '마이페이지', value: 'myPage' },
+    ];
+  }
+});
 
 onMounted(() => {
   // 연결 유무에 따른 재연결
@@ -212,6 +212,9 @@ function moveToItem(menu) {
     case 'cp':
       route = '/cp';
       break;
+    case 'AdminUser':
+      route = '/admin/user';
+      break;
     case 'allUser': // 전체 회원 조회
       route = '/AllUser';
       break;
@@ -220,9 +223,6 @@ function moveToItem(menu) {
       break;
     case 'myPage':
       route = '/myPage/journal';
-      break;
-    case 'admin':
-      route = '/admin/user';
       break;
     default:
       route = '/';
@@ -366,6 +366,10 @@ const toggleModal = () => {
   padding: 0 20px;
 }
 
+.logo {
+  margin-right: 50px;
+}
+
 /* 로고 스타일 */
 .logo img {
   cursor: pointer;
@@ -388,7 +392,7 @@ const toggleModal = () => {
 /* 메뉴 리스트 스타일 */
 .menu-list ul {
   display: flex; /* 가로 정렬 */
-  gap: 150px; /* 메뉴 간격 조정 */
+  gap: 180px; /* 메뉴 간격 조정 */
   margin: 0;
   padding: 0;
   list-style: none;

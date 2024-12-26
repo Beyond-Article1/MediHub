@@ -13,7 +13,6 @@ const currentFilter = ref("");
 const fetchMyPosts = async () => {
   try {
     const response = await axios.get("/case_sharing/my", {
-      headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
     });
 
     posts.value = response.data.data.map((post) => {
