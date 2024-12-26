@@ -115,7 +115,7 @@ const editPartSeq = ref(null);
 const fetchDepartments = async () => {
   try {
     const response = await axios.get("/api/v1/dept");
-    departments.value = response.data;
+    departments.value = response.data.data;
   } catch (error) {
     console.error("부서 데이터 가져오기 실패", error);
   }
@@ -126,7 +126,7 @@ const fetchPartsByDept = async () => {
 
   try {
     const response = await axios.get(`/api/v1/part?deptSeq=${selectedDeptSeq.value}`);
-    parts.value = response.data;
+    parts.value = response.data.data;
   } catch (error) {
     console.error("파트 데이터 가져오기 실패", error);
   }

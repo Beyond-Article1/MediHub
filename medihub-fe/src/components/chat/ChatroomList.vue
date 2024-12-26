@@ -3,11 +3,13 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { useAuthStore } from '@/store/authStore.js';
 import { useWebSocketStore } from "@/store/webSocket.js";
+import { useChatStore } from "@/store/chatStore.js";
 import SelectUserModal from './SelectUserModal.vue';
 
 const emit = defineEmits(['open-chatroom']); // 이벤트 정의 (부모에게 이벤트 전달)
 const authStore = useAuthStore();
-const chatrooms = ref([]);  // 채팅방 목록
+const webSocketStore = useWebSocketStore();
+const chatStore = useChatStore();
 
 const isModalOpen = ref(false); // 모달 열림 상태
 const selectedUsers = ref([]);  // 대화상대로 초대할 사용자
@@ -22,8 +24,8 @@ const getChatrooms = async () => {
         'Authorization': `Bearer ${authStore.accessToken}`,  // 토큰을 헤더에 추가
       }
     });
-    chatrooms.value = response.data.data;
-    console.log('채팅방 목록을 불러오는 데 성공했습니다.', chatrooms.value);  // 받은 채팅방 목록 출력
+    chatStore.setChatrooms(response.data.data);
+    console.log('채팅방 목록을 불러오는 데 성공했습니다.', chatStore.chatrooms);  // 받은 채팅방 목록 출력
   } catch (error) {
     console.error('채팅방 목록을 불러오는 데 실패했습니다.', error);
   }
@@ -31,6 +33,7 @@ const getChatrooms = async () => {
 
 onMounted(() => {
   getChatrooms();
+  webSocketStore.getUserChatrooms();
 });
 
 // 채팅방 생성
@@ -46,10 +49,14 @@ const createChatroom = async (users) => {
     console.log('채팅방 생성 성공: ', response.data);
     const chatroomSeq = response.data.data;
     console.log('생성된 1:1 채팅방 Seq 확인: ', chatroomSeq);
+
     // 채팅방 구독 요청
-    useWebSocketStore().subscribeChatroom(chatroomSeq);
+    webSocketStore.subscribeChatroom(chatroomSeq);
+
+    // 새로 생성된 채팅방 정보를 Pinia Store에 추가
+    await chatStore.addChatroom(chatroomSeq);
+
     closeModal();
-    getChatrooms(); // 채팅방 목록 갱신
   } catch(error) {
     console.error('채팅방 생성 실패: ', error);
     alert('채팅방 생성 중 오류가 발생하였습니다.');
@@ -72,9 +79,9 @@ const handleDoubleClick = (room) => {
         </button>
       </div>
 
-    <div class="chatroom-list" v-if="chatrooms.length > 0">
+    <div class="chatroom-list" v-if="chatStore.chatrooms.length > 0">
       <!-- 채팅방 목록을 반복문으로 표시 -->
-      <div v-for="room in chatrooms" :key="room.chatroomSeq" @dblclick="handleDoubleClick(room)" class="chatroom-item">
+      <div v-for="room in chatStore.chatrooms" :key="room.chatroomSeq" @dblclick="handleDoubleClick(room)" class="chatroom-item">
         <div class="chatroom-info">
           <h5 class="chatroom-name">
             {{ room.chatroomCustomName || room.chatroomDefaultName }}
@@ -83,7 +90,10 @@ const handleDoubleClick = (room) => {
             <span class="chatroom-users">{{ room.chatroomUsersCount }}</span>
             <span class="chatroom-last-message">
                 <strong>마지막 메시지:</strong> {{ room.lastMessage }}
-              </span>
+            </span>
+            <span class="chatroom-last-time">
+              {{ room.lastMessageTime }}
+            </span>
           </div>
         </div>
       </div>

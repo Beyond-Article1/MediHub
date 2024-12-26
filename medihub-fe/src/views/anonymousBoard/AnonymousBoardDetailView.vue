@@ -157,7 +157,7 @@ onMounted(() => {
       <!-- 프로필 사진 추가 -->
       <img class="profile-pic" src="@/assets/images/anonymousBoard/empty-profile.png" alt="Profile Picture" />
 
-<!--      <p class="author">{{ boardDetail.userName }}</p>-->
+      <!--<p class="author">{{ boardDetail.userName }}</p>-->
       <p class="author">익명</p>
       <p class="date">
         <LocalDateTimeFormat :data="boardDetail.createdAt" />

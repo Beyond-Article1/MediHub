@@ -1,3 +1,135 @@
+<script setup>
+import { ref, computed, onMounted } from "vue";
+import LineDivider from "@/components/common/LineDivider.vue";
+import BookmarkButton from "@/components/common/button/BookmarkButton.vue";
+import axios from "axios";
+import Pagination from "@/components/common/Pagination.vue";
+
+const users = ref([]);
+const departments = ref([]);
+const parts = ref([]);
+const currentPage = ref(1);
+const itemsPerPage = 6;
+const defaultImage = "https://via.placeholder.com/120";
+
+const selectedDeptName = ref("");
+const selectedPartName = ref("");
+const selectedPartSeq = ref(null);
+const openDept = ref(null);
+
+// 데이터 로드
+const fetchDepartmentsAndParts = async () => {
+  try {
+    const [deptRes, partRes, userRes] = await Promise.all([
+      axios.get("/api/v1/dept"),
+      axios.get("/api/v1/part"),
+      axios.get("/api/v1/admin/users", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
+      }),
+    ]);
+
+    departments.value = deptRes.data.data;
+    parts.value = partRes.data.data;
+
+    users.value = userRes.data.data.map((user) => ({
+      ...user,
+      isFollowing: user.isFollowing || false, // 초기 팔로우 상태 추가
+    }));
+  } catch (error) {
+    console.error("데이터 불러오기 실패:", error);
+  }
+};
+
+// 부서 토글
+const toggleDept = (deptSeq, deptName) => {
+  openDept.value = openDept.value === deptSeq ? null : deptSeq;
+  selectedDeptName.value = deptName;
+  selectedPartSeq.value = null;
+  selectedPartName.value = "";
+  currentPage.value = 1;
+};
+
+// 과 선택
+const selectPart = (partSeq, partName) => {
+  selectedPartSeq.value = partSeq;
+  selectedPartName.value = partName;
+  currentPage.value = 1;
+};
+
+// 팔로우/언팔로우 동작
+const followUser = async (user) => {
+  try {
+    // POST 요청에 쿼리 파라미터로 toUserSeq 전달
+    const response = await axios.post(`/follow?toUserSeq=${user.userSeq}`, {}, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
+    });
+    console.log("Follow response:", response.data); // 디버깅용 로그
+    user.isFollowing = true; // 팔로우 상태 업데이트
+  } catch (error) {
+    console.error("팔로우 실패:", error); // 에러 로그 출력
+  }
+};
+
+const unfollowUser = async (user) => {
+  try {
+    // DELETE 요청에 쿼리 파라미터로 toUserSeq 전달
+    await axios.delete(`/follow`, {
+      params: { toUserSeq: user.userSeq }, // 쿼리 파라미터 설정
+      headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
+    });
+    user.isFollowing = false; // 언팔로우 상태 업데이트
+  } catch (error) {
+    console.error("언팔로우 실패:", error); // 에러 로그 출력
+  }
+};
+
+
+const updateFollow = async (user) => {
+  if (user.isFollowing) {
+    try {
+      await unfollowUser(user);
+      user.isFollowing = false; // 언팔로우 성공 시 상태 업데이트
+    } catch (error) {
+      console.error("언팔로우 실패:", error);
+    }
+  } else {
+    try {
+      await followUser(user);
+      user.isFollowing = true; // 팔로우 성공 시 상태 업데이트
+    } catch (error) {
+      console.error("팔로우 실패:", error);
+    }
+  }
+};
+
+// 필터링된 과
+const filteredParts = computed(() => {
+  return parts.value.filter((part) => part.deptSeq === openDept.value);
+});
+
+// 필터링된 사용자
+const filteredUsers = computed(() => {
+  return users.value.filter((user) => {
+    const matchesDept = !selectedDeptName.value || user.deptName === selectedDeptName.value;
+    const matchesPart = !selectedPartSeq.value || user.partName === selectedPartName.value;
+    return matchesDept && matchesPart;
+  });
+});
+
+// 페이지네이션 데이터
+const paginatedUsers = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage;
+  return filteredUsers.value.slice(start, start + itemsPerPage);
+});
+
+// 페이지 변경
+const changePage = (page) => {
+  currentPage.value = page;
+};
+
+// 초기 데이터 로드
+onMounted(fetchDepartmentsAndParts);
+</script>
 <template>
   <div class="d-flex">
     <!-- 왼쪽 사이드바: 부서와 과 -->
@@ -66,11 +198,12 @@
               <p>{{ user.userEmail }}</p>
               <p>{{ user.userPhone }}</p>
             </div>
-            <!-- 북마크 버튼 -->
+            <!-- 팔로우 버튼 -->
             <BookmarkButton
-                :currentIsBookmark="user.isBookmarked"
-                @updateBookmark="updateBookmark(user)"
+                :currentIsBookmark="user.isFollowing"
+                @updateBookmark="updateFollow(user)"
                 class="bookmark-button"
+                :label="user.isFollowing ? '팔로우 중' : '팔로우'"
             />
           </div>
         </div>
@@ -86,87 +219,6 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { ref, computed, onMounted } from "vue";
-import LineDivider from "@/components/common/LineDivider.vue";
-import BookmarkButton from "@/components/common/button/BookmarkButton.vue";
-import axios from "axios";
-import Pagination from "@/components/common/Pagination.vue";
-
-const users = ref([]);
-const departments = ref([]);
-const parts = ref([]);
-const currentPage = ref(1);
-const itemsPerPage = 6;
-const defaultImage = "https://via.placeholder.com/120";
-
-const selectedDeptName = ref("");
-const selectedPartName = ref("");
-const selectedPartSeq = ref(null);
-const openDept = ref(null);
-
-const fetchDepartmentsAndParts = async () => {
-  try {
-    const [deptRes, partRes, userRes] = await Promise.all([
-      axios.get("/api/v1/dept"),
-      axios.get("/api/v1/part"),
-      axios.get("/api/v1/admin/users", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
-      }),
-    ]);
-    departments.value = deptRes.data;
-    parts.value = partRes.data;
-    users.value = userRes.data.data.map((user) => ({
-      ...user,
-      isBookmarked: false, // 초기 북마크 상태
-    }));
-  } catch (error) {
-    console.error("데이터 불러오기 실패:", error);
-  }
-};
-
-const toggleDept = (deptSeq, deptName) => {
-  openDept.value = openDept.value === deptSeq ? null : deptSeq;
-  selectedDeptName.value = deptName;
-  selectedPartSeq.value = null;
-  selectedPartName.value = "";
-  currentPage.value = 1;
-};
-
-const selectPart = (partSeq, partName) => {
-  selectedPartSeq.value = partSeq;
-  selectedPartName.value = partName;
-  currentPage.value = 1;
-};
-
-const updateBookmark = (user) => {
-  user.isBookmarked = !user.isBookmarked;
-};
-
-const filteredParts = computed(() => {
-  return parts.value.filter((part) => part.deptSeq === openDept.value);
-});
-
-const filteredUsers = computed(() => {
-  return users.value.filter((user) => {
-    const matchesDept = !selectedDeptName.value || user.deptName === selectedDeptName.value;
-    const matchesPart = !selectedPartSeq.value || user.partName === selectedPartName.value;
-    return matchesDept && matchesPart;
-  });
-});
-
-const paginatedUsers = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  return filteredUsers.value.slice(start, start + itemsPerPage);
-});
-
-const changePage = (page) => {
-  currentPage.value = page;
-};
-
-onMounted(fetchDepartmentsAndParts);
-</script>
 
 <style scoped>
 .d-flex {

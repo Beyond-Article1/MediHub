@@ -141,8 +141,8 @@ const fetchData = async () => {
 
     form.value = userRes.data.data;
     profilePreview.value = userRes.data.data.profileImage || "";
-    parts.value = partRes.data; // 전체 파트 데이터
-    rankings.value = rankRes.data; // 직급 데이터
+    parts.value = partRes.data.data; // 전체 파트 데이터
+    rankings.value = rankRes.data.data; // 직급 데이터
   } catch (error) {
     console.error("데이터 불러오기 실패:", error);
     alert("회원 정보를 불러오는 데 실패했습니다.");
