@@ -1,13 +1,13 @@
 import AdminUser from '@/views/admin/AdminUser.vue';
 import AdminUserDetail from "@/views/admin/AdminUserDetail.vue";
-import CreateUser from "@/views/admin/CreateUser.vue";
+import createUser from "@/views/admin/CreateUser.vue";
 import PartManage from "@/views/admin/PartManage.vue";
-import DeptManage from "@/views/admin/DeptManage.vue";
+import deptManage from "@/views/admin/DeptManage.vue";
 import RankManage from "@/views/admin/RankManage.vue";
 
 export default [
     {
-        path: "/AdminUser",
+        path: "/admin/user",
         name: "AdminUser",
         component: AdminUser,
     },
@@ -17,23 +17,23 @@ export default [
         component: AdminUserDetail,
     },
     {
-        path: "/CreateUser",
-        name: "CreateUser",
-        component: CreateUser,
+        path: "/create/user",
+        name: "createUser",
+        component: createUser,
     },
     {
-        path: "/DeptManage",
-        name: "DeptManage",
-        component: DeptManage,
+        path: "/deptManage",
+        name: "deptManage",
+        component: deptManage,
     },
     {
-        path: "/PartManage",
-        name: "PartManage",
+        path: "/partManage",
+        name: "partManage",
         component: PartManage,
     },
     {
-        path: "/RankManage",
-        name: "RankManage",
+        path: "/rankManage",
+        name: "rankManage",
         component: RankManage,
     },
 ];

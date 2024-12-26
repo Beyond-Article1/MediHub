@@ -103,7 +103,7 @@ const handleLogin = async () => {
   try {
     console.log("로그인 요청:", formData);
 
-    const response = await axios.post("/api/v1/user/login", {
+    const response = await axios.post("/login", {
       userId: formData.userId,
       userPassword: formData.userPassword,
     });
