@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import {createRouter, createWebHistory} from "vue-router";
 
 import journalRouter from "@/router/journalRouter.js";
 import cpRouter from "@/router/cpRouter.js";
