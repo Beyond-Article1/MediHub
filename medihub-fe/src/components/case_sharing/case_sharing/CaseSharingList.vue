@@ -1,5 +1,8 @@
 <template>
   <div class="case-list">
+    <div v-if="selectedCategoryName" class="selected-category-info">
+      <strong>{{ selectedCategoryName }}</strong> 카테고리에 대한 케이스 공유 내역입니다.
+    </div>
     <div class="case-header">
       <span>총 {{ totalCases }} 건</span>
     </div>
@@ -29,47 +32,80 @@
 </template>
 
 <script setup>
-import {ref, onMounted, computed} from 'vue';
-import { useAuthStore } from '@/store/authStore';
+import {ref, onMounted, computed, watch} from "vue";
 import axios from "axios";
-import router from "@/router/index.js"; // Pinia 스토어 가져오기
+import router from "@/router/index.js";
 import PaginationComponent from "@/components/common/Pagination.vue";
 
-const authStore = useAuthStore();
-const accessToken = authStore.accessToken; // accessToken 가져오기
+// Props로 선택된 카테고리 ID 전달받기
+const {selectedCategory} = defineProps(["selectedCategory"]);
 
 const totalCases = ref(0);
 const caseList = ref([]);
 const currentPage = ref(1); // 현재 페이지 번호
+const selectedCategoryName = ref("");
 
 // API 호출 함수
-const fetchCaseList = async () => {
+const fetchCaseList = async (categoryId) => {
   try {
-    // API 호출
-    const response = await axios.get('/case_sharing');
+    const url = categoryId
+        ? `/case_sharing/part/${categoryId}`
+        : `/case_sharing`;
 
-    // axios 응답 객체에서 데이터 바로 사용
-    const result = response.data;
+    console.log("API Request URL:", url);
 
-    if (result.success && Array.isArray(result.data)) {
-      // 데이터 가공
-      caseList.value =  result.data
-          .sort((a, b) => b.caseSharingSeq - a.caseSharingSeq) // 내림차순 정렬
-          .map(item => ({
-        id: item.caseSharingSeq,
-        title: item.caseSharingTitle,
-        author: `${item.caseAuthor} (${item.caseAuthorRankName || '직급 없음'})`,
-        date: new Date(item.regDate).toLocaleDateString('ko-KR'),
-      }));
-      totalCases.value = result.data.length;
+    const response = await axios.get(url);
+    const { success, data } = response.data;
+
+    if (success && Array.isArray(data)) {
+      console.log("Fetched data:", data);
+
+      // 데이터를 map으로 변환한 뒤 ID를 기준으로 내림차순 정렬
+      caseList.value = data
+          .map((item) => ({
+            id: item.caseSharingSeq,
+            title: item.caseSharingTitle,
+            author: `${item.caseAuthor} (${item.caseAuthorRankName || "직급 없음"})`,
+            date: new Date(item.regDate).toLocaleDateString("ko-KR"),
+          }))
+          .sort((a, b) => b.id - a.id); // ID 내림차순 정렬
+
+      totalCases.value = caseList.value.length;
     } else {
-      throw new Error('데이터 형식 오류');
+      console.error("Unexpected response structure or unsuccessful request");
+      caseList.value = [];
+      totalCases.value = 0;
     }
   } catch (error) {
-    console.error('Error fetching case list:', error);
+    console.error("Error fetching case list:", error);
     caseList.value = [];
+    totalCases.value = 0;
   }
 };
+
+
+
+// 선택된 카테고리가 변경될 때 API 호출
+watch(
+    () => selectedCategory,
+    (newCategory) => {
+      if (newCategory && typeof newCategory === "object") {
+        console.log("Selected Category ID:", newCategory.id); // 디버깅용
+        console.log("Selected Category Name:", newCategory.name); // 디버깅용
+
+        fetchCaseList(newCategory.id); // ID로 데이터 호출
+        selectedCategoryName.value = newCategory.name; // 카테고리 이름 표시
+      } else {
+        console.log("Selected Category ID:", newCategory); // 단순 ID 디버깅용
+        fetchCaseList(newCategory); // ID만 전달받은 경우
+        selectedCategoryName.value = "전체"; // 기본값
+      }
+    },
+    { immediate: true }
+);
+
+
+
 // 페이지당 데이터 계산
 const paginatedCaseList = computed(() => {
   const startIndex = (currentPage.value - 1) * 12;
@@ -83,26 +119,14 @@ const updatePage = (page) => {
 };
 
 const goToDetail = (id) => {
-  router.push({ name: 'CaseSharingDetailView', params: { id } });
+  router.push({name: "CaseSharingDetailView", params: {id}});
 };
-
-
-// 컴포넌트 마운트 시 API 호출
-onMounted(() => {
-  console.log("[CaseList] Access Token 확인:", accessToken);
-
-  if (accessToken) {
-    console.log("[CaseList] Access Token 있음. API 호출 시작.");
-    fetchCaseList();
-  } else {
-    console.error("[CaseList] Access Token 없음. 사용자 로그인 필요.");
-  }
-});
-
 </script>
 
-
 <style scoped>
+.selected-category-info{
+  padding-bottom: 5px;
+}
 .case-header {
   font-size: 14px;
   margin-bottom: 10px;

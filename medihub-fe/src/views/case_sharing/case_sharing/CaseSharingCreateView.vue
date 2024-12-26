@@ -12,7 +12,11 @@
             @tempSave="handleTempSave"
             @openDraftModal="openDraftModal"
         />
-        <DraftModal v-if="isDraftModalOpen" @close="closeDraftModal" />
+        <DraftModal
+            v-if="isDraftModalOpen"
+            @close="closeDraftModal"
+            @loadDraft="loadDraft"
+        />
         <TemplateCreateModal v-if="isTemplateModalOpen" @close="closeTemplateModal" />
       </div>
 
@@ -53,7 +57,7 @@ import {onMounted, ref} from "vue";
 import CaseEditor from "@/components/case_sharing/case_sharing/CaseSharingEditor.vue";
 import CaseTagInput from "@/components/case_sharing/case_sharing/CaseTagInput.vue";
 import CaseActionButtons from "@/components/case_sharing/case_sharing/CaseSharingSaveButton.vue";
-import TemplateCreateModal from "@/components/case_sharing/modal/TemplateCreateModal.vue";
+import TemplateCreateModal from "@/components/case_sharing/template/TemplateCreateModal.vue";
 import DraftModal from "@/components/case_sharing/case_sharing/DraftModal.vue";
 
 import { useAuthStore } from '@/store/authStore'; // Pinia 스토어 가져오기
@@ -139,6 +143,28 @@ const fetchTemplateData = async () => {
 };
 
 
+// 임시 저장된 글 로드
+const loadDraft = async (draftData) => {
+  try {
+    console.log("임시 저장 데이터 로드:", draftData);
+
+    // 제목 및 에디터 데이터 설정
+    formData.value.title = draftData.caseSharingTitle || "제목 없음";
+    const content = JSON.parse(draftData.caseSharingContent);
+    keywords.value = draftData.keywords.map((keyword) => keyword.keywordName);
+
+    if (caseEditor.value) {
+      await caseEditor.value.initializeEditor(content);
+    }
+
+    // 임시 저장 데이터 로드 완료 알림
+    alert("임시 저장 글이 로드되었습니다.");
+    closeDraftModal();
+  } catch (error) {
+    console.error("Error loading draft:", error);
+    alert("임시 저장 글 로드 중 오류가 발생했습니다.");
+  }
+};
 
 const handleSave = async () => {
   try {

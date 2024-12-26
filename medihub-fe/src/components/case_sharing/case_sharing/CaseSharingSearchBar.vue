@@ -1,4 +1,3 @@
-<!-- components/SearchBar.vue -->
 <template>
   <div class="search-bar">
     <input
@@ -10,9 +9,15 @@
       🔍
     </button>
 
-    <button class="new-post-button" @click="goToTemplateListView">
+    <!-- 신규 등록 버튼: isDoctor가 true일 때만 표시 -->
+    <button
+        class="new-post-button"
+        v-if="isDoctor"
+        @click="goToTemplateListView"
+    >
       신규 등록
     </button>
+
     <select class="sort-select">
       <option>최신순</option>
       <option>인기순</option>
@@ -21,39 +26,69 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useAuthStore } from '@/store/authStore';
-import router from "@/router/index.js"; // Pinia 스토어 가져오기
+import router from "@/router/index.js";
+import axios from 'axios';
 
 const searchQuery = ref('');
+const isDoctor = ref(false); // 의사 여부를 저장할 변수
 const store = useAuthStore();
 
+// 검색 버튼 기능
 const search = () => {
   console.log(`Searching for: ${searchQuery.value}`);
 };
 
+// 신규 등록 화면 이동
 const goToTemplateListView = () => {
   router.push('/case_sharing/template');
 };
+
+// isDoctor 값 가져오기
+const fetchIsDoctor = async () => {
+  try {
+    const response = await axios.get('/api/v1/users/isDoctor', {
+      headers: {
+        Authorization: `Bearer ${store.accessToken}`, // 인증 토큰 추가
+      },
+    });
+    const { success, data } = response.data;
+
+    if (success) {
+      isDoctor.value = data; // true/false 값 저장
+      console.log('isDoctor:', isDoctor.value);
+    } else {
+      console.error('Failed to fetch isDoctor status');
+    }
+  } catch (error) {
+    console.error('Error fetching isDoctor status:', error);
+  }
+};
+
+// 컴포넌트 로드 시 isDoctor 값 가져오기
+onMounted(() => {
+  fetchIsDoctor();
+});
 </script>
 
 <style scoped>
 .search-bar {
   display: flex;
-  align-items: center; /* 세로 중앙 정렬 */
-  width: 100%; /* 전체 너비 */
-  height: 50px; /* 높이 고정 */
+  align-items: center;
+  width: 100%;
+  height: 50px;
 }
 
 input {
   flex: 1;
   padding: 10px;
   font-size: 16px;
-  border: 2px solid #ffbf00; /* 노란색 테두리 */
+  border: 2px solid #ffbf00;
   border-radius: 5px;
   outline: none;
   font-weight: bold;
-  margin-right: 10px; /* 검색 필드와 검색 버튼 사이 간격 */
+  margin-right: 10px;
 }
 
 .search-button {
@@ -76,7 +111,6 @@ input {
 
 .new-post-button {
   background-color: #ffbf00;
-
   margin-right: 20px;
   color: white;
   border: none;
@@ -85,5 +119,4 @@ input {
   border-radius: 5px;
   font-size: 16px;
 }
-
 </style>
