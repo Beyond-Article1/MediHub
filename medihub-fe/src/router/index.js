@@ -10,6 +10,7 @@ import loginRouter from "@/router/loginRouter.js";
 import mainRouter from "@/router/mainRouter.js";
 import testRouter from "@/router/testRouter.js";
 import adminRouter from "@/router/adminRouter.js";
+import MyPageRouter from "@/router/MyPageRouter.js";
 
 const routes = [
 
@@ -32,7 +33,9 @@ const routes = [
     ...loginRouter,
     ...mainRouter,
     ...testRouter,
-    ...adminRouter
+    ...adminRouter,
+    ...MyPageRouter
+
 ]
 
 const router = createRouter({
