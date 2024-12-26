@@ -122,7 +122,7 @@ onMounted(fetchTemplates);
           class="template-item"
           @click="navigateToEditor(template.templateSeq)"
       >
-        <div class="template-image">
+        <div class="template-image" style="position: relative;">
           <img
               v-if="template.templatePreviewImgUrl"
               :src="template.templatePreviewImgUrl"
@@ -130,6 +130,7 @@ onMounted(fetchTemplates);
           />
           <div v-else class="no-image">이미지 없음</div>
 
+          <!-- 삭제 버튼 -->
           <button
               v-if="filterOption === 'my'"
               class="delete-button"
@@ -272,9 +273,9 @@ onMounted(fetchTemplates);
   text-decoration: underline;
 }
 .delete-button {
-  position: absolute;
-  top: 8px;
-  right: 8px;
+  position: absolute; /* 이미지를 기준으로 위치 설정 */
+  top: 8px; /* 상단 여백 */
+  right: 8px; /* 오른쪽 여백 */
   background-color: white; /* 배경색 */
   color: red; /* X 아이콘 색상 */
   border: 2px solid red; /* 빨간색 테두리 */
@@ -283,13 +284,15 @@ onMounted(fetchTemplates);
   height: 24px;
   font-size: 14px;
   font-weight: bold;
+  display: none; /* 기본적으로 숨김 */
   cursor: pointer;
-  display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.delete-button:hover {
+
+.template-item:hover .delete-button {
+  display: flex;
   transform: translateY(-5px);
 }
 </style>

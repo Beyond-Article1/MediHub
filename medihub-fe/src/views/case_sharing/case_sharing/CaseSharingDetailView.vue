@@ -19,6 +19,16 @@
         <button class="action-button" @click="toggleFocusMode">댓글 달기</button>
         <button class="action-button" @click="goToEditPage">수정</button>
         <button class="action-button" @click="deleteCase">삭제</button>
+        <!-- 북마크 버튼 -->
+        <div class="bookmark-container" @click="toggleBookmark">
+          <img
+              :src="isBookmarked
+        ? '/src/assets/images/bookmark/after-bookmark.png'
+        : '/src/assets/images/bookmark/before-bookmark.png'"
+              alt="북마크"
+              class="bookmark-icon"
+          />
+        </div>
       </div>
     </div>
 
@@ -100,7 +110,9 @@ const handleSelectBlock = ({ block, position }) => {
 // API 호출
 const fetchCaseDetail = async () => {
   try {
-    const response = await axios.get(`/case_sharing/${route.params.id}`);
+    const response = await axios.get(`/case_sharing/${route.params.id}`, {
+      withCredentials: true, // 쿠키 허용 활성화
+    });
     const result = response.data;
 
     if (result.success) {
@@ -165,6 +177,47 @@ const deleteCase = async () => {
   }
 };
 
+const isBookmarked = ref(false); // 북마크 상태
+
+// 북마크 상태 확인
+const fetchBookmarkState = async () => {
+  try {
+    const response = await axios.get(`/case_sharing/${route.params.id}/bookmark`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    });
+    if (response.data.success) {
+      isBookmarked.value = response.data.data; // 북마크 상태 업데이트
+    } else {
+      console.error("북마크 상태 확인 실패:", response.data.error);
+    }
+  } catch (error) {
+    console.error("북마크 상태 확인 오류:", error);
+  }
+};
+
+const toggleBookmark = async () => {
+  try {
+    const response = await axios.patch(`/case_sharing/${route.params.id}/bookmark`, null, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    });
+
+    if (response.data.success) {
+      isBookmarked.value = response.data.data; // API 반환 데이터(true/false)로 북마크 상태 업데이트
+      alert(isBookmarked.value ? "북마크가 등록되었습니다." : "북마크가 해제되었습니다.");
+    } else {
+      console.error("북마크 API 응답 오류:", response.data.error);
+    }
+  } catch (error) {
+    console.error("북마크 처리 오류:", error);
+    alert("북마크 처리 중 오류가 발생했습니다.");
+  }
+};
+
+
 watch(
     () => selectedBlock.value,
     (newValue) => {
@@ -172,6 +225,7 @@ watch(
     }
 );
 onMounted(fetchCaseDetail);
+onMounted(fetchBookmarkState);
 </script>
 
 <style scoped>
@@ -378,5 +432,18 @@ body, html {
   overflow: visible; /* 혹시 hidden이면 visible로 변경 */
   position: static; /* 부모 요소가 relative일 경우 static으로 변경 */
 }
+
+.bookmark-container {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bookmark-icon {
+  width: 24px;
+  height: 24px;
+}
+
 
 </style>

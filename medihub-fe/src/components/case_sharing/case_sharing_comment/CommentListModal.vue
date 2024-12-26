@@ -6,12 +6,35 @@
     </div>
     <div class="modal-body">
       <div v-if="comments.length === 0" class="no-comments">댓글이 없습니다.</div>
-      <div v-for="comment in comments" :key="comment.id" class="comment-item">
+      <div v-for="comment in comments" :key="comment.commentSeq" class="comment-item">
         <img :src="comment.userProfileURL" alt="프로필" class="profile-image" />
         <div class="comment-content">
           <p class="comment-author">{{ comment.userName }} ({{ comment.userRankName }})</p>
-          <p class="comment-text">{{ comment.content }}</p>
+          <!-- 수정 중인 댓글인지 확인 -->
+          <p v-if="editingCommentId !== comment.commentSeq" class="comment-text">{{ comment.content }}</p>
+          <textarea
+              v-else
+              v-model="editingContent"
+              class="edit-textarea"
+          ></textarea>
           <p class="comment-date">{{ formatDate(comment.createdAt) }}</p>
+          <div v-if="comment.userId === currentUserId" class="comment-actions">
+            <span
+                v-if="editingCommentId !== comment.commentSeq"
+                class="action-text"
+                @click="startEditing(comment.commentSeq)"
+            >
+              수정
+            </span>
+            <span
+                v-if="editingCommentId === comment.commentSeq"
+                class="action-text"
+                @click="saveEdit"
+            >
+              저장
+            </span>
+            <span class="action-text" @click="deleteComment(comment.commentSeq)">삭제</span>
+          </div>
         </div>
       </div>
     </div>
@@ -20,6 +43,8 @@
 
 <script setup>
 import { ref, computed } from "vue";
+import axios from "axios";
+import { useAuthStore } from "@/store/authStore";
 
 const props = defineProps({
   visible: {
@@ -34,9 +59,18 @@ const props = defineProps({
     type: Object,
     required: false,
   },
+  blockId: {
+    type: String,
+    required: true,
+  },
 });
 
 const emit = defineEmits(["close"]);
+const authStore = useAuthStore();
+const currentUserId = authStore.userInfo.userId; // 현재 로그인한 유저 seq
+
+const editingCommentId = ref(null); // 수정 중인 댓글 ID
+const editingContent = ref("");
 
 const closeModal = () => {
   emit("close");
@@ -44,21 +78,106 @@ const closeModal = () => {
 
 const modalStyle = computed(() => ({
   top: `${props.blockPosition?.top || 100}px`,
-  left: `${props.blockPosition?.left +400|| 200}px`,
+  left: `${props.blockPosition?.left + 400 || 200}px`,
   position: "absolute",
   transform: "translate(-50%, 0)",
 }));
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
-  return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date
+  return `${date.getFullYear()}-${(date.getMonth() + 1)
+      .toString()
+      .padStart(2, "0")}-${date
       .getDate()
       .toString()
-      .padStart(2, "0")} ${date.getHours().toString().padStart(2, "0")}:${date
+      .padStart(2, "0")} ${date
+      .getHours()
+      .toString()
+      .padStart(2, "0")}:${date
       .getMinutes()
       .toString()
       .padStart(2, "0")}`;
 };
+
+const startEditing = (commentSeq) => {
+  console.log("로그인한 유저 id" +  authStore.userInfo.userId);
+  const selectedComment = props.comments.find((comment) => comment.commentSeq === commentSeq);
+
+  console.log("댓글작성 유저 id" + selectedComment.userId);
+  if (!selectedComment) {
+    console.error("startEditing: Comment not found for commentSeq:", commentSeq);
+    return;
+  }
+
+  editingCommentId.value = selectedComment.commentSeq;
+  editingContent.value = selectedComment.content;
+
+  console.log("startEditing: Editing comment =", selectedComment);
+};
+
+const saveEdit = async () => {
+  try {
+    if (!editingCommentId.value) {
+      console.error("saveEdit: No commentSeq specified for editing.");
+      return;
+    }
+
+    // API 호출
+    const response = await axios.put(`/case_sharing_comment/${editingCommentId.value}`, {
+      content: editingContent.value,
+      blockId: props.blockId,
+    });
+
+    if (response.status === 200) {
+      console.log("saveEdit: Comment updated successfully:", response.data);
+
+      // 수정한 내용을 comments에 반영
+      const comment = props.comments.find((c) => c.commentSeq === editingCommentId.value);
+      if (comment) {
+        comment.content = editingContent.value;
+      }
+
+      alert("수정이 완료되었습니다.");
+
+      // 수정 모드 종료
+      editingCommentId.value = null;
+      editingContent.value = "";
+    }
+  } catch (error) {
+    console.error("saveEdit: Failed to update comment:", error);
+  }
+  window.location.reload();
+};
+
+const deleteComment = async (commentSeq) => {
+  try {
+    // 사용자에게 확인 알림 표시
+    const userConfirmed = window.confirm("정말로 이 댓글을 삭제하시겠습니까?");
+    if (!userConfirmed) {
+      console.log("deleteComment: 사용자가 삭제를 취소했습니다.");
+      return; // 사용자가 취소한 경우 삭제 로직 중단
+    }
+
+    // 삭제 API 호출
+    const response = await axios.delete(`/case_sharing_comment/${commentSeq}`);
+    console.log("deleteComment: Comment deleted successfully:", response.data);
+
+    // 삭제 성공 메시지 알림
+    alert("댓글이 삭제되었습니다.");
+
+    // 삭제된 댓글을 props.comments 배열에서 제거
+    const index = props.comments.findIndex((comment) => comment.commentSeq === commentSeq);
+    if (index !== -1) {
+      props.comments.splice(index, 1);
+    }
+  } catch (error) {
+    console.error("deleteComment: Failed to delete comment:", error);
+    alert("댓글 삭제 중 오류가 발생했습니다. 다시 시도해주세요."); // 삭제 실패 시 알림
+  }
+  window.location.reload();
+};
+
+
 </script>
 
 <style scoped>
@@ -70,10 +189,10 @@ const formatDate = (dateString) => {
   padding: 20px;
   width: 700px;
   height: 200px;
-  display: block; /* 확실히 보이게 강제 */
+  display: block;
   z-index: 1010;
   position: relative;
-
+  overflow-y: auto; /* 스크롤 속성 추가 */
 }
 
 .modal-header {
@@ -96,8 +215,8 @@ const formatDate = (dateString) => {
 }
 
 .modal-body {
-  max-height: 300px;
-  overflow-y: auto;
+  max-height: none; /* 높이 제한 제거 */
+  overflow-y: visible; /* 스크롤링 방지 */
 }
 
 .comment-item {
@@ -131,9 +250,33 @@ const formatDate = (dateString) => {
   color: gray;
 }
 
+.comment-actions {
+  margin-top: 5px;
+}
+
+.action-text {
+  cursor: pointer;
+  color: #007bff;
+  margin-right: 10px;
+}
+
+.action-text:hover {
+  text-decoration: underline;
+  color: #0056b3;
+}
+
 .no-comments {
   text-align: center;
   font-size: 14px;
   color: gray;
+}
+
+.edit-textarea {
+  width: 100%;
+  height: 60px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 14px;
 }
 </style>

@@ -1,7 +1,5 @@
-<!-- views/CaseSharingView.vue -->
 <template>
   <div class="case-sharing-view">
-    <!-- 상단 제목과 검색바 -->
     <div class="top">
       <h1 class="title">CASE SHARING</h1>
       <div class="search-bar-container">
@@ -10,10 +8,14 @@
     </div>
     <LineDivider />
 
-    <!-- 메인 컨텐츠 -->
     <div class="main-content">
-      <CategoryList class="category-section" />
-      <CaseList class="case-section" />
+      <!-- 카테고리 선택 시 선택된 ID 전달 -->
+      <CategoryList
+          class="category-section"
+          @category-selected="handleCategorySelected"
+      />
+      <!-- 선택된 카테고리를 CaseList에 전달 -->
+      <CaseList class="case-section" :selectedCategory="selectedCategory" />
     </div>
   </div>
 </template>
@@ -23,6 +25,15 @@ import SearchBar from '@/components/case_sharing/case_sharing/CaseSharingSearchB
 import CategoryList from '@/components/case_sharing/case_sharing/CaseSharingCategory.vue';
 import CaseList from '@/components/case_sharing/case_sharing/CaseSharingList.vue';
 import LineDivider from "@/components/case_sharing/case_sharing/CaseSharingLineDivider.vue";
+import { ref } from "vue";
+
+const selectedCategory = ref(null); // 선택된 카테고리 ID
+
+// 카테고리 선택 시 데이터 필터링
+const handleCategorySelected = (category) => {
+  console.log("Selected Category:", category); // 객체 전체 출력
+  selectedCategory.value = category; // 객체 저장
+};
 
 </script>
 

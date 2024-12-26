@@ -6,13 +6,14 @@
       :blockPosition="selectedBlockPosition"
       @close="closeCommentModal"
       @save="saveComment"
-  />
+   case-sharing-seq=""/>
   <!-- 댓글 목록 모달 -->
   <CommentListModal
       v-if="isCommentListModalVisible"
       :visible="isCommentListModalVisible"
       :comments="commentList"
       :blockPosition="selectedBlockPosition"
+      :blockId="selectedBlockId"
       @close="closeCommentListModal"
   />
   <div class="case-content">
@@ -152,8 +153,12 @@ const saveComment = (commentData) => {
   console.log("댓글 저장:", { block: selectedBlock.value, comment: commentData });
   closeCommentModal();
 };
+
+const selectedBlockId = ref(null);
+
 const openCommentList = async (block, index) => {
   highlightedBlock.value = block.id;
+  selectedBlockId.value = block.id;
   const blockElement = document.getElementById(`block-${index}`);
   if (blockElement) {
     const rect = blockElement.getBoundingClientRect();
@@ -182,24 +187,6 @@ const closeCommentListModal = () => {
   isCommentListModalVisible.value = false;
   highlightedBlock.value = null; // 강조 해제
 };
-
-/*// 헤더 블록 ID가 렌더링되었는지 확인
-watch(
-    () => props.content,
-    () => {
-      nextTick(() => {
-        props.content.blocks.forEach((block, index) => {
-          if (block.type === "header") {
-            const headerElement = document.getElementById(`header-${index}`);
-            if (!headerElement) {
-              console.warn(`Header ID 'header-${index}' not found.`);
-            }
-          }
-        });
-      });
-    },
-    {immediate: true}
-);*/
 
 onMounted(fetchCommentedBlocks);
 </script>

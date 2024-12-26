@@ -9,7 +9,7 @@ import {useRoute, useRouter} from "vue-router";
 import Button from "@/components/common/button/Button.vue";
 import CaseEditor from "@/components/case_sharing/case_sharing/CaseSharingEditor.vue";
 import CaseTagInput from "@/components/case_sharing/case_sharing/CaseTagInput.vue";
-import TemplateCreateModal from "@/components/case_sharing/modal/TemplateCreateModal.vue";
+import TemplateCreateModal from "@/components/case_sharing/template/TemplateCreateModal.vue";
 
 // Vue 설정 변수
 const authStore = useAuthStore();

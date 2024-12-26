@@ -726,7 +726,7 @@ onMounted(async () => {
 }
 .empty-message {
   color: #666;
-  font-size: 14px;
+  font-size: 12px;
   text-align: center;
   margin-top: 15px;
   margin-bottom: 20px;
