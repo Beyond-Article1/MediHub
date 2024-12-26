@@ -35,19 +35,23 @@
     <div class="section">
       <h5>MEDICAL LIFE</h5>
       <ul class="detailed-list">
-        <li v-for="(lifeItem, index) in medicalLifeList" :key="index">
-          <div class="list-content">
-            <h6 class="list-title">{{ truncateTitle(lifeItem.title) }}</h6>
-            <div class="list-author-info">
+        <li
+            v-for="(lifeItem, index) in medicalLifeList"
+            :key="index"
+            @click="goToMedicalLifeDetail(lifeItem.id)">
+        <div class="list-content">
+          <h6 class="list-title">{{ truncateTitle(lifeItem.title) }}</h6>
+          <div class="list-author-info">
           <span>
             {{ lifeItem.author }} ({{ lifeItem.rank }}) - {{ lifeItem.part }}
           </span>
-              <span class="list-date">{{ lifeItem.date }}</span>
-            </div>
+            <span class="list-date">{{ lifeItem.date }}</span>
           </div>
+        </div>
         </li>
       </ul>
     </div>
+
 
 
     <!-- ANONYMOUS BOARD -->
@@ -75,14 +79,14 @@ const medicalLifeList = ref([]);
 const router = useRouter();
 const defaultImage = "https://via.placeholder.com/150";
 
-// MEDICAL LIFE 더미 데이터
+
 const fetchTop3MedicalLife = async () => {
   try {
     const response = await axios.get("/medical-life/top3", {
     });
 
-
     medicalLifeList.value = response.data.data.map((item) => ({
+      id: item.medicalLifeSeq,
       title: item.medicalLifeTitle,
       author: item.userName,
       rank: item.rankingName,
@@ -127,6 +131,10 @@ const goToCaseDetail = (caseSharingSeq) => {
 
 const goToCaseSharingList = () => {
   router.push("/case_sharing");
+};
+
+const goToMedicalLifeDetail = (medicalLifeSeq) => {
+  router.push(`/medicalLife/${medicalLifeSeq}`);
 };
 
 onMounted(() => {
