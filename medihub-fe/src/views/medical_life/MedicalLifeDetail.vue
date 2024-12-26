@@ -24,13 +24,22 @@ const router = useRouter(); // 라우터 추가
 const token = localStorage.getItem('accessToken');
 const decodedToken = token ? JSON.parse(atob(token.split('.')[1])) : null;
 const loggedInUserSeq = decodedToken ? decodedToken.userSeq : null;
+const loggedInUserRole = decodedToken ? decodedToken.auth  : null;
 
+console.log("Logged in User Role: ", loggedInUserRole);
+
+const isAuthorizedToModify = (commentUserSeq) => {
+
+  return loggedInUserSeq === commentUserSeq || loggedInUserRole === 'ADMIN';
+};
 
 const fetchBoardDetail = async () => {
   const medicalLifeSeq = route.params.id;
 
   try {
-    const response = await axios.get(`/medical-life/detail/${medicalLifeSeq}`);
+    const response = await axios.get(`/medical-life/detail/${medicalLifeSeq}`, {
+      withCredentials: true,
+    });
     boardDetail.value = response.data.data || {};
     boardDetail.value.isLiked = false; // 좋아요 초기값
     boardDetail.value.isBookmark = false; // 북마크 초기값
@@ -52,6 +61,7 @@ const fetchComment = async (medicalLifeSeq) => {
     const response = await axios.get(`/medical-life/${medicalLifeSeq}/comments`);
     comment.value = response.data.data.map((item) => ({
       commentSeq: item.commentSeq,
+      userSeq: item.userSeq,
       userName: item.userName,
       part: item.part,
       rankingName: item.rankingName,
@@ -64,6 +74,7 @@ const fetchComment = async (medicalLifeSeq) => {
     console.error('Error fetching comments:', error);
   }
 };
+
 
 // 좋아요 토글
 const toggleLike = async () => {
@@ -271,8 +282,8 @@ onMounted(() => {
         </div>
 
         <!-- 수정/삭제 버튼 -->
-        <button v-if="loggedInUserSeq === boardDetail.userSeq" @click="handleEdit">수정</button>
-        <button v-if="loggedInUserSeq === boardDetail.userSeq" @click="handleDelete">삭제</button>
+        <button v-if="isAuthorizedToModify(boardDetail.userSeq)" @click="handleEdit">수정</button>
+        <button v-if="isAuthorizedToModify(boardDetail.userSeq)" @click="handleDelete">삭제</button>
       </div>
     </div>
 
@@ -310,7 +321,7 @@ onMounted(() => {
         </p>
         <p class="comment-content">{{ commentItem.commentContent }}</p>
         <p class="comment-date"><LocalDateTimeFormat :data="commentItem.createdAt" /></p>
-        <div class="comment-actions">
+        <div class="comment-actions" v-if="isAuthorizedToModify(commentItem.userSeq)">
           <button @click="handleEditClick(commentItem.commentSeq)" class="action-btn">수정</button>
           <button @click="handleDeleteClick(commentItem.commentSeq)" class="action-btn">삭제</button>
         </div>
