@@ -12,7 +12,12 @@
             @tempSave="handleTempSave"
             @openDraftModal="openDraftModal"
         />
-        <DraftModal v-if="isDraftModalOpen" @close="closeDraftModal" />
+        <!-- 임시 저장 모달 -->
+        <DraftModal
+            v-if="isDraftModalOpen"
+            @close="closeDraftModal"
+            @loadDraft="loadDraft"
+        />
         <TemplateCreateModal v-if="isTemplateModalOpen" @close="closeTemplateModal" />
       </div>
     </div>
@@ -53,7 +58,7 @@ import CaseEditor from "@/components/case_sharing/case_sharing/CaseSharingEditor
 import CaseActionButtons from "@/components/case_sharing/case_sharing/CaseSharingSaveButton.vue";
 import CaseTagInput from "@/components/case_sharing/case_sharing/CaseTagInput.vue";
 import DraftModal from "@/components/case_sharing/case_sharing/DraftModal.vue";
-import TemplateCreateModal from "@/components/case_sharing/modal/TemplateCreateModal.vue";
+import TemplateCreateModal from "@/components/case_sharing/template/TemplateCreateModal.vue";
 import {useAuthStore} from "@/store/authStore.js";
 import html2canvas from "html2canvas";
 
@@ -114,6 +119,29 @@ const fetchCaseData = async () => {
     }
   } catch (error) {
     console.error("Error fetching data:", error);
+  }
+};
+
+// 임시 저장된 글 로드
+const loadDraft = async (draftData) => {
+  try {
+    console.log("임시 저장 데이터 로드:", draftData);
+
+    // 제목 및 에디터 데이터 설정
+    formData.value.title = draftData.caseSharingTitle || "제목 없음";
+    const content = JSON.parse(draftData.caseSharingContent);
+    keywords.value = draftData.keywords.map((keyword) => keyword.keywordName);
+
+    if (caseEditor.value) {
+      await caseEditor.value.initializeEditor(content);
+    }
+
+    // 임시 저장 데이터 로드 완료 알림
+    alert("임시 저장 글이 로드되었습니다.");
+    closeDraftModal();
+  } catch (error) {
+    console.error("Error loading draft:", error);
+    alert("임시 저장 글 로드 중 오류가 발생했습니다.");
   }
 };
 
@@ -200,8 +228,10 @@ const handleTempSave = async () => {
 
     // 이미지 파일 추가
     images.forEach((file, index) => {
-      tempFormData.append("images", file, `img-${index + 1}`);
+      const blob = new Blob([file], { type: "image/png" }); // 올바른 Content-Type 설정
+      tempFormData.append("images", blob, `img-${index + 1}`);
     });
+
 
     console.log("FormData 전송:", requestDTO, images);
 

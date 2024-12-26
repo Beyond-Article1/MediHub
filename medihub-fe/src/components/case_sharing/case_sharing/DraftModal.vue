@@ -9,13 +9,25 @@
       <p class="modal-description">
         임시 등록된 글은 30일 동안 최대 100개까지 저장 가능합니다.
       </p>
-
       <!-- 목록 -->
       <ul class="draft-list">
         <li v-for="draft in drafts" :key="draft.caseSharingSeq" class="draft-item">
-          <span>{{ draft.caseSharingTitle || '제목 없음' }}</span>
+          <!-- 제목 클릭 시 loadDraft 호출 -->
+          <span
+              class="draft-title"
+              @click="loadDraft(draft.caseSharingSeq)"
+          >
+      {{ draft.caseSharingTitle || '제목 없음' }}
+    </span>
+          <!-- 등록 날짜 표시 -->
           <span class="draft-date">{{ formatDate(draft.regDate) }}</span>
-          <button @click="deleteDraft(draft.caseSharingSeq)" class="delete-btn">🗑</button>
+          <!-- 삭제 버튼 -->
+          <button
+              @click.stop.prevent="deleteDraft(draft.caseSharingSeq)"
+              class="delete-btn"
+          >
+            🗑
+          </button>
         </li>
       </ul>
     </div>
@@ -27,7 +39,7 @@ import { ref, onMounted, defineEmits } from 'vue';
 import axios from 'axios';
 
 const drafts = ref([]);
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close','loadDraft']);
 
 // 모달 닫기 이벤트
 const closeModal = () => {
@@ -63,7 +75,25 @@ const deleteDraft = async (id) => {
     console.error('삭제 오류:', error);
   }
 };
+// 임시 저장된 글 불러오기
+const loadDraft = async (id) => {
+  try {
+    const response = await axios.get(`/case_sharing/drafts/${id}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+    });
+    const draftData = response.data.data;
+    console.log('임시 저장 글 불러오기 성공:', draftData);
 
+    // 부모 컴포넌트로 불러온 데이터를 전달
+    emit('loadDraft', draftData);
+    closeModal();
+  } catch (error) {
+    console.error('임시 저장 글 불러오기 오류:', error);
+    alert('임시 저장 글을 불러오는데 실패했습니다.');
+  }
+};
 onMounted(fetchDrafts);
 </script>
 
@@ -143,4 +173,13 @@ onMounted(fetchDrafts);
   font-size: 1rem;
   margin-left: 20px;
 }
+.draft-title {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.draft-title:hover {
+  color: #0056b3;
+}
+
 </style>
