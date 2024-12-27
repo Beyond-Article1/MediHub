@@ -275,6 +275,11 @@ const connectSSE = () => {
     hasNewNotification.value = true;
   });
 
+  eventSource.value.addEventListener("newChat", (event) => {
+    console.log("New Chat: ", event.data);
+    webSocketStore.getUserChatrooms();
+  })
+
   // 연결이 열렸을 때
   eventSource.value.onopen = () => {
     console.log("SSE 연결 성공");
