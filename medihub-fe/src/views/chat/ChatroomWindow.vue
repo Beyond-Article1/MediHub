@@ -7,6 +7,7 @@ import axios from 'axios';
 import SelectUserModal from '@/components/chat/SelectUserModal.vue';
 import ChatroomNameModal from '@/components/chat/ChatroomNameModal.vue';
 import ParticipantListModal from '@/components/chat/ParticipantListModal.vue';
+import MessageItem from "@/components/chat/MessageItem.vue";
 
 const authStore = useAuthStore();
 const webSocketStore = useWebSocketStore();
@@ -42,11 +43,28 @@ const getChatMessages = async () => {
   }
 };
 
+// 메시지 날짜 비교 함수
+const isSameDay = (date1, date2) => {
+  if(!date1 || !date2) return false;
+  const d1 = new Date(date1);
+  const d2 = new Date(date2);
+  return (
+      d1.getFullYear() === d2.getFullYear() &&
+      d1.getMonth() === d2.getMonth() &&
+      d1.getDate() === d2.getDate()
+  );
+};
+
+onMounted(() => {
+  getChatMessages();
+});
+
 // 채팅방 참여자 목록 가져오기
 const participants = ref([]);
 const isParticipantModalOpen = ref(false);
 
-const openParticipantModal = () => {
+const openParticipantModal = async () => {
+  await getParticipants();  // 참여자 정보 조회
   isParticipantModalOpen.value = true;
 }
 const closeParticipantModal = () => {
@@ -62,11 +80,6 @@ const getParticipants = async () => {
     console.error(`참여자 목록 불러오기 실패:`, error);
   }
 }
-
-onMounted(() => {
-  getChatMessages();
-  getParticipants();
-});
 
 // 채팅방이 열려있고 새 메시지가 수신되었을 때 처리
 watch(
@@ -115,6 +128,7 @@ const sendMessage = () => {
       // 메시지 배열에 추가
       messages.value.push({
         senderUserSeq: authStore.userSeq,
+        type: 'text',
         message: newMessage.value,
         createdAt: new Date().toISOString(),
       });
@@ -204,7 +218,6 @@ const leaveChatroom = async () => {
     console.log('채팅방 나가기 취소');
     return;
   }
-
   try {
     // 1. WebSocket 구독 해제
       webSocketStore.unsubscribeChatroom(props.room.chatroomSeq);
@@ -225,6 +238,49 @@ const leaveChatroom = async () => {
     alert('채팅방에서 나가는 중 문제가 발생했습니다. 다시 시도해주세요');
   }
   alert('채팅방을 나갑니다.');
+};
+
+// 파일 업로드 핸들러
+const handleFileUpload = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const isConfirmed = confirm(`"${file.name}" 파일을 전송하시겠습니까?`);
+  if(!isConfirmed) {
+    console.log('파일 전송 취소됨');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append(
+      'message',
+      new Blob(
+          [
+            JSON.stringify({
+              chatroomSeq: props.room.chatroomSeq,
+              senderUserSeq: authStore.userSeq,
+              message: file.name,
+              createdAt: new Date().toISOString(),
+            }),
+          ],
+          { type: 'application/json' }
+      )
+  );
+
+  try {
+    const response = await axios.post('/chat/file', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    console.log('파일 업로드 성공:', response.data);
+    // 메시지 목록에 추가
+    messages.value.push(response.data);
+
+    nextTick(() => scrollToBottom());
+  } catch (error) {
+    console.error('파일 업로드 실패:', error);
+    alert('파일 업로드 중 오류가 발생했습니다.');
+  }
 };
 
 // 채팅창 드래그 상태 관리
@@ -347,32 +403,14 @@ const stopDrag = () => {
 
     <!-- 메시지 목록 -->
     <div class="messages" ref="messagesContainer">
-      <div
-          v-for="message in messages"
-          :key="message.messageSeq"
-          :class="{ 'my-message': message.senderUserSeq === authStore.userSeq, 'other-message': message.senderUserSeq !== authStore.userSeq }"
-      >
-
-        <!-- 내가 보낸 메시지 -->
-        <template v-if="message.senderUserSeq === authStore.userSeq">
-          <div class="my-message-content">
-            <p class="message-text">{{ message.message }}</p>
-            <p class="message-time">{{ message.createdAt }}</p>
-          </div>
-        </template>
-
-        <!-- 다른 사람이 보낸 메시지 -->
-        <template v-else>
-          <div class="other-message-content">
-            <img class="profile-img" :src="message.senderUserProfileUrl || '/default-profile.png'" alt="프로필 이미지"/>
-            <div class="message-info">
-              <p class="sender-name">{{ message.senderUserName }}</p>
-              <p class="message-text">{{ message.message }}</p>
-              <p class="message-time">{{ message.createdAt }}</p>
-            </div>
-          </div>
-        </template>
-      </div>
+      <!-- 메시지 목록 렌더링 -->
+      <MessageItem
+          v-for="(msg, index) in messages"
+          :key="msg.messageSeq"
+          :message="msg"
+          :isDateDivider="index === 0 || !isSameDay(msg.createdAt, messages[index - 1]?.createdAt)"
+          :currentUserSeq="authStore.userSeq"
+      />
     </div>
 
     <!-- 메시지 보내기 -->
@@ -383,9 +421,20 @@ const stopDrag = () => {
           @keydown.enter.prevent="sendMessage"
       />
       <div class="message-input-btn">
-        <button class="attach-button" @click="attachFile">
-          <img src="@/assets/images/chat/Attach.png" alt="FileAttachment">
-        </button>
+        <div>
+          <button class="attach-button">
+            <label for="fileInput">
+              <img src="@/assets/images/chat/Attach.png" alt="FileAttachment">
+            </label>
+          </button>
+          <!-- 파일 선택 -->
+          <input
+              type="file"
+              id="fileInput"
+              style="display: none"
+              @change="handleFileUpload"
+          />
+        </div>
         <button class="send-button" @click="sendMessage">보내기</button>
       </div>
     </div>
@@ -409,7 +458,7 @@ const stopDrag = () => {
 
 .chat-header {
   display: flex;
-  align-items: center; /* 모든 자식 요소를 세로 가운데 정렬 */
+  align-items: center;
   padding: 5px;
   background: linear-gradient(to bottom, #1A2F69, #3A4F89, #5A6FA9);
   color: white;
@@ -503,51 +552,6 @@ const stopDrag = () => {
   flex: 1;
   padding: 10px;
   background-color: #f2f2f2;
-}
-
-.my-message {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.my-message-content {
-  background-color: #FFE3A9;
-  color: black;
-  padding: 10px;
-  border-radius: 10px;
-  max-width: 70%; /* 메시지 최대 너비 */
-}
-
-.other-message {
-  display: flex;
-  justify-content: flex-start;
-}
-
-.other-message-content {
-  display: flex;
-  align-items: flex-start;
-}
-
-.profile-img {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  margin: 10px; /* 프로필 이미지와 텍스트 간격 */
-}
-
-.message-info {
-  background-color: #f0f0f0;
-  padding: 10px;
-  border-radius: 10px;
-}
-
-.message-text {
-  margin-bottom: 5px;
-}
-
-.message-time {
-  font-size: 0.8rem;
-  color: gray;
 }
 
 .message-input {

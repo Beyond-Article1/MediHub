@@ -102,41 +102,46 @@ const createChatroom = async (userSeq) => {
   <div class="organization-container">
     <!-- 첫 번째 화면: 조직도 -->
     <div v-if="!isPartView">
-      <div class="chat-header"><h2>조직도</h2></div>
-      <ul class="organization-list list-unstyled">
-        <!-- 부서 목록 -->
-        <li v-for="dept in departments" :key="dept.deptSeq">
-          <div @click="toggleDept(dept.deptSeq)" class="dept-item">
-            <span>
-              <span v-if="selectedDepts.includes(dept.deptSeq)">
-                <img src="@/assets/images/chat/Vector-Down.png" alt="Down"/>
-              </span>
-              <span v-else>
-                <img src="@/assets/images/chat/Vector-Right.png" alt="Right"/>
-              </span>
-            </span>
-            {{ dept.deptName }}
-            <span class="employee-count">
-               {{ deptEmployeeCounts.find((d) => d.deptSeq === dept.deptSeq)?.count || 0 }}
-            </span>
-          </div>
+      <div class="chat-header">
+        <h2>조직도</h2>
+      </div>
 
-          <!-- 과 목록 -->
-          <ul v-if="selectedDepts.includes(dept.deptSeq)" class="dept-list ms-3 list-unstyled">
-            <li
-                v-for="part in filteredParts.filter((p) => p.deptSeq === dept.deptSeq)"
-                :key="part.partSeq"
-                @dblclick="selectPart(part.partSeq)"
-                class="part-item"
-            >
-              {{ part.partName }}
-              <span class="employee-count">
-                {{ partEmployeeCounts.find((p) => p.partSeq === part.partSeq)?.count || 0 }}
+      <div class="organization-content">
+        <ul class="organization-list list-unstyled">
+          <!-- 부서 목록 -->
+          <li v-for="dept in departments" :key="dept.deptSeq">
+            <div @click="toggleDept(dept.deptSeq)" class="dept-item">
+              <span>
+                <span v-if="selectedDepts.includes(dept.deptSeq)">
+                  <img src="@/assets/images/chat/Vector-Down.png" alt="Down"/>
+                </span>
+                <span v-else>
+                  <img src="@/assets/images/chat/Vector-Right.png" alt="Right"/>
+                </span>
               </span>
-            </li>
-          </ul>
-        </li>
-      </ul>
+              {{ dept.deptName }}
+              <span class="employee-count">
+                 {{ deptEmployeeCounts.find((d) => d.deptSeq === dept.deptSeq)?.count || 0 }}
+              </span>
+            </div>
+
+            <!-- 과 목록 -->
+            <ul v-if="selectedDepts.includes(dept.deptSeq)" class="dept-list ms-3 list-unstyled">
+              <li
+                  v-for="part in filteredParts.filter((p) => p.deptSeq === dept.deptSeq)"
+                  :key="part.partSeq"
+                  @dblclick="selectPart(part.partSeq)"
+                  class="part-item"
+              >
+                {{ part.partName }}
+                <span class="employee-count">
+                  {{ partEmployeeCounts.find((p) => p.partSeq === part.partSeq)?.count || 0 }}
+                </span>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
     </div>
 
     <!-- 두 번째 화면: 직원 목록 -->
@@ -169,13 +174,31 @@ const createChatroom = async (userSeq) => {
 
 <style scoped>
 .organization-container {
+  position: absolute;
   padding: 20px;
+  height: 600px;
+  background-color: #fff;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
 }
 
 .chat-header {
   background-color: #fff; /* 배경색 추가 */
   position: sticky;
   top: 0;
+}
+
+.organization-content {
+  overflow-y: auto;
+  min-width: 400px;
+  max-height: 510px;
+}
+
+.user-list-container {
+  overflow-y: auto;
+  min-width: 400px;
+  max-height: 510px;
 }
 
 .organization-list .dept-item {
