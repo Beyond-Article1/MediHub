@@ -12,28 +12,11 @@ const webSocketStore = useWebSocketStore();
 const chatStore = useChatStore();
 
 const isModalOpen = ref(false); // 모달 열림 상태
-const selectedUsers = ref([]);  // 대화상대로 초대할 사용자
 const openModal = () => (isModalOpen.value = true);
 const closeModal = () => (isModalOpen.value = false);
 
-// 채팅방 목록 가져오기
-const getChatrooms = async () => {
-  try {
-    const response = await axios.get('/chatroom', {
-      headers: {
-        'Authorization': `Bearer ${authStore.accessToken}`,  // 토큰을 헤더에 추가
-      }
-    });
-    chatStore.setChatrooms(response.data.data);
-    console.log('채팅방 목록을 불러오는 데 성공했습니다.', chatStore.chatrooms);  // 받은 채팅방 목록 출력
-  } catch (error) {
-    console.error('채팅방 목록을 불러오는 데 실패했습니다.', error);
-  }
-};
-
 onMounted(() => {
-  getChatrooms();
-  webSocketStore.getUserChatrooms();
+  webSocketStore.getUserChatrooms();  // 채팅방 목록 가져오기
 });
 
 // 채팅방 생성
@@ -68,6 +51,29 @@ const handleDoubleClick = (room) => {
   console.log('특정 채팅방 더블클릭 이벤트 발생');
   emit('open-chatroom', room);  // 부모 컴포넌트로 이벤트 전달
 };
+
+// 날짜 포맷 함수
+const formatDateOrTime = (timestamp) => {
+  if(!timestamp) return "";
+
+  const messageDate = new Date(timestamp);
+  const today = new Date();
+
+  const isToday =
+      messageDate.getFullYear() === today.getFullYear() &&
+      messageDate.getMonth() === today.getMonth() &&
+      messageDate.getDate() === today.getDate();
+
+  if(isToday) {
+    const hours = messageDate.getHours().toString().padStart(2, "0");
+    const minutes = messageDate.getMinutes().toString().padStart(2, "0");
+    return `${hours}:${minutes}`
+  } else {
+    const month = (messageDate.getMonth() + 1).toString().padStart(2, "0");
+    const day = messageDate.getDate().toString().padStart(2, "0");
+    return `${month}-${day}`;
+  }
+};
 </script>
 
 <template>
@@ -81,19 +87,25 @@ const handleDoubleClick = (room) => {
 
     <div class="chatroom-list" v-if="chatStore.chatrooms.length > 0">
       <!-- 채팅방 목록을 반복문으로 표시 -->
-      <div v-for="room in chatStore.chatrooms" :key="room.chatroomSeq" @dblclick="handleDoubleClick(room)" class="chatroom-item">
+      <div v-for="room in chatStore.chatrooms"  class="chatroom-item"
+           :key="room.chatroomSeq"
+           @dblclick="handleDoubleClick(room)">
         <div class="chatroom-info">
-          <h5 class="chatroom-name">
-            {{ room.chatroomCustomName || room.chatroomDefaultName }}
-          </h5>
-          <div class="chatroom-meta">
-            <span class="chatroom-users">{{ room.chatroomUsersCount }}</span>
-            <span class="chatroom-last-message">
-                <strong>마지막 메시지:</strong> {{ room.lastMessage }}
-            </span>
-            <span class="chatroom-last-time">
-              {{ room.lastMessageTime }}
-            </span>
+          <div class="chatroom-img">
+
+          </div>
+          <div class="chatroom-content">
+            <div class="chatroom-meta">
+              <h5 class="chatroom-name">{{ room.chatroomCustomName || room.chatroomDefaultName }}</h5>
+              <span class="chatroom-users">{{ room.chatroomUsersCount }}</span>
+              <span class="chatroom-last-time">{{ formatDateOrTime(room.lastMessageTime) }}</span>
+            </div>
+            <div class="chatroom-last">
+              <span class="chatroom-last-message">{{ room.lastMessage }}</span>
+              <span v-if="room.unreadMessageCount > 0" class="chat-unread-count">
+                {{ room.unreadMessageCount }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -107,7 +119,13 @@ const handleDoubleClick = (room) => {
 
 <style scoped>
 .chat-container {
+  position: absolute;
   padding: 20px;
+  height: 600px;
+  background-color: #fff;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
 }
 
 .chat-header {
@@ -144,41 +162,92 @@ const handleDoubleClick = (room) => {
 }
 
 .chatroom-list {
-  padding: 3px;
-  padding-top: 15px;
-  overflow-y: auto; /* 스크롤 가능하게 설정 */
+  margin-top: 15px;
+  overflow-y: auto;
 }
 
-.chatroom-list p {
-  cursor: pointer;
-  padding: 5px;
-  border: 1px solid #ccc;
-  margin: 5px 0;
-}
-
-.chatroom-list p:hover {
-  background-color: #f0f0f0;
-}
-
-.chatroom-info {
+.chatroom-item {
+  display: flex;
+  align-items: flex-start;
   padding: 10px;
-  margin-bottom: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background-color: #f9f9f9;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.chatroom-item:hover {
+  background-color: #e0e0e0;
+}
+
+.chatroom-content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 0;
 }
 
 .chatroom-meta {
-  margin-top: 10px;
+  display: flex;
+  align-items: baseline;
+}
+
+.chatroom-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.chatroom-name {
+  font-size: 17px;
+  flex-shrink: 1; /* 공간 부족 시 크기 축소 허용 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; /* 한 줄로 유지 */
+  max-width: 310px;
+  margin-right: 3px;
+}
+
+.chatroom-last {
+  font-size: 12px;
+  color: #777;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 3px;
 }
 
 .chatroom-users {
   font-size: 12px;
   color: #777;
+  margin-right: auto;
+}
+
+.chatroom-last-time{
+  font-size: 12px;
+  color: #777;
 }
 
 .chatroom-last-message {
-  font-size: 12px;
+  font-size: 14px;
   color: #555;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box; /* 다중 줄 처리 */
+  -webkit-line-clamp: 2; /* 최대 두 줄로 제한 */
+  -webkit-box-orient: vertical; /* 수직 박스 방향 설정 */
+  max-width: 90%;
+}
+
+.chat-unread-count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #FF4D4D;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin-left: 10px;
 }
 </style>
