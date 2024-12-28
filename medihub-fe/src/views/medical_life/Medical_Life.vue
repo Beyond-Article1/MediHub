@@ -234,11 +234,11 @@ const changePage = (page) => {
 };
 
 const goToDetail = (id) => {
-  router.push({ name: "MedicalLifeDetail", params: { id } });
+  router.push({name: "MedicalLifeDetail", params: {id}});
 };
 
 const goToCreate = () => {
-  router.push({ name: 'MedicalLifeCreate' });
+  router.push({name: 'MedicalLifeCreate'});
 };
 
 // 컴포넌트 초기화

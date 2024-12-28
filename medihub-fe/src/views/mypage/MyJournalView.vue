@@ -94,7 +94,7 @@ onMounted(fetchMyPosts);
 
     <!-- 메인 콘텐츠 -->
     <div class="content-container flex-grow-1">
-      <h3 class="title">내가 조회한 논문</h3>
+      <h3 class="title">My Journal</h3>
 
       <!-- 필터 버튼 -->
       <div class="filter-buttons">
@@ -185,7 +185,7 @@ onMounted(fetchMyPosts);
 }
 
 .title {
-  font-size: 2rem;
+  font-size: 2.5rem;
   color: #333;
   margin-bottom: 20px;
 }
@@ -228,7 +228,7 @@ onMounted(fetchMyPosts);
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 }
 .custom-table th,
 .custom-table td {
