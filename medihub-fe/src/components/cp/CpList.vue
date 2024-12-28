@@ -1,6 +1,7 @@
 <script setup>
-import { onMounted, ref } from "vue";
-import { useRouter, useRoute } from "vue-router"; // useRoute 추가
+import {onMounted, ref, watch} from "vue";
+import {useRouter, useRoute} from "vue-router";
+import {useCpCategoryStore} from "@/store/cpCategoryStore.js";
 import axios from "axios";
 import CpLi from "@/components/cp/CpLi.vue";
 import CpLiInfo from "@/components/cp/CpLiInfo.vue";
@@ -9,35 +10,82 @@ import CpLiInfo from "@/components/cp/CpLiInfo.vue";
 const router = useRouter();
 const route = useRoute(); // 현재 라우트 정보를 가져옴
 const cpList = ref([]); // CP 리스트를 저장할 ref
+const cpCategoryStore = useCpCategoryStore();
 
 // 데이터 호출 함수
-async function fetchData(cpName = null) {
+async function fetchData() {
   console.log("데이터 호출 함수 실행");
   try {
-    const url = cpName ? `cp?cpName=${encodeURIComponent(cpName)}` : "cp"; // cpName이 있을 경우 URL 설정
+    const selectedCategories = cpCategoryStore.selectedDataList.filter(item => item.categorySeq !== null);
+
+    // 카테고리 시퀀스와 데이터 시퀀스를 추출
+    const cpSearchCategorySeq = selectedCategories.map(item => item.categorySeq).join(',');
+    const cpSearchCategoryData = selectedCategories.flatMap(item => item.dataSeq).join(',');
+
+    let url;
+
+    console.log("피니아 저장 길이: ", selectedCategories.length);
+    // 저장된 값이 없을 경우 기본 cp 요청
+    if (selectedCategories.length === 0) {
+      url = "cp"; // 전체 데이터 요청
+    } else if (cpSearchCategorySeq && cpSearchCategoryData) {
+      url = `cp?cpSearchCategorySeq=${cpSearchCategorySeq}&cpSearchCategoryData=${cpSearchCategoryData}`;
+    } else {
+      url = "cp"; // 기본 요청
+    }
+
+    console.log("요청 url: ", url);
+
+    // API 호출
     const response = await axios.get(url);
 
     if (response.status === 200) {
       console.log("CP 리스트 조회 성공");
-      cpList.value = response.data.data; // 데이터 저장
+      console.log("응답 데이터:", response.data.data); // 응답 데이터 확인
+
+      cpList.value = response.data.data;
+      console.log(`cpList.value = ${cpList.value}`);
+
       console.log(cpList.value);
     } else {
       console.log("CP 리스트 조회 실패");
     }
   } catch (error) {
-    console.error("예기치 못한 오류가 발생했습니다. 에러: ", error);
+    if(error.status === 404) {
+      console.log("조회 결과가 없습니다.");
+      cpList.value = [];
+    }
   }
 }
+
+// 드롭박스에서 선택된 데이터 저장
+const updateSelectedData = (index, selectedValues) => {
+  const categorySeq = cpSearchCategoryList.value[index].cpSearchCategorySeq; // 현재 카테고리의 시퀀스
+
+  // 중복된 값을 제거하여 저장
+  const uniqueSelectedValues = [...new Set(selectedValues)];
+
+  cpCategoryStore.selectedDataList[index] = {categorySeq, dataSeq: uniqueSelectedValues}; // 중복 제거하여 저장
+
+  // 선택된 데이터가 변경되면 fetchData 호출
+  fetchData(); // 선택된 값이 변경될 때마다 데이터를 다시 호출
+};
 
 // CP 버전 별 페이지 이동 함수
 const moveCpVersionPage = (cpVersionSeq) => {
   router.push(`/cp/${cpVersionSeq}`); // 해당 페이지로 이동
 };
 
+// Pinia 스토어의 selectedDataList 변경 감시 및 API 호출
+watch(() => cpCategoryStore.selectedDataList, (newValue) => {
+  console.log("Pinia의 selectedDataList가 변경되었습니다:", newValue);
+  // API 호출
+  fetchData();
+}, {deep: true}); // deep: true를 사용하여 중첩 배열의 변경도 감지
+
 // 컴포넌트 마운트 시 데이터 호출
 onMounted(() => {
-  const cpName = route.query.cpName; // URL에서 cpName 가져오기
-  fetchData(cpName); // cpName이 있을 경우 해당 이름으로 데이터 호출
+  fetchData(); // 초기 데이터 호출
 });
 </script>
 
