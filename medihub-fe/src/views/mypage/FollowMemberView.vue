@@ -1,21 +1,64 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import {ref, computed, onMounted} from "vue";
 import BookmarkButton from "@/components/common/button/BookmarkButton.vue";
 import Pagination from "@/components/common/Pagination.vue";
 import Sidebar from "@/components/user/MyPage.vue";
 import axios from "axios";
 
-const users = ref([]);
+const users = ref([]); // 내가 팔로우한 사용자 목록
+const allUsers = ref([]); // 전체 사용자 목록
+const followingIds = ref([]); // 내가 팔로우한 사용자 ID만 저장
 const currentPage = ref(1);
 const itemsPerPage = 6;
 const defaultImage = "https://via.placeholder.com/120";
 const currentFilter = ref("journal");
 
+// 전체 사용자 데이터 가져오기
+const fetchAllUsers = async () => {
+  try {
+    const response = await axios.get("/api/v1/admin/users", {
+      headers: {Authorization: `Bearer ${localStorage.getItem("accessToken")}`},
+    });
+    allUsers.value = response.data.data.map((user) => ({
+      userSeq: user.userSeq,
+      userName: user.userName,
+      userEmail: user.userEmail,
+      userPhone: user.userPhone,
+      partName: user.partName,
+      rankingName: user.rankingName,
+      profileImage: user.profileImage || defaultImage,
+    }));
+  } catch (error) {
+    console.error("전체 회원 데이터 가져오기 실패:", error);
+  }
+};
+
+// 내가 팔로우한 사용자 ID 가져오기
+const fetchFollowingIds = async () => {
+  try {
+    const response = await axios.get("/follow", {
+      headers: {Authorization: `Bearer ${localStorage.getItem("accessToken")}`},
+    });
+    followingIds.value = response.data.data.map((user) => user.userSeq); // ID만 추출
+  } catch (error) {
+    console.error("팔로잉 사용자 ID 가져오기 실패:", error);
+  }
+};
+
+// 팔로우한 사용자 데이터 조합
+const updateUsers = () => {
+  users.value = allUsers.value.filter((user) => followingIds.value.includes(user.userSeq))
+      .map((user) => ({
+        ...user,
+        isFollowing: true, // 항상 팔로우 상태
+      }));
+};
+
 // 팔로우 동작
 const followUser = async (user) => {
   try {
     await axios.post(`/follow?toUserSeq=${user.userSeq}`, {}, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
+      headers: {Authorization: `Bearer ${localStorage.getItem("accessToken")}`},
     });
     user.isFollowing = true;
   } catch (error) {
@@ -27,10 +70,11 @@ const followUser = async (user) => {
 const unfollowUser = async (user) => {
   try {
     await axios.delete(`/follow`, {
-      params: { toUserSeq: user.userSeq },
-      headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
+      params: {toUserSeq: user.userSeq},
+      headers: {Authorization: `Bearer ${localStorage.getItem("accessToken")}`},
     });
     user.isFollowing = false;
+    users.value = users.value.filter((u) => u.userSeq !== user.userSeq); // 목록에서 제거
   } catch (error) {
     console.error("언팔로우 실패:", error);
   }
@@ -45,46 +89,23 @@ const updateFollow = async (user) => {
   }
 };
 
-// 팔로잉 사용자 목록 가져오기
-const fetchFollowingUsers = async () => {
-  try {
-    const response = await axios.get("/follow", {
-      headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
-    });
-
-    users.value = response.data.data.map((user) => ({
-      userSeq: user.userSeq,
-      userName: user.userName,
-      userEmail: user.userEmail,
-      userPhone: user.userPhone,
-      partName: user.partName,
-      rankingName: user.rankingName,
-      profileImage: user.profileImage || defaultImage,
-      isFollowing: true,
-    }));
-  } catch (error) {
-    console.error("팔로잉 사용자 목록 불러오기 실패:", error);
-  }
-};
-
-// 페이지네이션 데이터
 const paginatedUsers = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
   return users.value.slice(start, start + itemsPerPage);
 });
 
-// 페이지 변경
 const changePage = (page) => {
   currentPage.value = page;
 };
 
-// 필터 변경
 const handleFilterChange = (newFilter) => {
   currentFilter.value = newFilter;
 };
 
-// 초기 데이터 로드
-onMounted(fetchFollowingUsers);
+onMounted(async () => {
+  await Promise.all([fetchAllUsers(), fetchFollowingIds()]); // 병렬로 데이터 가져오기
+  updateUsers(); // 필터링된 사용자 목록 업데이트
+});
 </script>
 
 <template>
@@ -112,7 +133,7 @@ onMounted(fetchFollowingUsers);
           >
             <div class="user-card position-relative">
               <div class="profile-image">
-                <img :src="user.profileImage" alt="Profile" />
+                <img :src="user.profileImage" alt="Profile"/>
               </div>
               <div class="user-info">
                 <h4>
