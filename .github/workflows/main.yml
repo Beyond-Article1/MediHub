@@ -76,9 +76,12 @@ jobs:
         run: |
           if [[ $GITHUB_REF == 'refs/heads/develop' ]]; then
             aws s3 sync ./dist/ ${{ secrets.S3_URI_DEV }} --delete
+#            aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_ID_DEV }} --paths "/*"
           elif [[ $GITHUB_REF == 'refs/heads/master' ]]; then
             aws s3 sync ./dist/ ${{ secrets.S3_URI_PROD }} --delete
           fi
+            aws s3 sync ./dist/ ${{ secrets.S3_URI_DEV }} --delete
+#            aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_ID_DEV }} --paths "/*"
 
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
