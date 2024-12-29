@@ -12,11 +12,11 @@ const currentFilter = ref("myPosts");
 // 내가 쓴 게시물 가져오기
 const fetchMyPosts = async () => {
   try {
-    const response = await axios.get("/medical-life/mypage");
+    const response = await axios.get("/anonymous-board/myPage"); // API 호출
     posts.value = response.data.data.map((post) => ({
-      title: post.medicalLifeTitle,
-      content: extractText(post.medicalLifeContent),
-      viewCount: post.medicalLifeViewCount,
+      title: post.anonymousBoardTitle,
+      content: post.anonymousBoardContent,
+      viewCount: post.anonymousBoardViewCount,
       date: new Date(post.createdAt).toLocaleDateString("ko-KR"),
     }));
     filteredPosts.value = [...posts.value]; // 필터링 초기화
@@ -28,13 +28,11 @@ const fetchMyPosts = async () => {
 // 내가 북마크한 게시물 가져오기
 const fetchBookmarkedPosts = async () => {
   try {
-    const response = await axios.get("/medical-life/mypage/bookmark");
+    const response = await axios.get("/anonymous-board/myPage/bookmark"); // API 호출
     posts.value = response.data.data.map((post) => ({
-      title: post.medicalLifeTitle,
-      content: extractText(post.medicalLifeContent),
-      author: post.userName,
-      department: post.partName,
-      viewCount: post.medicalLifeViewCount,
+      title: post.anonymousBoardTitle,
+      content: post.anonymousBoardContent,
+      viewCount: post.anonymousBoardViewCount,
       date: new Date(post.createdAt).toLocaleDateString("ko-KR"),
     }));
     filteredPosts.value = [...posts.value]; // 필터링 초기화
@@ -127,8 +125,6 @@ onMounted(fetchMyPosts);
           <tr>
             <th>제목</th>
             <th>내용</th>
-            <th v-if="currentFilter === 'bookmarks'">작성자</th>
-            <th v-if="currentFilter === 'bookmarks'">부서 이름</th>
             <th>작성일</th>
             <th>조회수</th>
           </tr>
@@ -137,8 +133,6 @@ onMounted(fetchMyPosts);
           <tr v-for="(post, index) in paginatedPosts" :key="index">
             <td>{{ post.title }}</td>
             <td>{{ post.content }}</td>
-            <td v-if="currentFilter === 'bookmarks'">{{ post.author }}</td>
-            <td v-if="currentFilter === 'bookmarks'">{{ post.department }}</td>
             <td>{{ post.date }}</td>
             <td>{{ post.viewCount }}</td>
           </tr>

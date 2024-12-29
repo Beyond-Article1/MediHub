@@ -28,7 +28,7 @@ const fetchMyPosts = async () => {
 // 북마크된 게시물 가져오기
 const fetchBookmarkedPosts = async () => {
   try {
-    const response = await axios.get(""); // 북마크된 게시물 API
+    const response = await axios.get("/cp/mypage"); // 북마크된 게시물 API
     cpOpinions.value = response.data.data.map((opinion) => ({
       content: opinion.cpOpinionContent, // 의견 내용
       author: opinion.userName, // 작성자
