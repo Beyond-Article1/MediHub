@@ -66,6 +66,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: 배포 전 의존성 설치
+        run: npm install
+
       - name: 배포 전 빌드
         run: npm run build
 
