@@ -27,7 +27,7 @@ jobs:
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: npm
-        cache-dependency-path: MediHub-FE/medihub-fe/package-lock.json # 캐시 기능 사용시 기준 파일
+        cache-dependency-path: medihub-fe/package-lock.json # 캐시 기능 사용시 기준 파일
 
     - name: 의존성 설치
       run: npm install
@@ -55,6 +55,7 @@ jobs:
     defaults:
       run:
         working-directory: ./MediHub-FE/medihub-fe
+
     steps:
       - uses: actions/checkout@v4
 
