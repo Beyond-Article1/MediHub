@@ -80,6 +80,8 @@ jobs:
             aws s3 sync ./dist/ ${{ secrets.S3_URI_PROD }} --delete
           fi
             aws s3 sync ./dist/ ${{ secrets.S3_URI_DEV }} --delete
+        # CloudFront 캐시 무효화
+            aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_ID_DEV }} --paths "/*"
 
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
