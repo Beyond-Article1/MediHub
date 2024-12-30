@@ -134,11 +134,13 @@ export const useWebSocketStore = defineStore('webSocket', ws => {
                     console.log(`채팅방 ${chatroomSeq}의 새 메시지: `, receivedMessage);
 
                     // 채팅방 목록 화면 업데이트
-                    chatStore.updateChatroomLastMessage(
-                        chatroomSeq,
-                        receivedMessage.message,
-                        receivedMessage.createdAt
-                    )
+                    if (receivedMessage.type !== 'delete') {
+                        chatStore.updateChatroomLastMessage(
+                            chatroomSeq,
+                            receivedMessage.message,
+                            receivedMessage.createdAt
+                        )
+                    }
                 }
             );
 
