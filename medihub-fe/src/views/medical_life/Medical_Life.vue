@@ -39,6 +39,14 @@
       <div class="row mb-3 align-items-center">
         <div class="col-auto">
           <h4 class="fw-bold mb-0">Medical Life</h4>
+          <div class="selected-info mt-2">
+      <span v-if="selectedDeptName" class="badge bg-primary me-2">
+        과: {{ selectedDeptName }}
+      </span>
+            <span v-if="selectedPartName" class="badge bg-secondary">
+        부서: {{ selectedPartName }}
+      </span>
+          </div>
         </div>
         <div class="col d-flex justify-content-center">
           <SearchBox @update:search="updateSearch" />
@@ -165,13 +173,13 @@ const fetchPosts = async () => {
     posts.value = response.data.data.map((item) => ({
       id: item.medicalLifeSeq,
       title: item.medicalLifeTitle,
-      tags: item.keywords || [], // 키워드 리스트
+      tags: item.keywords || [],
       author: `${item.userName} (${item.rankingName})`,
       userSeq: item.userSeq,
-      deptSeq: item.deptSeq, // 작성자의 부서 번호
-      partSeq: item.partSeq, // 작성자의 과 번호
-      date: new Date(item.createdAt).toLocaleDateString(), // 작성일 포맷
-      views: item.medicalLifeViewCount, // 조회수
+      deptName: item.deptName,
+      partName: item.partName,
+      date: new Date(item.createdAt).toLocaleDateString(),
+      views: item.medicalLifeViewCount,
     }));
   } catch (error) {
     console.error("게시글 데이터 가져오기 실패:", error);
@@ -183,13 +191,15 @@ const fetchPosts = async () => {
 const filteredParts = computed(() =>
     parts.value.filter((part) => part.deptSeq === openDept.value)
 );
+
 const filteredPosts = computed(() =>
     posts.value.filter(
         (post) =>
-            post.title.includes(searchQuery.value) ||
-            post.tags.some((tag) => tag.includes(searchQuery.value))
+            (!selectedDeptName.value || post.deptName === selectedDeptName.value) &&
+            (!selectedPartName.value || post.partName === selectedPartName.value)
     )
 );
+
 const sortedPosts = computed(() => {
   switch (sortOption.value) {
     case "views":
@@ -197,10 +207,10 @@ const sortedPosts = computed(() => {
     case "latest":
       return [...filteredPosts.value].sort(
           (a, b) => new Date(b.date) - new Date(a.date)
-      ); // 최신순
+      );
     case "createdAt":
     default:
-      return [...filteredPosts.value]; // 작성순 (기본)
+      return [...filteredPosts.value];
   }
 });
 const paginatedPosts = computed(() => {
@@ -208,20 +218,15 @@ const paginatedPosts = computed(() => {
   return sortedPosts.value.slice(start, start + itemsPerPage.value);
 });
 
-// 함수
+
 const toggleDept = (deptSeq, deptName) => {
   openDept.value = openDept.value === deptSeq ? null : deptSeq;
-  selectedDeptSeq.value = deptSeq;
   selectedDeptName.value = deptName;
-  selectedPartSeq.value = null;
   selectedPartName.value = "";
-  fetchPosts();
 };
 
 const selectPart = (partSeq, partName) => {
-  selectedPartSeq.value = partSeq;
   selectedPartName.value = partName;
-  fetchPosts();
 };
 
 const updateSearch = (query) => {
@@ -269,7 +274,7 @@ onMounted(() => {
 
 .dept-item.active,
 .part-item.active {
-  background-color: #007bff;
+  background-color: #ffc653;
   color: white;
 }
 
@@ -303,4 +308,14 @@ onMounted(() => {
 .table-responsive {
   margin-top: 1rem;
 }
+
+.selected-info {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.selected-info .badge {
+  font-size: 0.85rem;
+}
+
 </style>
