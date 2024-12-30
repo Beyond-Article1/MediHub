@@ -55,14 +55,15 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.wor
 // 마운트 시점 실행 함수
 onMounted(async () => {
   pdfCanvas.value = document.getElementById('pdf-canvas');
-  fetchCpOpinionLocationData(null);
-  fetchCpVersion();
+  await fetchCpOpinionLocationData(null);
+  await fetchCpVersion();
   pdfCanvas.value.addEventListener('click', handlePdfClick);
 });
 
 // 부모 컴포넌트에서 PDF url 전달하는 정보 감시
 watch(() => props.pdfUrl, async (newUrl) => {
   if (newUrl) {
+    await fetchCpOpinionLocationData(props.data.cpVersionSeq);
     currentPage.value = 1;
     await loadPage(newUrl);
     setMarkerOnPDF();
@@ -74,7 +75,6 @@ watch(currentPage, async () => {
   if (props.pdfUrl) {
     await loadPage(props.pdfUrl);
     setMarkerOnPDF();
-    handleBookmark();
   }
 });
 
@@ -285,6 +285,7 @@ function handleMarkerVisualToggle() {
 
 // 위치 정보 호출 함수
 async function fetchCpOpinionLocationData(cpVersionSeq) {
+  console.log("위치 정보 조회 함수가 요청되었습니다.");
   if (cpVersionSeq === null) {
     console.log("등록된 위치 정보가 없습니다.");
     return;
