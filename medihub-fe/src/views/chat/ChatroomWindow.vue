@@ -10,6 +10,7 @@ import ParticipantListModal from '@/components/chat/ParticipantListModal.vue';
 import MessageItem from "@/components/chat/MessageItem.vue";
 
 const authStore = useAuthStore();
+const userSeq = ref(null);
 const webSocketStore = useWebSocketStore();
 const chatStore = useChatStore();
 
@@ -19,7 +20,6 @@ const props = defineProps({
 const emit = defineEmits(['close-chatroom']);
 
 const messages = ref([]);
-const newMessage = ref('');
 const isLoadingMessages = ref(false); // 메시지 로딩 상태
 
 // 기존 채팅방 메시지 가져오기
@@ -56,6 +56,7 @@ const isSameDay = (date1, date2) => {
 };
 
 onMounted(() => {
+  userSeq.value = Number(localStorage.getItem('userSeq'));
   getChatMessages();
 });
 
@@ -81,17 +82,34 @@ const getParticipants = async () => {
   }
 }
 
+const deletedMessageSeqs = ref([]); // 삭제된 메시지 ID(MessageSeq) 목록
 // 채팅방이 열려있고 새 메시지가 수신되었을 때 처리
 watch(
     () => webSocketStore.receivedMessages,
     (newMessages) => {
       const currentRoomMessages = newMessages.filter(
-          (msg) => msg.chatroomSeq === props.room.chatroomSeq && msg.senderUserSeq !== authStore.userSeq
+          (msg) => msg.chatroomSeq === props.room.chatroomSeq
       );
+
+      // 삭제 메시지 처리
+      const deleteMessages = currentRoomMessages.filter((msg) => msg.type === 'delete');
+      deleteMessages.forEach((deleteMsg) => {
+        deletedMessageSeqs.value.push(deleteMsg.messageSeq);  // 삭제된 메시지 messageSeq 저장
+        const index = messages.value.findIndex(
+            (msg) => msg.messageSeq === deleteMsg.messageSeq
+        );
+        if (index !== -1) {
+          messages.value.splice(index, 1); // 화면에서 해당 메시지 제거
+          console.log(`메시지 ${deleteMsg.messageSeq} 삭제됨`);
+        }
+      });
 
       // 중복 메시지 필터링
       const uniqueMessages = currentRoomMessages.filter(
-          (msg) => !messages.value.some((existingMsg) => existingMsg.messageSeq === msg.messageSeq)
+          (msg) =>
+              msg.type !== 'delete' && // 삭제 메시지는 제외
+              !deletedMessageSeqs.value.includes(msg.messageSeq) && // 이미 삭제된 메시지도 제외
+              !messages.value.some((existingMsg) => existingMsg.messageSeq === msg.messageSeq)
       );
 
       if (uniqueMessages.length > 0) {
@@ -102,8 +120,11 @@ watch(
     {deep: true}
 );
 
+const newMessage = ref(''); // 입력 필드의 메시지
+
 // 메시지 전송 함수
-const sendMessage = () => {
+const sendMessage = (event) => {
+  if(event.isComposing || event.keyCode === 229) return;
   if (newMessage.value.trim()) {
     console.log('백엔드 서버로 전송하는 메시지: ', newMessage.value);
     console.log('stompClient 확인: ', webSocketStore.stompClient);
@@ -114,24 +135,17 @@ const sendMessage = () => {
       webSocketStore.stompClient.publish({
         destination: `/publish/${props.room.chatroomSeq}`,
         headers: {
-          'Authorization': `Bearer ${authStore.accessToken}`,
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         },
         body: JSON.stringify({
           chatroomSeq: props.room.chatroomSeq,
-          senderUserSeq: authStore.userSeq,
+          senderUserSeq: userSeq.value,
           message: newMessage.value,
           type: 'text',
           createdAt: new Date().toISOString(),
         }),
       });
 
-      // 메시지 배열에 추가
-      messages.value.push({
-        senderUserSeq: authStore.userSeq,
-        type: 'text',
-        message: newMessage.value,
-        createdAt: new Date().toISOString(),
-      });
       newMessage.value = ''; // 입력 필드 초기화
       nextTick(() => {
         scrollToBottom();
@@ -259,7 +273,7 @@ const handleFileUpload = async (event) => {
           [
             JSON.stringify({
               chatroomSeq: props.room.chatroomSeq,
-              senderUserSeq: authStore.userSeq,
+              senderUserSeq: userSeq.value,
               message: file.name,
               createdAt: new Date().toISOString(),
             }),
@@ -284,8 +298,8 @@ const handleFileUpload = async (event) => {
 };
 
 // 채팅창 드래그 상태 관리
+const currentChatWindow = ref(null);  // 현재 드래그 중인 창
 const isDragging = ref(false);
-const initialPosition = ref({ x:0, y:0 });
 const offset = ref({ x: 0, y: 0 });
 
 // 드래그 시작 이벤트
@@ -306,12 +320,8 @@ const startDrag = (event) => {
     y: event.clientY - rect.top
   };
 
-  initialPosition.value = {
-    x: rect.left,
-    y: rect.top
-  };
-
   isDragging.value = true;    // 드래그 시작
+  currentChatWindow.value = chatWindow;
 
   // 전역 이벤트 리스너 등록
   document.addEventListener('mousemove', onDrag);
@@ -320,26 +330,24 @@ const startDrag = (event) => {
 
 // 드래그 이동 이벤트
 const onDrag = (event) => {
-  if (!isDragging.value) return;
+  if (!isDragging.value || !currentChatWindow.value) return;
 
   const left = event.clientX - offset.value.x;
   const top = event.clientY - offset.value.y;
 
-  const chatWindow = document.querySelector('.chatroom-window');
-
   // 화면을 벗어나지 않도록 위치 제한
-  const maxLeft = window.innerWidth - chatWindow.offsetWidth;
-  const maxTop = window.innerHeight - chatWindow.offsetHeight;
+  const maxLeft = window.innerWidth - currentChatWindow.value.offsetWidth;
+  const maxTop = window.innerHeight - currentChatWindow.value.offsetHeight;
 
   // 위치를 화면 내로 제한
-  chatWindow.style.left = `${Math.max(0, Math.min(left, maxLeft))}px`;
-  chatWindow.style.top = `${Math.max(0, Math.min(top, maxTop))}px`;
-
+  currentChatWindow.value.style.left = `${Math.max(0, Math.min(left, maxLeft))}px`;
+  currentChatWindow.value.style.top = `${Math.max(0, Math.min(top, maxTop))}px`;
 };
 
 // 드래그 종료 이벤트
 const stopDrag = () => {
   isDragging.value = false;
+  currentChatWindow.value = null;
 
   // 전역 이벤트 리스너 제거
   document.removeEventListener('mousemove', onDrag);
@@ -409,7 +417,7 @@ const stopDrag = () => {
           :key="msg.messageSeq"
           :message="msg"
           :isDateDivider="index === 0 || !isSameDay(msg.createdAt, messages[index - 1]?.createdAt)"
-          :currentUserSeq="authStore.userSeq"
+          :currentUserSeq="userSeq"
       />
     </div>
 
@@ -447,7 +455,7 @@ const stopDrag = () => {
   bottom: 0;
   right: 0;
   width: 500px;
-  height: 600px;
+  height: 650px;
   background-color: #fff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   border-radius: 4px;
