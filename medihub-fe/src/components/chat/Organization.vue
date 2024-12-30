@@ -25,9 +25,30 @@ const getUserData = async () => {
       axios.get("/api/v1/users/allUser"),
     ]);
 
+    // 부서 및 과 데이터 저장
     departments.value = deptRes.data.data;
     parts.value = partRes.data.data;
-    users.value = userRes.data.data;
+
+    // 부서명 매핑을 위한 맵 생성 (deptSeq -> deptName)
+    const deptMap = departments.value.reduce((map, dept) => {
+      map[dept.deptSeq] = dept.deptName;
+      return map;
+    }, {});
+
+    // 과명과 부서명을 users 데이터에 매핑
+    const partMap = parts.value.reduce((map, part) => {
+      map[part.partName] = deptMap[part.deptSeq]; // partName -> deptName 매핑
+      return map;
+    }, {});
+
+    // 유저 데이터에 부서명 추가
+    users.value = userRes.data.data.map((user) => ({
+      ...user,
+      deptName: partMap[user.partName] || "부서 없음", // 과명에 해당하는 부서명 추가
+    }));
+
+    console.info("user 매핑 결과: ", users.value);
+
   } catch (error) {
     console.error("데이터 불러오기 실패:", error);
   }
@@ -81,6 +102,23 @@ const goBackToDeptView = () => {
 
 onMounted(getUserData);
 
+// 검색 기능
+const searchQuery = ref('');  // 검색어 상태
+
+// 검색어로 필터링된 전체 직원 목록
+const filteredUsersBySearchQuery = computed(() => {
+  if (!searchQuery.value.trim()) return [];
+
+  const query = searchQuery.value.toLowerCase();
+
+  return users.value.filter(
+      (user) =>
+          user.userName.toLowerCase().includes(query) ||  // 이름 검색
+          user.deptName.toLowerCase().includes(query) ||  // 부서 검색
+          user.partName?.toLowerCase().includes(query)    // 과 검색
+  );
+});
+
 // 1:1 채팅방 생성
 const createChatroom = async (userSeq) => {
   try {
@@ -106,7 +144,38 @@ const createChatroom = async (userSeq) => {
         <h2>조직도</h2>
       </div>
 
-      <div class="organization-content">
+      <!-- 검색창 -->
+      <div class="search-bar">
+        <input
+            type="text"
+            v-model="searchQuery"
+            placeholder="이름/과명 검색"
+            class="search-input"
+        />
+      </div>
+
+      <!-- 검색 결과가 있을 경우 -->
+      <div v-if="searchQuery.trim()">
+        <div v-if="filteredUsersBySearchQuery.length > 0" class="user-list-container">
+          <div
+              v-for="user in filteredUsersBySearchQuery"
+              :key="user.userSeq"
+              class="user-item"
+              @dblclick="createChatroom(user.userSeq)"
+          >
+            <img :src="user.profileImage || '/assets/default-profile.png'" alt="Profile" />
+            <div class="user-info">
+              <p class="user-name">{{ user.userName }} {{ user.rankingName }}</p>
+              <p class="user-details">{{ user.deptName }} | {{ user.partName }} | {{ user.userPhone }}</p>
+            </div>
+          </div>
+        </div>
+        <!-- 검색 결과가 없을 경우 -->
+        <p v-else>검색 결과가 없습니다.</p>
+      </div>
+
+      <!-- 첫 번째 화면: 전체 조직도 -->
+      <div v-else class="organization-content">
         <ul class="organization-list list-unstyled">
           <!-- 부서 목록 -->
           <li v-for="dept in departments" :key="dept.deptSeq">
@@ -163,7 +232,7 @@ const createChatroom = async (userSeq) => {
           <img :src="user.profileImage || 'src/assets/images/chat/Default_Profile.png'" alt="Profile" />
           <div class="user-info">
             <p class="user-name">{{ user.userName }} {{ user.rankingName }}</p>
-            <p class="user-details">{{ user.partName }} | {{ user.userPhone }}</p>
+            <p class="user-details">{{ user.deptName }} | {{ user.partName }} | {{ user.userPhone }}</p>
           </div>
         </div>
       </div>
@@ -176,6 +245,7 @@ const createChatroom = async (userSeq) => {
 .organization-container {
   position: absolute;
   padding: 20px;
+  width: 88%;
   height: 600px;
   background-color: #fff;
   border-radius: 4px;
@@ -184,21 +254,34 @@ const createChatroom = async (userSeq) => {
 }
 
 .chat-header {
-  background-color: #fff; /* 배경색 추가 */
+  background-color: #fff;
   position: sticky;
   top: 0;
+}
+
+.search-bar {
+  padding: 10px 0px;
+  margin: 10px 0px;
+}
+
+.search-input {
+  width: 90%;
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 .organization-content {
   overflow-y: auto;
   min-width: 400px;
-  max-height: 510px;
+  max-height: 450px;
 }
 
 .user-list-container {
   overflow-y: auto;
   min-width: 400px;
-  max-height: 510px;
+  max-height: 450px;
 }
 
 .organization-list .dept-item {
@@ -228,7 +311,7 @@ const createChatroom = async (userSeq) => {
   cursor: pointer;
   padding: 5px;
   font-size: 16px;
-  margin-left: 15px; /* 들여쓰기 추가 */
+  margin-left: 15px;
 }
 
 .organization-list .part-item .employee-count {
@@ -292,6 +375,6 @@ button img {
 .user-item img {
   height: 50px;
   width: 50px;
-  border-radius: 50%; /* 원형 이미지 */
+  border-radius: 50%;
 }
 </style>

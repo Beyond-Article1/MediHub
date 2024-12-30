@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import { useAuthStore } from '@/store/authStore.js';
 import { useWebSocketStore } from "@/store/webSocket.js";
@@ -16,7 +16,11 @@ const openModal = () => (isModalOpen.value = true);
 const closeModal = () => (isModalOpen.value = false);
 
 onMounted(() => {
-  webSocketStore.getUserChatrooms();  // 채팅방 목록 가져오기
+  if(webSocketStore.isConnected == false) {
+    webSocketStore.connectWebSocket();
+  } else {
+    webSocketStore.getUserChatrooms();  // 채팅방 목록 가져오기
+  }
 });
 
 // 채팅방 생성
@@ -74,20 +78,44 @@ const formatDateOrTime = (timestamp) => {
     return `${month}-${day}`;
   }
 };
+
+const searchQuery = ref('');  // 검색어 상태
+// 검색된 채팅방 목록 필터링
+const filteredChatrooms = computed(() => {
+  if(!searchQuery.value.trim()) {
+    return chatStore.chatrooms;
+  }
+  return chatStore.chatrooms.filter((room) => {
+    const lowerQuery = searchQuery.value.toLowerCase();
+    const defaultName = room.chatroomDefaultName?.toLowerCase() || '';
+    const customName = room.chatroomCustomName?.toLowerCase() || '';
+    return defaultName.includes(lowerQuery) || customName.includes(lowerQuery);
+  })
+})
 </script>
 
 <template>
   <div class="chat-container">
-      <div class="chat-header">
-        <h2>대화</h2>
-        <button class="create-chatroom-btn" @click="openModal">
-          <img src="@/assets/images/chat/NewChat-Navy.png" alt="NewChat">
-        </button>
-      </div>
+    <div class="chat-header">
+      <h2>대화</h2>
+      <button class="create-chatroom-btn" @click="openModal">
+        <img src="@/assets/images/chat/NewChat-Navy.png" alt="NewChat">
+      </button>
+    </div>
+
+    <!-- 검색창 -->
+    <div class="chat-search">
+      <input
+        type="text"
+        v-model="searchQuery"
+        placeholder="이름/대화방명 검색"
+        class="search-input"
+      />
+    </div>
 
     <div class="chatroom-list" v-if="chatStore.chatrooms.length > 0">
       <!-- 채팅방 목록을 반복문으로 표시 -->
-      <div v-for="room in chatStore.chatrooms"  class="chatroom-item"
+      <div v-for="room in filteredChatrooms"  class="chatroom-item"
            :key="room.chatroomSeq"
            @dblclick="handleDoubleClick(room)">
         <div class="chatroom-info">
@@ -121,6 +149,7 @@ const formatDateOrTime = (timestamp) => {
 .chat-container {
   position: absolute;
   padding: 20px;
+  width: 88%;
   height: 600px;
   background-color: #fff;
   border-radius: 4px;
@@ -159,6 +188,18 @@ const formatDateOrTime = (timestamp) => {
 .create-chatroom-btn img {
   width: 25px;
   height: 25px;
+}
+
+.chat-search {
+  margin-top: 10px;
+}
+
+.search-input {
+  width: 90%;
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 .chatroom-list {
