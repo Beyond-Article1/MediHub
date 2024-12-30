@@ -28,7 +28,9 @@ onMounted(() => {
 // 데이터 호출 함수
 async function fetchData() {
   try {
-    const response = await axios.get(`/cp/${route.params.cpVersionSeq}/cpOpinionLocation/${route.params.cpOpinionLocationSeq}/${route.params.cpOpinionSeq}`);
+    const response = await axios.get(`/cp/${route.params.cpVersionSeq}/cpOpinionLocation/${route.params.cpOpinionLocationSeq}/${route.params.cpOpinionSeq}`, {
+      withCredentials: true, // 쿠키 허용 활성화
+    });
 
     if (response.status === 200) {
       console.log("CP 의견 조회 성공");
