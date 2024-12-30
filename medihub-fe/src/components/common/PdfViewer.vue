@@ -132,7 +132,7 @@ const handlePdfClick = (event) => {
     isModalVisible.value = true; // 모달 열기
   } else {
     console.log("새로운 위치 입니다.");
-    if (isMarkerEnabled) {
+    if (isMarkerEnabled.value === true) {
       addMarker(x, y);
       clickedMarkerData.value = {x, y, cpOpinionLocationSeq: -1};
       isModalVisible.value = true; // 모달 열기
