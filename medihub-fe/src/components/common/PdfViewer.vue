@@ -271,15 +271,15 @@ async function fetchCpVersion() {
         <IconButton class="mini-button" iconClass="bi bi-pencil" @click="handleMakerToggle"/>
       </template>
       <IconButton class="mini-button" iconClass="bi bi-file-earmark-arrow-down"
-                  @click="() => handleButtonClick('button2')"/>
+                  @click="() => handleButtonClick('다운로드')"/>
       <IconButton class="mini-button" iconClass="bi bi-calendar2-x"
-                  @click="() => handleButtonClick('button3')"/>
+                  @click="() => handleButtonClick('마커제거')"/>
       <IconButton class="mini-button" iconClass="bi bi-bookmark"
-                  @click="() => handleButtonClick('button4')"/>
+                  @click="() => handleButtonClick('북마크')"/>
       <IconButton class="mini-button" iconClass="bi bi-plus-circle"
-                  @click="() => handleButtonClick('button5')"/>
+                  @click="() => handleButtonClick('확대')"/>
       <IconButton class="mini-button" iconClass="bi bi-dash-circle"
-                  @click="() => handleButtonClick('button6')"/>
+                  @click="() => handleButtonClick('축소')"/>
     </div>
 
     <div class="pdf-viewer-container">

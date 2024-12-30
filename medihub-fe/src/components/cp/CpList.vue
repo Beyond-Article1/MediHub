@@ -58,19 +58,6 @@ async function fetchData() {
   }
 }
 
-// 드롭박스에서 선택된 데이터 저장
-const updateSelectedData = (index, selectedValues) => {
-  const categorySeq = cpSearchCategoryList.value[index].cpSearchCategorySeq; // 현재 카테고리의 시퀀스
-
-  // 중복된 값을 제거하여 저장
-  const uniqueSelectedValues = [...new Set(selectedValues)];
-
-  cpCategoryStore.selectedDataList[index] = {categorySeq, dataSeq: uniqueSelectedValues}; // 중복 제거하여 저장
-
-  // 선택된 데이터가 변경되면 fetchData 호출
-  fetchData(); // 선택된 값이 변경될 때마다 데이터를 다시 호출
-};
-
 // CP 버전 별 페이지 이동 함수
 const moveCpVersionPage = (cpVersionSeq) => {
   router.push(`/cp/${cpVersionSeq}`); // 해당 페이지로 이동
