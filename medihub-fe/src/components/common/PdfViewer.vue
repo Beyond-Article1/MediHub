@@ -90,7 +90,7 @@ watch(selectedCpVersion, async () => {
       const newUrl = response.data.data.cpUrl;
       await fetchCpOpinionLocationData(response.data.data.cpVersionSeq);
       await loadPage(newUrl);
-      setMarkerOnPDF();
+      await setMarkerOnPDF();
     }
   } catch (error) {
     console.error("다른 버전 조회 시 에러 발생");
@@ -141,25 +141,73 @@ const handlePdfClick = (event) => {
 };
 
 // 저장된 마커 위치 설정 함수
-function setMarkerOnPDF() {
+async function setMarkerOnPDF() {
   if (cpOpinionLocationList.value.length > 0) {
-    const ctx = pdfCanvas.value.getContext('2d');
-    cpOpinionLocationList.value.forEach(location => {
-      const {cpOpinionLocationPageNum, cpOpinionLocationX, cpOpinionLocationY} = location;
+    const ctx = pdfCanvas.value.getContext('2d'); // 2D 컨텍스트 가져오기
+    for (const location of cpOpinionLocationList.value) {
+      const {cpOpinionLocationSeq, cpOpinionLocationPageNum, cpOpinionLocationX, cpOpinionLocationY} = location;
+
+      // 해당 위치에 CP 의견의 존재 여부를 확인하고 없으면 해당 위치를 삭제한다.
+      const exists = await checkCpOpinionExistsByLocationSeq(cpOpinionLocationSeq);
+      if (!exists) {
+        await deleteCpOpinionLocation(cpOpinionLocationSeq); // 삭제 요청
+        existingMarkers.value = existingMarkers.value.filter(marker => marker.cpOpinionLocationSeq !== cpOpinionLocationSeq); // 해당 값을 기억하지 않는다.
+        continue; // 현재 반복을 종료하고 다음 위치로 넘어감
+      }
+
+      // 현재 페이지와 일치하는 경우에만 마커 그리기
       if (cpOpinionLocationPageNum === currentPage.value) {
-        const markerImage = new Image();
-        markerImage.src = '/icons/marker.png';
-        markerImage.onload = () => {
-          const markerWidth = markerImage.width / MARKER_SCALE_FACTOR;
-          const markerHeight = markerImage.height / MARKER_SCALE_FACTOR;
+        const markerImage = new Image(); // 마커 이미지 객체 생성
+        markerImage.src = '/icons/marker.png'; // 이미지 소스 설정
+        markerImage.onload = () => { // 이미지 로드 후 실행
+          const markerWidth = markerImage.width / MARKER_SCALE_FACTOR; // 마커 너비 조정
+          const markerHeight = markerImage.height / MARKER_SCALE_FACTOR; // 마커 높이 조정
           ctx.drawImage(markerImage,
-              cpOpinionLocationX - (markerWidth / 2),
-              cpOpinionLocationY - (markerHeight / 2),
-              markerWidth,
-              markerHeight);
+              cpOpinionLocationX - (markerWidth / 2), // 중앙 정렬을 위한 X 좌표 조정
+              cpOpinionLocationY - (markerHeight / 2), // 중앙 정렬을 위한 Y 좌표 조정
+              markerWidth, // 그릴 마커의 너비
+              markerHeight // 그릴 마커의 높이
+          );
         };
       }
-    });
+    }
+  }
+}
+
+// CP 의견 위치에 CP 의견이 존재하는 확인하는 함수
+async function checkCpOpinionExistsByLocationSeq(cpOpinionLocationSeq) {
+  try {
+    const cpVersionSeq = Number.parseFloat(props.data.cpVersionSeq);
+    // console.log(`cpVersionSeq = ${cpVersionSeq}`);
+    const response = await axios.get(`cp/${cpVersionSeq}/cpOpinionLocation/${cpOpinionLocationSeq}`);
+
+    if (response.status === 200) {
+      console.log("해당 위치 정보 조회 성공");
+      // console.log(response.data.data);
+
+      return true;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    if (error.status === 404) {
+      return false;
+    }
+  }
+}
+
+// CP 의견 위치 삭제 요청 함수
+async function deleteCpOpinionLocation(cpOpinionLocationSeq) {
+  try {
+    const response = await axios.delete(`cp/${route.params.cpVersionSeq}/cpOpinionLocation/${cpOpinionLocationSeq}`);
+
+    if (response.status === 200) {
+      console.log("의견이 없는 위치 삭제 처리");
+    }
+  } catch (error) {
+    if (error.status === 404) {
+      console.error("해당 CP 위치 데이터가 없지만 삭제 요청이 들어왔습니다.");
+    }
   }
 }
 
@@ -394,9 +442,6 @@ const downloadFile = () => {
              :y="clickedMarkerData.y"
              :cpOpinionLocationSeq="clickedMarkerData.cpOpinionLocationSeq">
       <div>
-        <h3>마커 정보</h3>
-        <p>위치: ({{ clickedMarkerData.x }}, {{ clickedMarkerData.y }})</p>
-        <p>추가적인 정보를 여기에 표시합니다.</p>
         <ul>
           <li v-for="(opinion, index) in cpOpinionLocationList" :key="index">{{ opinion }}</li>
         </ul>
