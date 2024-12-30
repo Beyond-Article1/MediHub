@@ -149,7 +149,7 @@ const createChatroom = async (userSeq) => {
         <input
             type="text"
             v-model="searchQuery"
-            placeholder="이름/과명 검색"
+            placeholder="부서명/과명/이름 검색"
             class="search-input"
         />
       </div>
