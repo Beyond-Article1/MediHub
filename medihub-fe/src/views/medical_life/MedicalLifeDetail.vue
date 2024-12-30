@@ -19,17 +19,19 @@ const commentItemCount = ref(10);
 const totalComment = ref(0);
 const newCommentContent = ref('');
 const characterCount = ref(0);
+const editingCommentId = ref(null);
+const editingCommentContent = ref('');
+
 const route = useRoute();
-const router = useRouter(); // 라우터 추가
+const router = useRouter();
 const token = localStorage.getItem('accessToken');
 const decodedToken = token ? JSON.parse(atob(token.split('.')[1])) : null;
 const loggedInUserSeq = decodedToken ? decodedToken.userSeq : null;
-const loggedInUserRole = decodedToken ? decodedToken.auth  : null;
+const loggedInUserRole = decodedToken ? decodedToken.auth : null;
 
 console.log("Logged in User Role: ", loggedInUserRole);
 
 const isAuthorizedToModify = (commentUserSeq) => {
-
   return loggedInUserSeq === commentUserSeq || loggedInUserRole === 'ADMIN';
 };
 
@@ -41,9 +43,9 @@ const fetchBoardDetail = async () => {
       withCredentials: true,
     });
     boardDetail.value = response.data.data || {};
-    boardDetail.value.isLiked = false; // 좋아요 초기값
-    boardDetail.value.isBookmark = false; // 북마크 초기값
-    boardDetail.value.isAuthor = response.data.data.isAuthor; // 작성자 여부 추가
+    boardDetail.value.isLiked = false;
+    boardDetail.value.isBookmark = false;
+    boardDetail.value.isAuthor = response.data.data.isAuthor;
 
     await Promise.all([
       checkLikeStatus(medicalLifeSeq),
@@ -74,7 +76,6 @@ const fetchComment = async (medicalLifeSeq) => {
     console.error('Error fetching comments:', error);
   }
 };
-
 
 // 좋아요 토글
 const toggleLike = async () => {
@@ -108,10 +109,10 @@ const toggleBookmark = async () => {
 const checkLikeStatus = async (medicalLifeSeq) => {
   try {
     const response = await axios.get(`/medical-life/${medicalLifeSeq}/prefer`);
-    boardDetail.value.isLiked = response.data.data; // 서버에서 반환된 좋아요 상태
+    boardDetail.value.isLiked = response.data.data;
   } catch (error) {
     console.error('좋아요 상태 확인 중 오류 발생:', error);
-    boardDetail.value.isLiked = false; // 오류 시 기본값 설정
+    boardDetail.value.isLiked = false;
   }
 };
 
@@ -119,10 +120,10 @@ const checkLikeStatus = async (medicalLifeSeq) => {
 const checkBookmarkStatus = async (medicalLifeSeq) => {
   try {
     const response = await axios.get(`/medical-life/${medicalLifeSeq}/bookmark`);
-    boardDetail.value.isBookmark = response.data.data; // 서버에서 반환된 북마크 상태
+    boardDetail.value.isBookmark = response.data.data;
   } catch (error) {
     console.error('북마크 상태 확인 중 오류 발생:', error);
-    boardDetail.value.isBookmark = false; // 오류 시 기본값 설정
+    boardDetail.value.isBookmark = false;
   }
 };
 
@@ -145,6 +146,84 @@ const handleDelete = async () => {
   }
 };
 
+// 댓글 추가
+const addComment = async () => {
+  if (!newCommentContent.value.trim()) {
+    alert('댓글 내용을 입력해 주세요.');
+    return;
+  }
+
+  const medicalLifeSeq = route.params.id;
+
+  try {
+    await axios.post(`/medical-life/${medicalLifeSeq}/comments`, {
+      commentContent: newCommentContent.value,
+    });
+    alert('댓글 등록이 완료되었습니다.');
+    newCommentContent.value = '';
+    fetchComment(medicalLifeSeq);
+  } catch (error) {
+    console.error('Error adding comment:', error);
+  }
+};
+
+// 댓글 수정 인라인 기능
+const enableEdit = (commentSeq, content) => {
+  editingCommentId.value = commentSeq;
+  editingCommentContent.value = content;
+};
+
+const cancelEdit = () => {
+  editingCommentId.value = null;
+  editingCommentContent.value = '';
+};
+
+const saveEditedComment = async () => {
+  if (!editingCommentContent.value.trim()) {
+    alert('댓글 내용을 입력해주세요.');
+    return;
+  }
+  const medicalLifeSeq = route.params.id;
+
+  try {
+    await axios.put(`/medical-life/${medicalLifeSeq}/comment/${editingCommentId.value}`, {
+      commentContent: editingCommentContent.value,
+    });
+    alert('댓글이 성공적으로 수정되었습니다.');
+    editingCommentId.value = null;
+    editingCommentContent.value = '';
+    fetchComment(medicalLifeSeq);
+  } catch (error) {
+    console.error('댓글 수정 실패:', error);
+    alert('댓글 수정에 실패했습니다.');
+  }
+};
+
+// 댓글 삭제
+const deleteComment = async (commentSeq) => {
+  const medicalLifeSeq = route.params.id;
+
+  try {
+    await axios.delete(`/medical-life/${medicalLifeSeq}/comment/${commentSeq}`);
+    alert('댓글이 성공적으로 삭제되었습니다.');
+    fetchComment(medicalLifeSeq);
+  } catch (error) {
+    console.error('댓글 삭제 중 오류 발생:', error);
+    alert('댓글 삭제에 실패했습니다.');
+  }
+};
+
+// 문자 수 업데이트
+const updateCharacterCount = () => {
+  characterCount.value = newCommentContent.value.length;
+};
+
+// 페이지네이션
+const changePage = (page) => {
+  currentCommentPage.value = page;
+};
+
+// 콘텐츠 파싱
 const contentBlocks = computed(() => {
   try {
     const medicalLifeContent = JSON.parse(boardDetail.value.medicalLifeContent);
@@ -169,89 +248,6 @@ const paginatedComment = computed(() => {
   const start = (currentCommentPage.value - 1) * commentItemCount.value;
   return comment.value.slice(start, start + commentItemCount.value);
 });
-
-// 댓글 추가
-const addComment = async () => {
-  if (!newCommentContent.value.trim()) {
-    alert('댓글 내용을 입력해 주세요.');
-    return;
-  }
-
-  const medicalLifeSeq = route.params.id;
-
-  try {
-    await axios.post(`/medical-life/${medicalLifeSeq}/comments`, {
-      commentContent: newCommentContent.value
-    }, {
-      headers: { 'Content-Type': 'application/json' },
-    });
-
-    alert('댓글 등록이 완료되었습니다.');
-    newCommentContent.value = '';
-    fetchComment(medicalLifeSeq);
-  } catch (error) {
-    console.error('Error adding comment:', error);
-  }
-};
-
-// 댓글 수정
-const updateComment = async (medicalLifeSeq, commentSeq, newContent) => {
-  try {
-    await axios.put(`/medical-life/${medicalLifeSeq}/comment/${commentSeq}`, {
-      commentContent: newContent,
-    });
-    alert('댓글이 성공적으로 수정되었습니다.');
-    fetchComment(medicalLifeSeq);
-  } catch (error) {
-    console.error('댓글 수정 중 오류 발생:', error);
-    alert('댓글 수정에 실패했습니다.');
-  }
-};
-
-// 댓글 삭제
-const deleteComment = async (medicalLifeSeq, commentSeq) => {
-  try {
-    await axios.delete(`/medical-life/${medicalLifeSeq}/comment/${commentSeq}`);
-    alert('댓글이 성공적으로 삭제되었습니다.');
-    fetchComment(medicalLifeSeq);
-  } catch (error) {
-    console.error('댓글 삭제 중 오류 발생:', error);
-    alert('댓글 삭제에 실패했습니다.');
-  }
-};
-
-// 댓글 수정 이벤트
-const handleEditClick = (commentSeq) => {
-  const targetComment = comment.value.find(c => c.commentSeq === commentSeq);
-  if (!targetComment) {
-    console.error(`Comment with commentSeq ${commentSeq} not found`);
-    return;
-  }
-
-  const newContent = prompt('댓글 내용을 수정하세요:', targetComment.commentContent || '');
-  if (newContent !== null) {
-    const medicalLifeSeq = route.params.id;
-    updateComment(medicalLifeSeq, commentSeq, newContent);
-  }
-};
-
-// 댓글 삭제 이벤트
-const handleDeleteClick = (commentSeq) => {
-  if (confirm('정말로 이 댓글을 삭제하시겠습니까?')) {
-    const medicalLifeSeq = route.params.id;
-    deleteComment(medicalLifeSeq, commentSeq);
-  }
-};
-
-// 문자 수 업데이트
-const updateCharacterCount = () => {
-  characterCount.value = newCommentContent.value.length;
-};
-
-// 페이지 변경
-const changePage = (page) => {
-  currentCommentPage.value = page;
-};
 
 onMounted(() => {
   fetchBoardDetail();
@@ -319,11 +315,31 @@ onMounted(() => {
         <p class="comment-author">
           {{ commentItem.userName }} ({{ commentItem.part }}, {{ commentItem.rankingName }})
         </p>
-        <p class="comment-content">{{ commentItem.commentContent }}</p>
+        <div>
+          <div v-if="editingCommentId === commentItem.commentSeq">
+            <textarea
+                v-model="editingCommentContent"
+                class="form-control mb-2"
+                rows="2"
+            ></textarea>
+            <button @click="saveEditedComment" class="btn">저장</button>
+            <button @click="cancelEdit" class="btn">취소</button>
+          </div>
+          <div v-else>
+            <p class="comment-content">{{ commentItem.commentContent }}</p>
+          </div>
+        </div>
         <p class="comment-date"><LocalDateTimeFormat :data="commentItem.createdAt" /></p>
         <div class="comment-actions" v-if="isAuthorizedToModify(commentItem.userSeq)">
-          <button @click="handleEditClick(commentItem.commentSeq)" class="action-btn">수정</button>
-          <button @click="handleDeleteClick(commentItem.commentSeq)" class="action-btn">삭제</button>
+          <button
+              @click="enableEdit(commentItem.commentSeq, commentItem.commentContent)"
+              class="action-btn"
+          >
+            수정
+          </button>
+          <button @click="handleDeleteClick(commentItem.commentSeq)" class="action-btn">
+            삭제
+          </button>
         </div>
       </div>
 
@@ -576,4 +592,5 @@ onMounted(() => {
 .action-btn:hover {
   color: #0056b3;
 }
+
 </style>
