@@ -74,7 +74,9 @@ watch(() => props.pdfUrl, async (newUrl) => {
 watch(currentPage, async () => {
   if (props.pdfUrl) {
     await loadPage(props.pdfUrl);
-    setMarkerOnPDF();
+    await setMarkerOnPDF();
+    // console.log("존재하는 마커");
+    // console.log(existingMarkers.value);
   }
 });
 
@@ -117,13 +119,14 @@ const handlePdfClick = (event) => {
   const x = event.offsetX;
   const y = event.offsetY;
 
-  const existingMarker = cpOpinionLocationList.value.find(marker => {
+  const existingMarker = existingMarkers.value.find(marker => {
     return Math.abs(marker.cpOpinionLocationX - x) < MARKER_CHECK_RADIUS
         && Math.abs(marker.cpOpinionLocationY - y) < MARKER_CHECK_RADIUS;
   });
 
   if (existingMarker) {
     console.log("기존 위치에 마커가 존재합니다.");
+    console.log(`cpOpinionLocationSeq = ${existingMarker.cpOpinionLocationSeq}`);
     clickedMarkerData.value = {
       x,
       y,
@@ -142,13 +145,18 @@ const handlePdfClick = (event) => {
 
 // 저장된 마커 위치 설정 함수
 async function setMarkerOnPDF() {
+  console.log("마커 설정 함수 실행");
+  // console.log(cpOpinionLocationList.value.length > 0);
   if (cpOpinionLocationList.value.length > 0) {
     const ctx = pdfCanvas.value.getContext('2d'); // 2D 컨텍스트 가져오기
     for (const location of cpOpinionLocationList.value) {
       const {cpOpinionLocationSeq, cpOpinionLocationPageNum, cpOpinionLocationX, cpOpinionLocationY} = location;
 
+      console.log(`${cpOpinionLocationSeq}의 의견 조회`);
+
       // 해당 위치에 CP 의견의 존재 여부를 확인하고 없으면 해당 위치를 삭제한다.
       const exists = await checkCpOpinionExistsByLocationSeq(cpOpinionLocationSeq);
+      console.log(`의견 존재 여부: ${exists}`);
       if (!exists) {
         await deleteCpOpinionLocation(cpOpinionLocationSeq); // 삭제 요청
         existingMarkers.value = existingMarkers.value.filter(marker => marker.cpOpinionLocationSeq !== cpOpinionLocationSeq); // 해당 값을 기억하지 않는다.
