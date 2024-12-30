@@ -23,27 +23,32 @@ const props = defineProps({
 const route = useRoute();
 
 // PDF 관련 변수
-const currentPage = ref(1);
-const totalPages = ref(0);
-const pdfCanvas = ref(null);
-const isMarkerEnabled = ref(false);
-let isRendering = false;
-const clickedMarkerData = ref({x: null, y: null, cpOpinionLocationSeq: null});
-const existingMarkers = ref([]);
+const currentPage = ref(1); // 현재 보고 있는 페이지 번호
+const totalPages = ref(0); // PDF 문서의 총 페이지 수
+const pdfCanvas = ref(null); // PDF를 렌더링할 HTML Canvas 요소에 대한 참조
+let isRendering = false; // PDF 페이지 렌더링 중인지 여부를 표시하는 플래그
 
-const cpOpinionLocationList = ref([]);
-const objectCpVersionList = ref([]);
-const varCpVersionList = ref([]);
-const selectedCpVersion = ref('');
+// 마커 관련 변수
+const isMarkerEnabled = ref(false); // 마커 추가 기능의 활성화 여부
+const clickedMarkerData = ref({ x: null, y: null, cpOpinionLocationSeq: null }); // 클릭한 마커의 위치 및 정보
+const existingMarkers = ref([]); // 기존 마커 정보를 저장하는 배열
+const isMarkerVisible = ref(true); // 마커의 표시 여부
+const MARKER_CHECK_RADIUS = 30; // 마커 클릭 감지 반경
+const MARKER_SCALE_FACTOR = 14; // 마커 이미지 크기 조정 비율
 
-const isOpen = ref(false);
-const isModalVisible = ref(false);
-const isMarkerVisible = ref(true);
+// CP 관련 변수
+const cpOpinionLocationList = ref([]); // CP 의견 위치 목록
+const objectCpVersionList = ref([]); // CP 버전 목록
+const varCpVersionList = ref([]); // 선택 가능한 CP 버전 목록
+const selectedCpVersion = ref(''); // 현재 선택된 CP 버전
 
-const MARKER_CHECK_RADIUS = 30;
-const MARKER_SCALE_FACTOR = 14;
-const CANVAS_WIDTH = 1000;
-const CANVAS_HEIGHT = 620;
+// UI 관련 변수
+const isOpen = ref(false); // 드롭다운 또는 모달의 열림 여부
+const isModalVisible = ref(false); // 마커 정보 모달의 표시 여부
+
+// 캔버스 크기 설정
+const CANVAS_WIDTH = 1000; // 캔버스의 너비
+const CANVAS_HEIGHT = 620; // 캔버스의 높이
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
 
