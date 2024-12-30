@@ -42,6 +42,8 @@ const isMarkerVisible = ref(true);
 
 const MARKER_CHECK_RADIUS = 30;
 const MARKER_SCALE_FACTOR = 14;
+const CANVAS_WIDTH = 1000;
+const CANVAS_HEIGHT = 620;
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
 
@@ -125,7 +127,7 @@ const handlePdfClick = (event) => {
     isModalVisible.value = true; // 모달 열기
   } else {
     console.log("새로운 위치 입니다.");
-    if (isMarkerEnabled.value) {
+    if (isMarkerEnabled) {
       addMarker(x, y);
       clickedMarkerData.value = {x, y, cpOpinionLocationSeq: -1};
       isModalVisible.value = true; // 모달 열기
@@ -195,14 +197,19 @@ async function loadPage(pdfUrlToLoad) {
     const pdf = await pdfjsLib.getDocument(pdfUrlToLoad).promise;
     totalPages.value = pdf.numPages;
     const page = await pdf.getPage(currentPage.value);
-    const viewport = page.getViewport({scale: 1.14});
+    const viewport = page.getViewport({ scale: 1 });
 
-    pdfCanvas.value.width = viewport.width;
-    pdfCanvas.value.height = viewport.height;
+    // 캔버스 크기 설정
+    pdfCanvas.value.width = CANVAS_WIDTH;
+    pdfCanvas.value.height = CANVAS_HEIGHT;
+
+    const scaleX = CANVAS_WIDTH / viewport.width;
+    const scaleY = CANVAS_HEIGHT / viewport.height;
+    const scale = Math.max(scaleX, scaleY); // 크기를 맞추기 위한 스케일 계산
 
     const renderContext = {
       canvasContext: pdfCanvas.value.getContext('2d'),
-      viewport: viewport,
+      viewport: page.getViewport({ scale }), // 스케일 적용
     };
 
     await page.render(renderContext).promise;
@@ -215,6 +222,7 @@ async function loadPage(pdfUrlToLoad) {
 
 // 좌표에 마커 추가하는 함수
 function addMarker(x, y) {
+  console.log("마커 추가 함수 실행");
   const markerImage = new Image();
   markerImage.src = '/icons/marker.png';
 
@@ -262,6 +270,7 @@ function goToNextPage() {
 // 마커 기능 토글링 함수
 function handleMakerFunctionToggle() {
   isMarkerEnabled.value = !isMarkerEnabled.value;
+  console.log(`isMarkerEnabled = ${isMarkerEnabled.value}`);
 }
 
 // 마커 시각화 토글링 함수
@@ -426,8 +435,6 @@ const downloadFile = () => {
   flex-grow: 1; /* 가능한 공간을 모두 차지하도록 설정 */
   position: relative; /* 드롭다운을 절대 위치로 만들기 위해 상대 위치 설정 */
   margin-left: 20px; /* 미니 버튼과의 간격 조정 */
-  width: 100%; /* 고정된 너비 설정 */
-  max-width: 1200px; /* 최대 너비 설정 */
 }
 
 .dropdown-container {
@@ -439,9 +446,8 @@ const downloadFile = () => {
 
 .pdf-canvas {
   border: 1px solid #ccc;
-  width: 100%; /* 캔버스 너비를 100%로 설정 */
-  max-width: 1200px; /* 최대 너비 설정 */
-  height: auto; /* 높이를 자동으로 설정 */
+  width: 1000px;
+  height: 620px;
 }
 
 .pagination-container {
