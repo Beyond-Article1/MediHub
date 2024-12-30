@@ -38,6 +38,7 @@ const selectedCpVersion = ref('');
 
 const isOpen = ref(false);
 const isModalVisible = ref(false);
+const isMarkerVisible = ref(true);
 
 const MARKER_CHECK_RADIUS = 30;
 const MARKER_SCALE_FACTOR = 14;
@@ -88,6 +89,21 @@ watch(selectedCpVersion, async () => {
     console.error("다른 버전 조회 시 에러 발생");
   }
 })
+
+// 마커 시각화 변화 감지
+watch(isMarkerVisible, (newValue) => {
+  if (newValue) {
+    console.log("마커가 표시됩니다.");
+    // 마커를 보이게 하는 로직을 추가합니다.
+    setMarkerOnPDF(); // 마커를 PDF에 다시 그립니다.
+  } else {
+    console.log("마커가 숨겨집니다.");
+    // 마커를 숨기는 로직을 추가합니다.
+    const ctx = pdfCanvas.value.getContext('2d');
+    ctx.clearRect(0, 0, pdfCanvas.value.width, pdfCanvas.value.height); // 캔버스를 지웁니다.
+    loadPage(props.pdfUrl); // 페이지를 다시 로드하여 마커를 지웁니다.
+  }
+});
 
 // PDF 클릭 핸들링 함수
 const handlePdfClick = (event) => {
@@ -243,9 +259,14 @@ function goToNextPage() {
   }
 }
 
-// 마커 토글링 함수
-function handleMakerToggle() {
+// 마커 기능 토글링 함수
+function handleMakerFunctionToggle() {
   isMarkerEnabled.value = !isMarkerEnabled.value;
+}
+
+// 마커 시각화 토글링 함수
+function handleMarkerVisualToggle() {
+  isMarkerVisible.value = !isMarkerVisible.value;
 }
 
 // 버튼 클릭 확인용 함수
@@ -312,15 +333,21 @@ const downloadFile = () => {
   <div class="container">
     <div class="button-container">
       <template v-if="isMarkerEnabled">
-        <IconButton class="mini-button active-button" iconClass="bi bi-pencil" @click="handleMakerToggle"/>
+        <IconButton class="mini-button active-button" iconClass="bi bi-pencil" @click="handleMakerFunctionToggle()"/>
       </template>
       <template v-else>
-        <IconButton class="mini-button" iconClass="bi bi-pencil" @click="handleMakerToggle"/>
+        <IconButton class="mini-button" iconClass="bi bi-pencil" @click="handleMakerFunctionToggle()"/>
       </template>
       <IconButton class="mini-button" iconClass="bi bi-file-earmark-arrow-down"
                   @click="() => downloadFile()"/>
-      <IconButton class="mini-button" iconClass="bi bi-calendar2-x"
-                  @click="() => handleButtonClick('마커제거')"/>
+      <template v-if="!isMarkerVisible">
+        <IconButton class="mini-button active-button" iconClass="bi bi-calendar2-x"
+                    @click="() => handleMarkerVisualToggle()"/>
+      </template>
+      <template v-else>
+        <IconButton class="mini-button" iconClass="bi bi-calendar2-x"
+                    @click="() => handleMarkerVisualToggle()"/>
+      </template>
       <template v-if="props.data.bookmarked">
         <IconButton class="mini-button active-button" iconClass="bi bi-bookmark"
                     @click="() => updateBookmark()"/>
