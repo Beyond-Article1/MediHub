@@ -44,6 +44,7 @@ const MARKER_SCALE_FACTOR = 14;
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
 
+// 마운트 시점 실행 함수
 onMounted(async () => {
   pdfCanvas.value = document.getElementById('pdf-canvas');
   fetchCpOpinionLocationData(null);
@@ -87,6 +88,7 @@ watch(selectedCpVersion, async () => {
   }
 })
 
+// PDF 클릭 핸들링 함수
 const handlePdfClick = (event) => {
   const x = event.offsetX;
   const y = event.offsetY;
@@ -114,6 +116,7 @@ const handlePdfClick = (event) => {
   }
 };
 
+// 저장된 마커 위치 설정 함수
 function setMarkerOnPDF() {
   if (cpOpinionLocationList.value.length > 0) {
     const ctx = pdfCanvas.value.getContext('2d');
@@ -136,6 +139,7 @@ function setMarkerOnPDF() {
   }
 }
 
+// PDF 로드 함수
 async function loadPage(pdfUrlToLoad) {
   if (!pdfUrlToLoad) {
     console.error("PDF URL이 제공되지 않았습니다.");
@@ -166,6 +170,7 @@ async function loadPage(pdfUrlToLoad) {
   }
 }
 
+// 좌표에 마커 추가하는 함수
 function addMarker(x, y) {
   const markerImage = new Image();
   markerImage.src = '/icons/marker.png';
@@ -197,22 +202,26 @@ function addMarker(x, y) {
   console.log(existingMarkers.value);
 }
 
+// 이전 페이지 이동 함수
 function goToPreviousPage() {
   if (currentPage.value > 1) {
     currentPage.value--;
   }
 }
 
+// 다음 페이지 이동 함수
 function goToNextPage() {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
   }
 }
 
+// 마커 토글링 함수
 function handleMakerToggle() {
   isMarkerEnabled.value = !isMarkerEnabled.value;
 }
 
+// 버튼 클릭 확인용 함수
 function handleButtonClick(text) {
   console.log(`${text} 클릭`);
 }
