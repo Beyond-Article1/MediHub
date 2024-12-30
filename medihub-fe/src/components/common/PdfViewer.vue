@@ -30,10 +30,10 @@ let isRendering = false; // PDF 페이지 렌더링 중인지 여부를 표시�
 
 // 마커 관련 변수
 const isMarkerEnabled = ref(false); // 마커 추가 기능의 활성화 여부
-const clickedMarkerData = ref({ x: null, y: null, cpOpinionLocationSeq: null }); // 클릭한 마커의 위치 및 정보
+const clickedMarkerData = ref({x: null, y: null, cpOpinionLocationSeq: null}); // 클릭한 마커의 위치 및 정보
 const existingMarkers = ref([]); // 기존 마커 정보를 저장하는 배열
 const isMarkerVisible = ref(true); // 마커의 표시 여부
-const MARKER_CHECK_RADIUS = 30; // 마커 클릭 감지 반경
+const MARKER_CHECK_RADIUS = 11; // 마커 클릭 감지 반경
 const MARKER_SCALE_FACTOR = 14; // 마커 이미지 크기 조정 비율
 
 // CP 관련 변수
@@ -118,8 +118,8 @@ const handlePdfClick = (event) => {
   const y = event.offsetY;
 
   const existingMarker = cpOpinionLocationList.value.find(marker => {
-    return Math.abs(marker.cpOpinionLocationX - x) < MARKER_CHECK_RADIUS &&
-        Math.abs(marker.cpOpinionLocationY - y) < MARKER_CHECK_RADIUS;
+    return Math.abs(marker.cpOpinionLocationX - x) < MARKER_CHECK_RADIUS
+        && Math.abs(marker.cpOpinionLocationY - y) < MARKER_CHECK_RADIUS;
   });
 
   if (existingMarker) {
@@ -202,7 +202,7 @@ async function loadPage(pdfUrlToLoad) {
     const pdf = await pdfjsLib.getDocument(pdfUrlToLoad).promise;
     totalPages.value = pdf.numPages;
     const page = await pdf.getPage(currentPage.value);
-    const viewport = page.getViewport({ scale: 1 });
+    const viewport = page.getViewport({scale: 1});
 
     // 캔버스 크기 설정
     pdfCanvas.value.width = CANVAS_WIDTH;
@@ -214,7 +214,7 @@ async function loadPage(pdfUrlToLoad) {
 
     const renderContext = {
       canvasContext: pdfCanvas.value.getContext('2d'),
-      viewport: page.getViewport({ scale }), // 스케일 적용
+      viewport: page.getViewport({scale}), // 스케일 적용
     };
 
     await page.render(renderContext).promise;
