@@ -64,6 +64,9 @@ export const useAuthStore = defineStore('auth', () => {
             console.log("[AuthStore] userRole:" , userRole.value);
             console.log("[AuthStore] userSeq:" , userSeq.value);
         }
+
+        localStorage.setItem('userRole', userRole.value);
+        localStorage.setItem('userSeq', userSeq.value);
     }
 
     function setUserInfo(data) {
