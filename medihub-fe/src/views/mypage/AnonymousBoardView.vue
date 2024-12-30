@@ -7,67 +7,50 @@ const posts = ref([]);
 const filteredPosts = ref([]); // 필터링된 게시물 저장
 const currentPage = ref(1);
 const itemsPerPage = 5;
-const currentFilter = ref("");
+const currentFilter = ref("myPosts");
 
 // 내가 쓴 게시물 가져오기
 const fetchMyPosts = async () => {
   try {
-    const response = await axios.get("anonymous-board/myPage\n", {
-      headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
-    });
-
-    posts.value = response.data.data.map((post) => {
-      const parsedContent = parseMedicalLifeContent(post.anonymousBoardContent);
-      return {
-        title: post.anonymousBoardTitle,
-        content: parsedContent,
-        author: post.userName,
-        date: new Date(post.createdAt).toLocaleDateString(),
-        bookmarked: post.bookmarked,
-      };
-    });
-
-    filteredPosts.value = [...posts.value]; // 필터링된 게시물 초기화
+    const response = await axios.get("/anonymous-board/myPage"); // API 호출
+    posts.value = response.data.data.map((post) => ({
+      title: post.anonymousBoardTitle,
+      content: post.anonymousBoardContent,
+      viewCount: post.anonymousBoardViewCount,
+      date: new Date(post.createdAt).toLocaleDateString("ko-KR"),
+    }));
+    filteredPosts.value = [...posts.value]; // 필터링 초기화
   } catch (error) {
-    console.error("내 익명게시판 불러오기 실패:", error);
+    console.error("내 메디컬 라이프 불러오기 실패:", error);
   }
 };
 
 // 내가 북마크한 게시물 가져오기
 const fetchBookmarkedPosts = async () => {
   try {
-    const response = await axios.get("anonymous-board/myPage/bookmark", {
-      headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
-    });
-
-    console.log("북마크 데이터 확인:", response.data.data); // 데이터 구조 확인
-
-    posts.value = response.data.data.map((post) => {
-      const parsedContent = parseMedicalLifeContent(post.anonymousBoardContent);
-      return {
-        title: post.anonymousBoardTitle,
-        content: parsedContent,
-        author: post.userName,
-        date: new Date(post.createdAt).toLocaleDateString(),
-        bookmarked: post.bookmarked,
-      };
-    });
-
-    filteredPosts.value = [...posts.value]; // 필터링된 게시물 초기화
+    const response = await axios.get("/anonymous-board/myPage/bookmark"); // API 호출
+    posts.value = response.data.data.map((post) => ({
+      title: post.anonymousBoardTitle,
+      content: post.anonymousBoardContent,
+      viewCount: post.anonymousBoardViewCount,
+      date: new Date(post.createdAt).toLocaleDateString("ko-KR"),
+    }));
+    filteredPosts.value = [...posts.value]; // 필터링 초기화
   } catch (error) {
-    console.error("북마크된 게시물 불러오기 실패:", error);
+    console.error("북마크된 메디컬 라이프 가져오기 실패:", error);
   }
 };
 
-const parseMedicalLifeContent = (content) => {
+// 텍스트만 추출하는 함수
+const extractText = (content) => {
   try {
     const parsedContent = JSON.parse(content);
-    const textBlocks = parsedContent.blocks
-        .filter((block) => block.type === "paragraph")
-        .map((block) => block.data.text);
-    return textBlocks.join(" ");
+    return parsedContent.blocks
+        .filter((block) => block.type === "paragraph") // 'paragraph' 블록만 추출
+        .map((block) => block.data.text) // 텍스트 데이터만 가져옴
+        .join(" "); // 텍스트 합치기
   } catch (error) {
-    console.error("콘텐츠 파싱 실패:", error);
+    console.error("내용 파싱 실패:", error);
     return "내용 없음";
   }
 };
@@ -79,7 +62,9 @@ const paginatedPosts = computed(() => {
 });
 
 // 총 페이지 계산
-const totalPages = computed(() => Math.ceil(filteredPosts.value.length / itemsPerPage));
+const totalPages = computed(() =>
+    Math.ceil(filteredPosts.value.length / itemsPerPage)
+);
 
 // 페이지 변경
 const changePage = (page) => {
@@ -102,11 +87,6 @@ const filterByBookmarks = () => {
   currentPage.value = 1;
 };
 
-const truncateText = (text, maxLength) => {
-  if (!text) return "내용 없음";
-  return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
-};
-
 // 초기 데이터 로드
 onMounted(fetchMyPosts);
 </script>
@@ -114,13 +94,13 @@ onMounted(fetchMyPosts);
 <template>
   <div class="d-flex">
     <!-- 사이드바 -->
-    <Sidebar/>
+    <Sidebar />
 
     <!-- 메인 콘텐츠 -->
     <div class="content-container flex-grow-1">
-      <h3 class="title">My AnonymousBoard</h3>
+      <h3 class="title">My Medical-Life</h3>
 
-      <!-- 필터 및 북마크 버튼 -->
+      <!-- 필터 버튼 -->
       <div class="filter-buttons">
         <button
             class="filter-btn"
@@ -145,20 +125,16 @@ onMounted(fetchMyPosts);
           <tr>
             <th>제목</th>
             <th>내용</th>
-            <th>작성자</th>
             <th>작성일</th>
+            <th>조회수</th>
           </tr>
           </thead>
           <tbody>
           <tr v-for="(post, index) in paginatedPosts" :key="index">
-            <td :title="post.title">
-              {{ truncateText(post.content, 5) }}
-            </td>
-            <td :content="post.content">
-              {{ truncateText(post.content, 20) }}
-            </td>
-            <td>{{ post.author }}</td>
+            <td>{{ post.title }}</td>
+            <td>{{ post.content }}</td>
             <td>{{ post.date }}</td>
+            <td>{{ post.viewCount }}</td>
           </tr>
           </tbody>
         </table>
@@ -209,7 +185,7 @@ onMounted(fetchMyPosts);
 }
 
 .title {
-  font-size: 2rem;
+  font-size: 2.5rem;
   color: #333;
   margin-bottom: 20px;
 }
@@ -252,7 +228,7 @@ onMounted(fetchMyPosts);
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 }
 .custom-table th,
 .custom-table td {

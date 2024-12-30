@@ -57,6 +57,7 @@
         <div class="col-md-6 mb-3">
           <label for="partSeq" class="form-label">과</label>
           <select class="form-select" v-model="form.partSeq">
+            <option disabled value="">과를 선택해주세요</option>
             <option v-for="part in filteredParts" :key="part.partSeq" :value="part.partSeq">
               {{ part.partName }}
             </option>
@@ -65,7 +66,8 @@
         <div class="col-md-6 mb-3">
           <label for="rankingSeq" class="form-label">직급</label>
           <select class="form-select" v-model="form.rankingSeq">
-            <option v-for="rank in rankings" :key="rank.rankingSeq" :value="rank.rankingSeq">
+            <option disabled value="">직급을 선택해주세요</option>
+            <option v-for="rank in filteredRankings" :key="rank.rankingSeq" :value="rank.rankingSeq">
               {{ rank.rankingName }}
             </option>
           </select>
@@ -103,6 +105,7 @@ const parts = ref([]);
 const rankings = ref([]);
 const profileImage = ref(null);
 const profilePreview = ref("");
+const filteredRankings = ref([]);
 
 // **과 필터링**: form.value.deptSeq에 맞는 과만 표시
 const filteredParts = computed(() => {
@@ -130,22 +133,46 @@ const resetPassword = async () => {
   }
 };
 
+const fetchRankingsByDept = async (deptSeq) => {
+  try {
+    const response = await axios.get(`/api/v1/ranking/by-dept/${deptSeq}`);
+    filteredRankings.value = response.data.data;
+  } catch (error) {
+    console.error("부서별 직급 조회 실패:", error);
+    filteredRankings.value = [];
+  }
+};
+
 // 데이터 불러오기
 const fetchData = async () => {
   try {
-    const [userRes, partRes, rankRes] = await Promise.all([
-      axios.get(`/api/v1/admin/users/${userSeq}`),
-      axios.get("/api/v1/part"),
-      axios.get("/api/v1/ranking"),
+    const [userRes, partRes] = await Promise.all([
+      axios.get(`/api/v1/admin/users/${userSeq}`), // 사용자 정보
+      axios.get("/api/v1/part"), // 과 정보
     ]);
 
     form.value = userRes.data.data;
+    form.value.partSeq = userRes.data.data.partSeq || "";
+    form.value.rankingSeq = userRes.data.data.rankingSeq || "";
     profilePreview.value = userRes.data.data.profileImage || "";
-    parts.value = partRes.data.data; // 전체 파트 데이터
-    rankings.value = rankRes.data.data; // 직급 데이터
+
+    parts.value = partRes.data.data;
+
+    // 선택된 부서에 맞는 직급 로드
+    if (form.value.deptSeq) {
+      await fetchRankingsByDept(form.value.deptSeq);
+    }
   } catch (error) {
     console.error("데이터 불러오기 실패:", error);
     alert("회원 정보를 불러오는 데 실패했습니다.");
+  }
+};
+
+const handleDeptChange = async () => {
+  if (form.value.deptSeq) {
+    await fetchRankingsByDept(form.value.deptSeq);
+  } else {
+    filteredRankings.value = [];
   }
 };
 

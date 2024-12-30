@@ -3,58 +3,41 @@ import { ref, computed, onMounted } from "vue";
 import axios from "axios";
 import Sidebar from "@/components/user/MyPage.vue";
 
-const posts = ref([]);
+const caseSharingPosts = ref([]); // 전체 게시물 데이터 저장
 const filteredPosts = ref([]); // 필터링된 게시물 저장
-const currentPage = ref(1);
-const itemsPerPage = 5;
-const currentFilter = ref("");
+const currentPage = ref(1); // 현재 페이지
+const itemsPerPage = 5; // 페이지당 항목 수
+const currentFilter = ref("myPosts"); // 현재 필터 상태 ("myPosts" 또는 "bookmarks")
 
-// 내가 쓴 게시물 가져오기
+// 내가 작성한 케이스 공유 데이터 가져오기
 const fetchMyPosts = async () => {
   try {
-    const response = await axios.get("/case_sharing/my", {
-    });
-
-    posts.value = response.data.data.map((post) => {
-      const parsedContent = parseMedicalLifeContent(post.caseSharingContent);
-      return {
-        title: post.caseSharingTitle,
-        content: parsedContent,
-        author: post.userName,
-        date: new Date(post.createdAt).toLocaleDateString(),
-        bookmarked: post.bookmarked,
-      };
-    });
-
-    filteredPosts.value = [...posts.value]; // 필터링된 게시물 초기화
+    const response = await axios.get("/case_sharing/my"); // API 호출
+    caseSharingPosts.value = response.data.data.map((post) => ({
+      title: post.caseSharingTitle, // 제목
+      date: new Date(post.regDate).toLocaleDateString(), // 작성일자
+      viewCount: post.caseSharingViewCount, // 조회수
+    }));
+    filteredPosts.value = [...caseSharingPosts.value]; // 필터링 초기화
   } catch (error) {
-    console.error("내 케이스 공유 불러오기 실패:", error);
+    console.error("내 케이스 공유 가져오기 실패:", error);
   }
 };
 
-// 내가 북마크한 게시물 가져오기
+// 내가 북마크한 케이스 공유 데이터 가져오기
 const fetchBookmarkedPosts = async () => {
   try {
-    const response = await axios.get("/case-sharing/my/bookmark", {
-      headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
-    });
-
-    console.log("북마크 데이터 확인:", response.data.data); // 데이터 구조 확인
-
-    posts.value = response.data.data.map((post) => {
-      const parsedContent = parseMedicalLifeContent(post.caseSharingContent);
-      return {
-        title: post.caseSharingTitle,
-        content: parsedContent,
-        author: post.userName,
-        date: new Date(post.createdAt).toLocaleDateString(),
-        bookmarked: post.bookmarked,
-      };
-    });
-
-    filteredPosts.value = [...posts.value]; // 필터링된 게시물 초기화
+    const response = await axios.get("/case_sharing/my/bookmark"); // API 호출
+    caseSharingPosts.value = response.data.data.map((post) => ({
+      title: post.caseSharingTitle, // 제목
+      author: post.caseAuthor, // 작성자
+      authorRank: post.caseAuthorRankName, // 작성자 직위
+      date: new Date(post.regDate).toLocaleDateString(), // 작성일자
+      viewCount: post.caseSharingViewCount,
+    }));
+    filteredPosts.value = [...caseSharingPosts.value]; // 필터링 초기화
   } catch (error) {
-    console.error("북마크된 게시물 불러오기 실패:", error);
+    console.error("북마크된 케이스 공유 가져오기 실패:", error);
   }
 };
 
@@ -71,14 +54,16 @@ const parseMedicalLifeContent = (content) => {
   }
 };
 
-// 페이지네이션 데이터
+// 페이지네이션 데이터 계산
 const paginatedPosts = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage;
   return filteredPosts.value.slice(start, start + itemsPerPage);
 });
 
-// 총 페이지 계산
-const totalPages = computed(() => Math.ceil(filteredPosts.value.length / itemsPerPage));
+// 총 페이지 수 계산
+const totalPages = computed(() =>
+    Math.ceil(filteredPosts.value.length / itemsPerPage)
+);
 
 // 페이지 변경
 const changePage = (page) => {
@@ -88,38 +73,34 @@ const changePage = (page) => {
 };
 
 // 조회 버튼 클릭
-const filterByMyPosts = () => {
-  currentFilter.value = "myPosts";
-  fetchMyPosts(); // 내가 쓴 게시물 API 호출
-  currentPage.value = 1;
+const filterByMyPosts = async () => {
+  currentFilter.value = "myPosts"; // 현재 필터 설정
+  await fetchMyPosts(); // 내가 쓴 게시물 데이터 가져오기
+  currentPage.value = 1; // 페이지 초기화
 };
 
 // 북마크 버튼 클릭
-const filterByBookmarks = () => {
-  currentFilter.value = "bookmarks";
-  fetchBookmarkedPosts(); // 북마크된 게시물 API 호출
-  currentPage.value = 1;
-};
-
-const truncateText = (text, maxLength) => {
-  if (!text) return;
-  return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
+const filterByBookmarks = async () => {
+  currentFilter.value = "bookmarks"; // 현재 필터 설정
+  await fetchBookmarkedPosts(); // 북마크된 게시물 데이터 가져오기
+  currentPage.value = 1; // 페이지 초기화
 };
 
 // 초기 데이터 로드
 onMounted(fetchMyPosts);
+
 </script>
 
 <template>
   <div class="d-flex">
     <!-- 사이드바 -->
-    <Sidebar/>
+    <Sidebar />
 
     <!-- 메인 콘텐츠 -->
     <div class="content-container flex-grow-1">
       <h3 class="title">MY CaseSharing</h3>
 
-      <!-- 필터 및 북마크 버튼 -->
+      <!-- 필터 버튼 -->
       <div class="filter-buttons">
         <button
             class="filter-btn"
@@ -143,21 +124,19 @@ onMounted(fetchMyPosts);
           <thead>
           <tr>
             <th>제목</th>
-            <th>내용</th>
-            <th>작성자</th>
-            <th>작성일</th>
+            <th v-if="currentFilter === 'bookmarks'">작성자</th>
+            <th v-if="currentFilter === 'bookmarks'">직위</th>
+            <th>작성일자</th>
+            <th v-if="currentFilter === 'myPosts' || currentFilter === 'bookmarks'">조회수</th>
           </tr>
           </thead>
           <tbody>
           <tr v-for="(post, index) in paginatedPosts" :key="index">
-            <td :title="post.title">
-              {{ truncateText(post.content, 5) }}
-            </td>
-            <td :content="post.content">
-              {{ truncateText(post.content, 20) }}
-            </td>
-            <td>{{ post.author }}</td>
+            <td>{{ post.title }}</td>
+            <td v-if="currentFilter === 'bookmarks'">{{ post.author }}</td>
+            <td v-if="currentFilter === 'bookmarks'">{{ post.authorRank }}</td>
             <td>{{ post.date }}</td>
+            <td>{{ post.viewCount }}</td> <!-- 조회수는 항상 표시 -->
           </tr>
           </tbody>
         </table>
@@ -195,7 +174,9 @@ onMounted(fetchMyPosts);
       </div>
     </div>
   </div>
+
 </template>
+
 
 <style scoped>
 .d-flex {
@@ -208,7 +189,7 @@ onMounted(fetchMyPosts);
 }
 
 .title {
-  font-size: 2rem;
+  font-size: 2.5rem;
   color: #333;
   margin-bottom: 20px;
 }
@@ -251,7 +232,7 @@ onMounted(fetchMyPosts);
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 }
 .custom-table th,
 .custom-table td {

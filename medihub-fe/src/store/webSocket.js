@@ -65,7 +65,6 @@ export const useWebSocketStore = defineStore('webSocket', ws => {
         stompClient.value.activate(); // WebSocket 연결 활성화
     }
 
-
     // 사용자가 참여하고 있는 채팅방 조회 후 구독 요청
     const getUserChatrooms = async () => {
         try {
@@ -83,6 +82,9 @@ export const useWebSocketStore = defineStore('webSocket', ws => {
                 const chatroomSeq = chatroom.chatroomSeq;
                 subscribeChatroom(chatroomSeq);     // 채팅방 구독 요청
             });
+
+            userChatrooms.sort((a,b) => new Date(b.lastMessageTime) - new Date(a.lastMessageTime));
+            chatStore.setChatrooms(userChatrooms);
         } catch (error) {
             console.error("채팅방 목록을 가져오는 데 실패했습니다:", error);
             alert("채팅방 목록을 가져오는 데 실패했습니다. 다시 시도해주세요.");

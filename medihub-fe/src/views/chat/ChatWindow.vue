@@ -1,8 +1,11 @@
 <script setup>
 import { ref } from 'vue';
+import { useAuthStore } from "@/store/authStore.js";
 import Organization from "@/components/chat/Organization.vue";
 import ChatroomList from "@/components/chat/ChatroomList.vue";
 import FileBox from "@/components/chat/FileBox.vue";
+
+const authStore = useAuthStore();
 
 // 채팅창 상태 관리
 const isChatOpen = ref(true);     // 채팅창 열기/닫기 상태
@@ -91,7 +94,7 @@ const stopDrag = () => {
   <div v-if="isChatOpen" class="chat-window" @mousedown="startDrag">
     <header class="chat-header">
       <div class="chat-header-profile">
-        <img src="@/assets/images/chat/profile.png" alt="Organization">
+        <img :src="authStore.userInfo.profileImage || '@/assets/images/chat/default-profile.png'" alt="profile">
       </div>
       <div class="chat-header-menu">
         <button
@@ -143,7 +146,7 @@ const stopDrag = () => {
 .chat-header {
   display: flex;
   flex-direction: column;
-  padding: 5px;
+  padding: 8px;
   background: linear-gradient(to right, #1A2F69, #3A4F89, #5A6FA9);
   color: white;
   border-top-left-radius: 2px;
@@ -185,6 +188,7 @@ const stopDrag = () => {
 .chat-header-profile img {
   width: 45px;
   height: 45px;
+  border-radius: 50%;
 }
 
 .chat-header-menu button img {
@@ -197,7 +201,6 @@ const stopDrag = () => {
   height: 45px;
 }
 
-/* 버튼이 활성화된 경우 스타일 */
 .chat-header-menu button.active {
   background-color: #FFC653;
   border-radius: 5px;
@@ -209,7 +212,6 @@ const stopDrag = () => {
   overflow-y: auto;
 }
 
-/* 닫기 버튼 (X 버튼) */
 .close-button {
   position: absolute;
   top: 10px;

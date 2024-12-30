@@ -1,14 +1,41 @@
-name: Slack Notification
+name: CI/CD
  
 on:
   pull_request:
     branches: [ "master", "develop" ]
- 
+    paths:
+      - medihub-fe/**
+
+env:
+  NODE_VERSION: 18
+
 jobs:
-  build:
+  # 빌드 테스트
+  ci:
     runs-on: ubuntu-latest
+
+    # steps에 대한 기본 작업 디렉토리 설정
+    defaults:
+      run:
+        working-directory: ./medihub-fe
+
     steps:
-    - name: action-slack
+    - uses: actions/checkout@v4
+
+    - name: Node.js 세팅
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: npm
+        cache-dependency-path: medihub-fe/package-lock.json # 캐시 기능 사용시 기준 파일
+
+    - name: 의존성 설치
+      run: npm install
+
+    - name: 빌드
+      run: npm run build
+
+    - name: PR 생성 알림 (Slack)
       uses: 8398a7/action-slack@v3
       with:
         status: ${{ job.status }}
@@ -18,3 +45,45 @@ jobs:
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       if: always()
+
+  # CD - 배포
+  deploy:
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop'  # master 또는 develop 브랜치에서만 실행
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: AWS 설정
+        uses: aws-actions/configure-aws-credentials@1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 배포 전 빌드
+        run: npm run build
+
+      - name: S3에 배포
+        run: |
+          if [[ $GITHUB_REF == 'refs/heads/develop' ]]; then
+            aws s3 sync ./dist/ ${{ secrets.S3_URI_DEV }} --delete
+          elif [[ $GITHUB_REF == 'refs/heads/master' ]]; then
+            aws s3 sync ./dist/ ${{ secrets.S3_URI_PROD }} --delete
+          fi
+
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      # Slack 알림
+      - name: 배포 알림 (Slack)
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          author_name: www-be
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+          if_mention: failure,cancelled
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()
