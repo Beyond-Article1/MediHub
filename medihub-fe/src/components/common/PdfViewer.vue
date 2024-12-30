@@ -1,7 +1,6 @@
 <script setup>
-import {onMounted, ref, watch, defineProps} from 'vue';
-import {useRoute} from "vue-router";
-
+import { onMounted, ref, watch, defineProps } from 'vue';
+import { useRoute } from "vue-router";
 import axios from "axios";
 import * as pdfjsLib from 'pdfjs-dist';
 
@@ -24,35 +23,30 @@ const props = defineProps({
 const route = useRoute();
 
 // PDF 관련 변수
-const currentPage = ref(1);           // 현재 페이지
-const totalPages = ref(0);            // 전체 페이지
-const pdfCanvas = ref(null);          // PDF 뷰어
-const isMarkerEnabled = ref(false);   // 마커 기능 활성 상태
-let isRendering = false;                    // 렌더링 상태
-const clickedMarkerData = ref({x: null, y: null, cpOpinionLocationSeq: null}); // 기본값 설정
-const existingMarkers = ref([]); // 이미 추가된 마커 목록
+const currentPage = ref(1);
+const totalPages = ref(0);
+const pdfCanvas = ref(null);
+const isMarkerEnabled = ref(false);
+let isRendering = false;
+const clickedMarkerData = ref({ x: null, y: null, cpOpinionLocationSeq: null });
+const existingMarkers = ref([]);
 
-// DB 조회 정보 변수
-const cpOpinionLocationList = ref([]);    // 위치 정보
-const objectCpVersionList = ref([]);      // 버전 정보
-const varCpVersionList = ref([]);         // cpVersionList 객체어서 버전 정보만 저장한 리스트
-const selectedCpVersion = ref('');        // 선택된 버전 정보
+const cpOpinionLocationList = ref([]);
+const objectCpVersionList = ref([]);
+const varCpVersionList = ref([]);
+const selectedCpVersion = ref('');
 
-// 모달 관련 변수
 const isOpen = ref(false);
 const isModalVisible = ref(false);
 
-// 상수
-const MARKER_CHECK_RADIUS = 30;   // 주변 마커 감지 거리
-const MARKER_SCALE_FACTOR = 14;   // 마커의 크기를 조졀할 때 사용
+const MARKER_CHECK_RADIUS = 30;
+const MARKER_SCALE_FACTOR = 14;
 
-// Web Worker 경로 설정
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
 
-// 마운트 시, 실행 함수
 onMounted(async () => {
   pdfCanvas.value = document.getElementById('pdf-canvas');
-  fetchCpOpinionLocationData();
+  fetchCpOpinionLocationData(null);
   fetchCpVersion();
   pdfCanvas.value.addEventListener('click', handlePdfClick);
 });
@@ -74,62 +68,63 @@ watch(currentPage, async () => {
   }
 });
 
-// 클릭 이벤트 핸들러 정의
+// 버전 변화 감지
+watch(selectedCpVersion, async () => {
+  console.log("버전 변화 감지");
+  try {
+    const response = await axios.get(`cp/${route.params.cpVersionSeq}?cpVersion=${selectedCpVersion.value}`)
+
+    if (response.status === 200) {
+      console.log(response.data.data);
+      currentPage.value = 1;
+      const newUrl = response.data.data.cpUrl;
+      await fetchCpOpinionLocationData(response.data.data.cpVersionSeq);
+      await loadPage(newUrl);
+      setMarkerOnPDF();
+    }
+  } catch (error) {
+    console.error("다른 버전 조회 시 에러 발생");
+  }
+})
+
 const handlePdfClick = (event) => {
-  const rect = pdfCanvas.value.getBoundingClientRect();
   const x = event.offsetX;
   const y = event.offsetY;
 
-  // 클릭된 위치에 마커가 이미 있는지 확인
   const existingMarker = cpOpinionLocationList.value.find(marker => {
-    // console.log(`marker.cpOpinionLocationX = ${marker.cpOpinionLocationX}`);
-    // console.log(`x = ${x}`);
-    // console.log(`marker.cpOpinionLocationY = ${marker.cpOpinionLocationY}`);
-    // console.log(`y = ${y}`);
-    return Math.abs(marker.cpOpinionLocationX - x) < MARKER_CHECK_RADIUS && Math.abs(marker.cpOpinionLocationY - y) < MARKER_CHECK_RADIUS;
+    return Math.abs(marker.cpOpinionLocationX - x) < MARKER_CHECK_RADIUS &&
+        Math.abs(marker.cpOpinionLocationY - y) < MARKER_CHECK_RADIUS;
   });
 
   if (existingMarker) {
-    // 기존 마커 정보를 가져옴
     console.log("기존 위치에 마커가 존재합니다.");
-
-    const markerData = existingMarker; // 기존 마커 데이터
-    console.log(markerData.cpOpinionLocationSeq);
     clickedMarkerData.value = {
       x,
       y,
-      cpOpinionLocationSeq: markerData.cpOpinionLocationSeq // 기존 값으로 설정
+      cpOpinionLocationSeq: existingMarker.cpOpinionLocationSeq
     };
-    console.log("마커가 존재하는 위치입니다. 모달을 엽니다.");
     isModalVisible.value = true; // 모달 열기
   } else {
     console.log("새로운 위치 입니다.");
-
     if (isMarkerEnabled.value) {
       addMarker(x, y);
-      // 클릭된 마커에 대한 데이터 설정
-      clickedMarkerData.value = {x, y, cpOpinionLocationSeq: -1}; // 추가 데이터 설정 가능
+      clickedMarkerData.value = { x, y, cpOpinionLocationSeq: -1 };
       isModalVisible.value = true; // 모달 열기
     }
   }
 };
 
-// PDF 위에 마커 마킹 함수
 function setMarkerOnPDF() {
   if (cpOpinionLocationList.value.length > 0) {
     const ctx = pdfCanvas.value.getContext('2d');
-
     cpOpinionLocationList.value.forEach(location => {
-      const {cpOpinionLocationPageNum, cpOpinionLocationX, cpOpinionLocationY} = location;
-
+      const { cpOpinionLocationPageNum, cpOpinionLocationX, cpOpinionLocationY } = location;
       if (cpOpinionLocationPageNum === currentPage.value) {
         const markerImage = new Image();
         markerImage.src = '/icons/marker.png';
-
         markerImage.onload = () => {
           const markerWidth = markerImage.width / MARKER_SCALE_FACTOR;
           const markerHeight = markerImage.height / MARKER_SCALE_FACTOR;
-
           ctx.drawImage(markerImage,
               cpOpinionLocationX - (markerWidth / 2),
               cpOpinionLocationY - (markerHeight / 2),
@@ -141,13 +136,11 @@ function setMarkerOnPDF() {
   }
 }
 
-// 페이지 로드 함수
 async function loadPage(pdfUrlToLoad) {
   if (!pdfUrlToLoad) {
     console.error("PDF URL이 제공되지 않았습니다.");
     return;
   }
-
   if (isRendering) return;
 
   isRendering = true;
@@ -155,7 +148,7 @@ async function loadPage(pdfUrlToLoad) {
     const pdf = await pdfjsLib.getDocument(pdfUrlToLoad).promise;
     totalPages.value = pdf.numPages;
     const page = await pdf.getPage(currentPage.value);
-    const viewport = page.getViewport({scale: 1.14});
+    const viewport = page.getViewport({ scale: 1.14 });
 
     pdfCanvas.value.width = viewport.width;
     pdfCanvas.value.height = viewport.height;
@@ -173,7 +166,6 @@ async function loadPage(pdfUrlToLoad) {
   }
 }
 
-// 마커 추가 함수
 function addMarker(x, y) {
   const markerImage = new Image();
   markerImage.src = '/icons/marker.png';
@@ -205,42 +197,42 @@ function addMarker(x, y) {
   console.log(existingMarkers.value);
 }
 
-// PDF 이전 페이지 이동 함수
 function goToPreviousPage() {
   if (currentPage.value > 1) {
     currentPage.value--;
   }
 }
 
-// DPF 이후 페이지 이동 함수
 function goToNextPage() {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
   }
 }
 
-// 마커 활성 변환 함수
 function handleMakerToggle() {
   isMarkerEnabled.value = !isMarkerEnabled.value;
 }
 
-// 클릭 여부 확인 함수
 function handleButtonClick(text) {
   console.log(`${text} 클릭`);
 }
 
 // 위치 정보 호출 함수
-async function fetchCpOpinionLocationData() {
+async function fetchCpOpinionLocationData(cpVersionSeq) {
+  if (cpVersionSeq === null) {
+    console.log("null 입니다.");
+    return;
+  }
+
   try {
-    const response = await axios.get(`cp/${useRoute().params.cpVersionSeq}/cpOpinionLocation`);
+    const response = await axios.get(`cp/${cpVersionSeq}/cpOpinionLocation`);
 
     if (response.status === 200) {
       cpOpinionLocationList.value = response.data.data;
       console.log("위치 조회 성공");
       console.log(cpOpinionLocationList.value);
-      console.log("존재하는 위치 리스트 정보");
       existingMarkers.value = cpOpinionLocationList.value;
-      console.log(existingMarkers.value);
+      console.log("존재하는 위치 리스트 정보", existingMarkers.value);
     } else {
       console.log("CP 의견 위치 조회 실패");
     }
@@ -252,7 +244,7 @@ async function fetchCpOpinionLocationData() {
 // 버전 정보 호출 함수
 async function fetchCpVersion() {
   try {
-    const response = await axios.get(`cp/${useRoute().params.cpVersionSeq}/cpVersion`);
+    const response = await axios.get(`cp/${route.params.cpVersionSeq}/cpVersion`);
 
     if (response.status === 200) {
       objectCpVersionList.value = response.data.data;
@@ -353,16 +345,20 @@ async function fetchCpVersion() {
   flex-grow: 1; /* 가능한 공간을 모두 차지하도록 설정 */
   position: relative; /* 드롭다운을 절대 위치로 만들기 위해 상대 위치 설정 */
   margin-left: 20px; /* 미니 버튼과의 간격 조정 */
+  width: 100%; /* 고정된 너비 설정 */
+  max-width: 1200px; /* 최대 너비 설정 */
 }
 
 .dropdown-container {
-  margin: 10px 0; /* 드롭박스와 PDF 뷰어 사이의 여백 */
+  margin: 2% 0; /* 드롭박스와 PDF 뷰어 사이의 여백 */
   z-index: 10; /* 다른 요소 위에 표시되도록 */
+  width: 100%; /* 드롭박스가 부모 요소의 너비를 가득 채우도록 설정 */
+  max-width: 150px; /* 최대 너비 설정 */
 }
 
 .pdf-canvas {
   border: 1px solid #ccc;
-  width: 90%; /* 캔버스 너비를 90%로 설정 */
+  width: 100%; /* 캔버스 너비를 100%로 설정 */
   max-width: 1200px; /* 최대 너비 설정 */
   height: auto; /* 높이를 자동으로 설정 */
 }
