@@ -1,6 +1,6 @@
 <script setup>
-import { onMounted, ref, watch, defineProps } from 'vue';
-import { useRoute } from "vue-router";
+import {onMounted, ref, watch, defineProps} from 'vue';
+import {useRoute} from "vue-router";
 import axios from "axios";
 import * as pdfjsLib from 'pdfjs-dist';
 
@@ -28,7 +28,7 @@ const totalPages = ref(0);
 const pdfCanvas = ref(null);
 const isMarkerEnabled = ref(false);
 let isRendering = false;
-const clickedMarkerData = ref({ x: null, y: null, cpOpinionLocationSeq: null });
+const clickedMarkerData = ref({x: null, y: null, cpOpinionLocationSeq: null});
 const existingMarkers = ref([]);
 
 const cpOpinionLocationList = ref([]);
@@ -66,6 +66,7 @@ watch(currentPage, async () => {
   if (props.pdfUrl) {
     await loadPage(props.pdfUrl);
     setMarkerOnPDF();
+    handleBookmark();
   }
 });
 
@@ -110,7 +111,7 @@ const handlePdfClick = (event) => {
     console.log("새로운 위치 입니다.");
     if (isMarkerEnabled.value) {
       addMarker(x, y);
-      clickedMarkerData.value = { x, y, cpOpinionLocationSeq: -1 };
+      clickedMarkerData.value = {x, y, cpOpinionLocationSeq: -1};
       isModalVisible.value = true; // 모달 열기
     }
   }
@@ -121,7 +122,7 @@ function setMarkerOnPDF() {
   if (cpOpinionLocationList.value.length > 0) {
     const ctx = pdfCanvas.value.getContext('2d');
     cpOpinionLocationList.value.forEach(location => {
-      const { cpOpinionLocationPageNum, cpOpinionLocationX, cpOpinionLocationY } = location;
+      const {cpOpinionLocationPageNum, cpOpinionLocationX, cpOpinionLocationY} = location;
       if (cpOpinionLocationPageNum === currentPage.value) {
         const markerImage = new Image();
         markerImage.src = '/icons/marker.png';
@@ -139,6 +140,31 @@ function setMarkerOnPDF() {
   }
 }
 
+async function handleBookmark() {
+  if (props.data.bookmarked) {
+    props.data.bookmarked = false;
+    await sendTogglingBookmark();
+  } else {
+    props.data.bookmarked = true;
+    await sendTogglingBookmark();
+  }
+}
+
+// 북마크 토글링 요청 함수
+async function sendTogglingBookmark() {
+  try {
+    const cpVersionSeq = Number.parseFloat(props.data.cpVersionSeq);
+    const response = await axios.post(`cp/bookmark/${cpVersionSeq}`);
+
+    if (response.status === 200) {
+      console.log("북마크 토글링 성공");
+    }
+  } catch (error) {
+    console.error("북마크 토글링 실패");
+    console.error(error);
+  }
+}
+
 // PDF 로드 함수
 async function loadPage(pdfUrlToLoad) {
   if (!pdfUrlToLoad) {
@@ -152,7 +178,7 @@ async function loadPage(pdfUrlToLoad) {
     const pdf = await pdfjsLib.getDocument(pdfUrlToLoad).promise;
     totalPages.value = pdf.numPages;
     const page = await pdf.getPage(currentPage.value);
-    const viewport = page.getViewport({ scale: 1.14 });
+    const viewport = page.getViewport({scale: 1.14});
 
     pdfCanvas.value.width = viewport.width;
     pdfCanvas.value.height = viewport.height;
@@ -229,7 +255,7 @@ function handleButtonClick(text) {
 // 위치 정보 호출 함수
 async function fetchCpOpinionLocationData(cpVersionSeq) {
   if (cpVersionSeq === null) {
-    console.log("null 입니다.");
+    console.log("등록된 위치 정보가 없습니다.");
     return;
   }
 
@@ -268,6 +294,33 @@ async function fetchCpVersion() {
     console.error("예기치 못한 오류가 발생했습니다. 에러: ", error);
   }
 }
+
+// 파일 다운로드 함수
+const downloadFile = () => {
+  console.log(`다운로드할 URL: ${props.data.cpUrl}`);
+  const link = document.createElement('a');
+  link.href = props.data.cpUrl; // 데이터 파일의 URL
+  link.download = props.data.cpName; // 다운로드할 때 사용할 파일 이름
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+// 북마크 토글 처리 함수
+async function updateBookmark(cpVersionSeq) {
+  try {
+    const response = await axios.post(`cp/bookmark/${cpVersionSeq}`, {});
+
+    if (response.status === 200) {
+      console.log("북마크 토글 성공");
+      emit('update'); // 데이터 새로고침을 위한 이벤트 발생
+    } else {
+      console.log("북마크 토글 실패");
+    }
+  } catch (error) {
+    console.error("북마크 요청 중 오류 발생: ", error);
+  }
+}
 </script>
 
 <template>
@@ -280,11 +333,18 @@ async function fetchCpVersion() {
         <IconButton class="mini-button" iconClass="bi bi-pencil" @click="handleMakerToggle"/>
       </template>
       <IconButton class="mini-button" iconClass="bi bi-file-earmark-arrow-down"
-                  @click="() => handleButtonClick('다운로드')"/>
+                  @click="() => downloadFile()"/>
       <IconButton class="mini-button" iconClass="bi bi-calendar2-x"
                   @click="() => handleButtonClick('마커제거')"/>
-      <IconButton class="mini-button" iconClass="bi bi-bookmark"
-                  @click="() => handleButtonClick('북마크')"/>
+      <template v-if="props.data.bookmarked">
+        <IconButton class="mini-button active-button" iconClass="bi bi-bookmark"
+                    @click="() => handleBookmark()"/>
+      </template>
+      <template v-else>
+        <IconButton class="mini-button" iconClass="bi bi-bookmark"
+                    @click="() => handleBookmark()"/>
+      </template>
+
       <IconButton class="mini-button" iconClass="bi bi-plus-circle"
                   @click="() => handleButtonClick('확대')"/>
       <IconButton class="mini-button" iconClass="bi bi-dash-circle"
