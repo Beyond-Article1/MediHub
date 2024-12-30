@@ -119,7 +119,8 @@ const filteredUsers = computed(() => {
   return users.value.filter((user) => {
     const matchesDept = !selectedDeptName.value || user.deptName === selectedDeptName.value;
     const matchesPart = !selectedPartSeq.value || user.partName === selectedPartName.value;
-    return matchesDept && matchesPart;
+    const isActive = user.userStatus !== "DELETE";
+    return matchesDept && matchesPart && isActive;
   });
 });
 
