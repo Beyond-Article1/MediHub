@@ -140,7 +140,8 @@ function setMarkerOnPDF() {
   }
 }
 
-async function handleBookmark() {
+// 북마크 버튼 이벤트 함수
+async function updateBookmark() {
   if (props.data.bookmarked) {
     props.data.bookmarked = false;
     await sendTogglingBookmark();
@@ -305,22 +306,6 @@ const downloadFile = () => {
   link.click();
   document.body.removeChild(link);
 };
-
-// 북마크 토글 처리 함수
-async function updateBookmark(cpVersionSeq) {
-  try {
-    const response = await axios.post(`cp/bookmark/${cpVersionSeq}`, {});
-
-    if (response.status === 200) {
-      console.log("북마크 토글 성공");
-      emit('update'); // 데이터 새로고침을 위한 이벤트 발생
-    } else {
-      console.log("북마크 토글 실패");
-    }
-  } catch (error) {
-    console.error("북마크 요청 중 오류 발생: ", error);
-  }
-}
 </script>
 
 <template>
@@ -338,11 +323,11 @@ async function updateBookmark(cpVersionSeq) {
                   @click="() => handleButtonClick('마커제거')"/>
       <template v-if="props.data.bookmarked">
         <IconButton class="mini-button active-button" iconClass="bi bi-bookmark"
-                    @click="() => handleBookmark()"/>
+                    @click="() => updateBookmark()"/>
       </template>
       <template v-else>
         <IconButton class="mini-button" iconClass="bi bi-bookmark"
-                    @click="() => handleBookmark()"/>
+                    @click="() => updateBookmark()"/>
       </template>
 
       <IconButton class="mini-button" iconClass="bi bi-plus-circle"
