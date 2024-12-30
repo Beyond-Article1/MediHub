@@ -283,11 +283,6 @@ function handleMarkerVisualToggle() {
   isMarkerVisible.value = !isMarkerVisible.value;
 }
 
-// 버튼 클릭 확인용 함수
-function handleButtonClick(text) {
-  console.log(`${text} 클릭`);
-}
-
 // 위치 정보 호출 함수
 async function fetchCpOpinionLocationData(cpVersionSeq) {
   if (cpVersionSeq === null) {
@@ -370,11 +365,6 @@ const downloadFile = () => {
         <IconButton class="mini-button" iconClass="bi bi-bookmark"
                     @click="() => updateBookmark()"/>
       </template>
-
-      <IconButton class="mini-button" iconClass="bi bi-plus-circle"
-                  @click="() => handleButtonClick('확대')"/>
-      <IconButton class="mini-button" iconClass="bi bi-dash-circle"
-                  @click="() => handleButtonClick('축소')"/>
     </div>
 
     <div class="pdf-viewer-container">
