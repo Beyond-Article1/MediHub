@@ -80,6 +80,7 @@ const filteredFiles = computed (() =>
 .file-container {
   position: absolute;
   padding: 20px;
+  width: 88%;
   height: 600px;
   display: flex;
   flex-direction: column;
