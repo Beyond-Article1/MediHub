@@ -256,6 +256,7 @@ const connectSSE = () => {
   eventSource.value = new EventSourcePolyfill(sseUrl, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
+      heartbeatTimeout: 60000 // 60초로 설정
     },
   }, {withCredentials: true});
 
