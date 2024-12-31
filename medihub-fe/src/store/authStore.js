@@ -29,6 +29,10 @@ export const useAuthStore = defineStore('auth', () => {
             refreshToken.value = refresh; // Refresh Token을 불러오기
             console.log("onMounted - Refresh Token:", refresh);
         }
+
+        if (access) {
+            fetchUserInfo(); // API를 통해 사용자 정보 불러오기
+        }
     });
 
     // JWT 토큰 디코딩 유틸리티 함수
@@ -44,7 +48,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     // 로그인 처리
-    function login(token, refresh) {
+    async function login(token, refresh) {
         console.log("[AuthStore] 로그인 처리 시작");
         console.log("[AuthStore] AccessToken:", token);
         console.log("[AuthStore] RefreshToken:", refresh);
@@ -61,8 +65,30 @@ export const useAuthStore = defineStore('auth', () => {
         if (payload) {
             userRole.value = payload.auth; // `auth`에서 역할 설정
             userSeq.value = payload.userSeq;
-            console.log("[AuthStore] userRole:" , userRole.value);
-            console.log("[AuthStore] userSeq:" , userSeq.value);
+            console.log("[AuthStore] userRole:", userRole.value);
+            console.log("[AuthStore] userSeq:", userSeq.value);
+        }
+
+        // 로그인 시 사용자 정보 API 호출
+        await fetchUserInfo();
+    }
+
+    // 사용자 정보 API 호출
+    async function fetchUserInfo() {
+        try {
+            const response = await axios.get("/api/v1/users", {
+                headers: {
+                    Authorization: `Bearer ${accessToken.value}`,
+                },
+            });
+
+            if (response.data && response.data.success) {
+                setUserInfo(response.data.data);
+            } else {
+                console.error("[AuthStore] 사용자 정보 가져오기 실패:", response.data.error);
+            }
+        } catch (error) {
+            console.error("[AuthStore] 사용자 정보 API 호출 실패:", error.response || error.message);
         }
     }
 
@@ -125,5 +151,6 @@ export const useAuthStore = defineStore('auth', () => {
         isLogined,
         userInfo,
         setUserInfo,
+        fetchUserInfo,
     };
-})
+});

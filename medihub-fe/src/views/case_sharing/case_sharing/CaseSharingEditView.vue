@@ -149,7 +149,8 @@ const loadDraft = async (draftData) => {
 const saveChanges = async () => {
   try {
     // 1. Editor.js에서 데이터 가져오기
-    const { content } = await caseEditor.value.getEditorData();
+    const editorData = await caseEditor.value.getEditorData();
+    const { content, images } = editorData;
 
     // 2. 새로운 데이터 객체 준비
     const requestDTO = {
@@ -164,7 +165,6 @@ const saveChanges = async () => {
     formDataToSend.append("requestDTO", new Blob([JSON.stringify(requestDTO)], { type: "application/json" }));
 
     // images 배열이 있다면 추가
-    const { images } = await caseEditor.value.getEditorData();
     images.forEach((file, index) => {
       formDataToSend.append("images", file, `img-${index + 1}`);
     });

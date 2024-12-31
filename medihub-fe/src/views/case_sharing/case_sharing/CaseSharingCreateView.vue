@@ -193,11 +193,6 @@ const handleSave = async () => {
     // FormData에 데이터 추가
     formData.append("data", JSON.stringify(data));
 
-    // 이미지 파일 추가
-    images.forEach((file, index) => {
-      formData.append("images", file, `img-${index + 1}`);
-    });
-
     console.log("FormData 전송:", data, images);
 
     // API 호출
