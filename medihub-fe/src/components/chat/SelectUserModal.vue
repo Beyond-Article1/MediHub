@@ -25,9 +25,14 @@ const getUsers = async () => {
   }
 };
 
-const filteredUsers = computed(() =>
-  users.value.filter((user) => user.userSeq !== authStore.userSeq)
-);
+const searchQuery = ref('');  // 검색어
+// 검색어에 따라 필터링된 사용자 목록
+const filteredUsers = computed(() => {
+  return users.value.filter(user =>
+      user.userSeq !== authStore.userSeq &&
+      user.userName.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
+});
 
 // 사용자 선택/해제
 const toggleUserSelection = (user) => {
@@ -46,6 +51,15 @@ onMounted(getUsers);
   <div class="modal-overlay" @click.self="emit('close')">
     <div class="modal-content">
       <h4>대화상대 선택</h4>
+
+      <!-- 검색 입력창 -->
+      <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="이름으로 검색"
+          class="search-input"
+      />
+
       <ul class="user-list">
         <li
           v-for="user in filteredUsers"
@@ -87,6 +101,14 @@ onMounted(getUsers);
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.search-input {
+  width: calc(100% - 20px);
+  padding: 5px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
 }
 
 .modal-content {
