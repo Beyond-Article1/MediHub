@@ -1,3 +1,7 @@
+<script setup>
+
+</script>
+
 <template>
   <div class="action-buttons">
     <button @click="$emit('save')" class="save-btn">저장</button>
