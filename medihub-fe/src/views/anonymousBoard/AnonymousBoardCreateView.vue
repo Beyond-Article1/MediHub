@@ -1,19 +1,21 @@
 <script setup>
 import { ref } from "vue";
+import axios from "axios";
 
+import router from "@/router/index.js";
 import BoardEditor from "@/components/anonymousBoard/AnonymousBoardEditor.vue";
 import BoardKeywordInput from "@/components/anonymousBoard/BoardKeywordInput.vue";
 import BoardActionButton from "@/components/anonymousBoard/AnonymousBoardSaveButton.vue";
-import axios from "axios";
-import router from "@/router/index.js";
 
-const anonymousBoardTitle = ref(""); // 제목 상태
-const keywords = ref([]); // 키워드 상태
-const boardEditor = ref(null); // Editor.js 참조
+const keywordList = ref([]);
+const boardEditor = ref(null);
+const anonymousBoardTitle = ref("");
 
-const updateKeywords = (newKeywords) => {
+const formData = new FormData();
 
-  keywords.value = newKeywords;
+const updateKeywordList = (newKeywordList) => {
+
+  keywordList.value = newKeywordList;
 };
 
 const handleSave = async () => {
@@ -21,7 +23,8 @@ const handleSave = async () => {
   try {
 
     // Editor.js에서 데이터와 이미지 파일 가져오기
-    const { anonymousBoardContent, images } = await boardEditor.value.getEditorData();
+    const editorData = await boardEditor.value.getEditorData();
+    const { anonymousBoardContent, images } = editorData;
 
     // 데이터 유효성 검사
     if(!anonymousBoardTitle.value.trim()) {
@@ -37,15 +40,12 @@ const handleSave = async () => {
       return;
     }
 
-    // FormData 생성
-    const formData = new FormData();
-
     // 데이터 직렬화 (anonymousBoardContent를 JSON 문자열로 변환)
     const data = {
 
       anonymousBoardTitle: anonymousBoardTitle.value,
-      anonymousBoardContent: JSON.stringify(anonymousBoardContent),  // anonymousBoardContent를 JSON 문자열로 변환
-      keywords: keywords.value.length > 0 ? keywords.value : [] // 키워드 처리
+      anonymousBoardContent: JSON.stringify(anonymousBoardContent),
+      keywordList: keywordList.value.length > 0 ? keywordList.value : []
     };
 
     // FormData에 데이터 추가
@@ -59,23 +59,19 @@ const handleSave = async () => {
 
     console.log("FormData 전송:", data, images);
 
-    // API 호출
     const response = await axios.post("/anonymous-board", formData, {
-
-      headers: {
-
-        "Content-Type": "multipart/form-data" // FormData 사용 시 필요
-      }
+      headers: { "Content-Type": "multipart/form-data" } // FormData 사용 시 필요
     });
 
-    // 성공 확인
     console.log("저장 완료:", response.data);
 
     alert("저장이 완료되었습니다.");
 
-    // 게시글 목록으로 리다이렉트
-    await router.push("/anonymous-board");
-  } catch (error) {
+    const createdBoardId = response.data.data
+
+    // 상세 조회 페이지로 라우팅
+    await router.push({ name: "AnonymousBoardDetail", params: { id: createdBoardId } });
+  } catch(error) {
 
     console.error("Error saving data:", error);
 
@@ -104,38 +100,16 @@ const handleSave = async () => {
     </div>
 
     <!-- 키워드 입력 -->
-    <div class="board-keywords">
+    <div class="board-keywordList">
       <div class="keyword-list">
         <!-- 생성된 키워드가 표시되는 부분 -->
-        <BoardKeywordInput @update:keywords="updateKeywords" />
+        <BoardKeywordInput @update:keywordList="updateKeywordList" />
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.board-header {
-  display: flex;
-  align-items: center; /* 수직 중앙 정렬 */
-  justify-content: space-between; /* 제목과 버튼을 양쪽 끝으로 정렬 */
-  width: 100%;
-  max-width: 1400px;
-  margin-bottom: 10px;
-}
-
-.board-action {
-  display: flex;
-  align-items: center;
-  transform: translateY(-10px); /* 버튼을 위로 올리기 위해 변환 적용 */
-}
-
-.board-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  text-align: left;
-  margin-bottom: 10px;
-}
-
 .anonymous-board-create {
   display: flex;
   flex-direction: column;
@@ -149,10 +123,24 @@ const handleSave = async () => {
 
 .board-header {
   display: flex;
-  align-items: center;
+  align-items: center; /* 수직 중앙 정렬 */
+  justify-content: space-between; /* 제목과 버튼을 양쪽 끝으로 정렬 */
   width: 100%;
   max-width: 1400px;
   margin-bottom: 10px;
+}
+
+.board-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: left;
+  margin-bottom: 10px;
+}
+
+.board-action {
+  display: flex;
+  align-items: center;
+  transform: translateY(-10px); /* 버튼을 위로 올리기 위해 변환 적용 */
 }
 
 .board-header h2 {
@@ -162,8 +150,7 @@ const handleSave = async () => {
 }
 
 .title-input {
-  width: 80%;
-  max-width: 1400px;
+  width: 1400px;
   padding: 15px;
   font-size: 1.1em;
   border: 1px solid #ddd;
@@ -183,7 +170,7 @@ const handleSave = async () => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.board-keywords {
+.board-keywordList {
   width: 100%;
   max-width: 1400px;
   margin-top: 100px; /* 본문과의 간격 */
@@ -196,6 +183,6 @@ const handleSave = async () => {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-bottom: 10px; /* 키워와 입력창 사이 간격 */
+  margin-bottom: 10px; /* 키워드와 입력창 사이 간격 */
 }
 </style>
