@@ -26,7 +26,7 @@ const getFileIcon = (filename) => {
     case "docx":
       return "src/assets/images/chat/word-icon.png"
     default:
-      return "src/assets/images/chat/default-file-icon.png"
+      return "src/assets/images/chat/download.png"
   }
 };
 
