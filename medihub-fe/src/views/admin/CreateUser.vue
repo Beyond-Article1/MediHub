@@ -63,7 +63,7 @@
         <label for="rankingSeq" class="form-label">직급</label>
         <select class="form-select" v-model="form.rankingSeq" required>
           <option value="">직급을 선택해주세요</option>
-          <option v-for="rank in rankings" :key="rank.rankingSeq" :value="rank.rankingSeq">
+          <option v-for="rank in filteredRankings" :key="rank.rankingSeq" :value="rank.rankingSeq">
             {{ rank.rankingName }}
           </option>
         </select>
@@ -108,6 +108,7 @@ const parts = ref([]);
 const filteredParts = ref([]);
 const rankings = ref([]);
 const profileImage = ref(null);
+const filteredRankings = ref([]);
 
 // 프로필 이미지 핸들러
 const handleImageUpload = (event) => {
@@ -131,7 +132,11 @@ const fetchMetadata = async () => {
 
 // 선택된 부서에 따라 과 필터링
 const filterParts = () => {
+  // 과 필터링
   filteredParts.value = parts.value.filter((part) => part.deptSeq == Number(selectedDeptSeq.value));
+
+  // 직급 필터링
+  filteredRankings.value = rankings.value.filter((rank) => rank.deptSeq == Number(selectedDeptSeq.value));
 };
 
 // 폼 제출

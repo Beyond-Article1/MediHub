@@ -27,7 +27,6 @@ const fetchExistingData = async () => {
     await boardEditor.value.setEditorData(JSON.parse(data.medicalLifeContent));
   } catch (error) {
     console.error("Error fetching data:", error);
-    alert("기존 데이터를 불러오는 중 오류가 발생했습니다.");
   }
 };
 
@@ -56,7 +55,7 @@ const handleSave = async () => {
       keywords: keywords.value.length > 0 ? keywords.value : [],
     };
 
-    formData.append("data", JSON.stringify(data));
+    formData.append("medicalLifeUpdateRequestDTO", JSON.stringify(data));
 
     images.forEach((file, index) => {
       formData.append("pictures", file, `img-${index + 1}`);

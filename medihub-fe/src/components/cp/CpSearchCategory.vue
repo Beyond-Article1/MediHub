@@ -1,17 +1,16 @@
 <script setup>
 import axios from "axios";
-
-import { computed, onMounted, ref } from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import {useRouter} from "vue-router";
-
+import {useCpCategoryStore} from "@/store/cpCategoryStore.js";
 import DropBox from "@/components/common/MultiSelectDropBox.vue";
 
 // vue 설정 변수
 const router = useRouter();
+const cpCategoryStore = useCpCategoryStore(); // Pinia 스토어 인스턴스
 
 // 데이터 저장 변수
 const cpSearchCategoryList = ref([]);
-const selectedDataList = ref([]); // 선택된 옵션을 저장할 배열
 const openDropdown = ref(null); // 현재 펼쳐진 드롭박스의 인덱스
 
 // 데이터 호출 함수
@@ -22,7 +21,9 @@ async function fetchData() {
     if (response.status === 200) {
       console.log("CP 검색 카테고리 조회 성공");
       cpSearchCategoryList.value = response.data.data;
-      selectedDataList.value = Array(cpSearchCategoryList.value.length).fill([]); // 각 카테고리에 대해 빈 배열로 초기화
+      cpCategoryStore.setCpSearchCategoryList(response.data.data); // 스토어에 카테고리 목록 설정
+      // 각 카테고리에 대해 빈 배열로 초기화
+      cpCategoryStore.selectedDataList = cpSearchCategoryList.value.map(() => ({categorySeq: null, dataSeq: []}));
     } else {
       console.log("CP 검색 카테고리 조회 실패");
       console.log(`HTTP Status: ${response.status}`);
@@ -45,36 +46,19 @@ const toggleDropdown = (index) => {
   openDropdown.value = openDropdown.value === index ? null : index; // 클릭한 드롭박스의 인덱스 토글
 };
 
-// 선택된 모든 옵션을 통합하여 하나의 배열로 저장하는 계산된 속성
-const selectedCategoryDataSeq = computed(() => {
-  return selectedDataList.value.flat(); // 중첩 배열을 평탄화하여 하나의 배열로 만듭니다.
-});
+// Pinia 스토어의 selectedDataList 변경 감지
+watch(() => cpCategoryStore.selectedDataList, (newValue) => {
+  console.log("Pinia의 선택된 옵션:", newValue); // Pinia 스토어에서 선택된 데이터 출력
+  newValue.forEach(item => {
+    console.log("카테고리 시퀀스:", item.categorySeq); // 선택된 카테고리 시퀀스 출력
+  });
+}, { deep: true }); // deep: true를 사용하여 중첩 배열의 변경도 감지
 
-// 선택된 카테고리 번호와 옵션을 함께 출력하는 계산된 속성
-const selectedCategoriesWithOptions = computed(() => {
-  return cpSearchCategoryList.value.map((category, index) => ({
-    categoryNumber: category.cpSearchCategorySeq, // 카테고리 번호
-    selectedOptions: selectedDataList.value[index] // 해당 카테고리에서 선택된 옵션
-  })).filter(item => item.selectedOptions.length > 0); // 선택된 옵션이 있는 카테고리만 필터링
-});
-
-// 선택된 카테고리 번호를 하나의 배열로 저장하는 계산된 속성
-const selectedCategorySeq = computed(() => {
-  return selectedCategoriesWithOptions.value.map(item => item.categoryNumber); // 선택된 카테고리 번호만 추출
-});
-
-// 선택된 카테고리 번호와 옵션을 하나의 배열로 저장하는 계산된 속성
-const combinedSelectedData = computed(() => {
-  return selectedCategoriesWithOptions.value.map(item => ({
-    categoryNumber: item.categoryNumber,
-    selectedOptions: item.selectedOptions
-  }));
-});
-
-// 검색 카테고리 수정 페이지로 이동하는 함수
-function goToSearchCategoryUpdatePage() {
-  router.push({name: 'CpSearchCategoryDataManagementPage'});
-}
+// 드롭박스에서 선택된 데이터 저장
+const updateSelectedData = (index, selectedValues) => {
+  const categorySeq = cpSearchCategoryList.value[index].cpSearchCategorySeq; // 현재 카테고리의 시퀀스
+  cpCategoryStore.selectedDataList[index] = {categorySeq, dataSeq: selectedValues}; // 카테고리 시퀀스와 선택된 데이터 시퀀스 저장
+};
 
 // 컴포넌트 마운트 시 데이터 호출
 onMounted(() => {
@@ -88,9 +72,10 @@ onMounted(() => {
       <DropBox
           :options="getDropOptions(category)"
           :label="category.cpSearchCategoryName"
-          v-model="selectedDataList[index]"
+          v-model="cpCategoryStore.selectedDataList[index].dataSeq"
           @update:isOpen="toggleDropdown(index)"
           :isOpen="openDropdown === index"
+          @update:modelValue="(selectedValues) => updateSelectedData(index, selectedValues)"
       />
     </div>
     <div class="span-container" @click="goToSearchCategoryUpdatePage()">

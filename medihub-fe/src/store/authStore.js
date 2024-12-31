@@ -90,6 +90,9 @@ export const useAuthStore = defineStore('auth', () => {
         } catch (error) {
             console.error("[AuthStore] 사용자 정보 API 호출 실패:", error.response || error.message);
         }
+
+        localStorage.setItem('userRole', userRole.value);
+        localStorage.setItem('userSeq', userSeq.value);
     }
 
     function setUserInfo(data) {
