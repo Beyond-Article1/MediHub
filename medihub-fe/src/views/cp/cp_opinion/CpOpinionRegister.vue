@@ -82,6 +82,8 @@ async function createNewLocation() {
       console.log("새로운 CP 의견 위치 생성에 성공하였습니다.");
       console.log(response.data.data.cpOpinionLocationSeq);
       cpOpinionLocationSeq = response.data.data.cpOpinionLocationSeq;
+
+      return cpOpinionLocationSeq;
     } else {
       console.error("새로운 CP 의견 위치 생성에 실패하였습니다:", response.data);
     }
@@ -114,6 +116,7 @@ async function sendData(formData) {
     // console.log("check");
     // console.log(cpOpinionLocationSeq === -1);
     if (cpOpinionLocationSeq === -1) {
+      console.log("cpOpinionLocationSeq === -1");
       cpOpinionLocationSeq = await createNewLocation(); // await를 사용하여 비동기 처리
     }
 
