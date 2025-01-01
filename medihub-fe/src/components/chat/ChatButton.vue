@@ -2,7 +2,7 @@
   <div class="chat-button"
        :class="{ 'scrolling': isScrolling }"
        @click="toggleChatWindow">
-    💬
+    <i class="bi bi-wechat"></i>
   </div>
 </template>
 
@@ -60,4 +60,7 @@ onUnmounted(() => {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
+.chat-button i {
+  font-size: 40px;
+}
 </style>

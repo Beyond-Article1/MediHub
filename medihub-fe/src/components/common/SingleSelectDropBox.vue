@@ -86,14 +86,15 @@ initSelectedOption();
 
 <style scoped>
 .dropdown {
+  margin-left: 20px;
   position: relative;
   width: 100%;
-  max-width: 300px; /* 최대 너비 설정 */
   cursor: pointer;
   margin-bottom: 10px; /* 드롭박스 간의 간격을 조정 */
 }
 
 .dropdown-selected {
+  width: 100%;
   padding: 12px;
   border: 1px solid #ccc;
   border-radius: 4px;

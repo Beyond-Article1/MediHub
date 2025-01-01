@@ -1,7 +1,7 @@
 <script setup>
 import axios from "axios";
-import { onMounted, ref } from "vue";
-import { useRoute } from "vue-router";
+import {onMounted, ref} from "vue";
+import {useRoute} from "vue-router";
 import PdfViewer from "@/components/common/PdfViewer.vue";
 
 // 조회된 CP 정보
@@ -23,7 +23,9 @@ const cp = ref({
 async function fetchData() {
   try {
     const cpVersionSeq = useRoute().params.cpVersionSeq;
-    const response = await axios.get(`cp/${cpVersionSeq}`);
+    const response = await axios.get(`cp/${cpVersionSeq}`, {
+      withCredentials: true, // 쿠키 허용 활성화
+    });
 
     if (response.status === 200) {
       console.log("CP 조회 성공");
@@ -50,7 +52,7 @@ const handleButtonClick = (buttonId) => {
 <template>
   <div class="container">
     <div class="pdf-viewer-container">
-      <PdfViewer :data="cp" :pdf-url="cp.cpUrl" @handleButtonClick="handleButtonClick" />
+      <PdfViewer :data="cp" :pdf-url="cp.cpUrl" @handleButtonClick="handleButtonClick"/>
     </div>
   </div>
 </template>

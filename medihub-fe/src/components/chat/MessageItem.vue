@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
+import axios from "axios";
 
 const props = defineProps({
   message: Object,
@@ -25,9 +26,22 @@ const getFileIcon = (filename) => {
     case "docx":
       return "src/assets/images/chat/word-icon.png"
     default:
-      return "src/assets/images/chat/default-file-icon.png"
+      return "src/assets/images/chat/download.png"
   }
 };
+
+// 메시지 삭제하기
+const hovered = ref(false); // 마우스 오버 상태 관리
+const deleteMessage = async (messageSeq) => {
+  try {
+    console.log("messageSeq: ", messageSeq);
+    await axios.delete(`/chat/${messageSeq}`);
+    console.log('메시지 삭제 요청 전송 성공');
+  } catch (error) {
+    console.error('메시지 삭제 요청 실패: ', error);
+    alert('메시지 삭제 중 오류가 발생했습니다. 다시 시도해주세요.');
+  }
+}
 
 // 날짜 포맷 함수
 const formatDate = (timestamp) => {
@@ -65,8 +79,11 @@ const formatTime = (timestamp) => {
     <!-- 내가 보낸 메시지 -->
     <template v-else-if="isMyMessage">
       <div class="my-message">
-        <div class="my-message-content">
-          <p class="message-time">{{ formatTime(props.message.createdAt) }}</p>
+        <div class="my-message-content" @mouseover="hovered = true" @mouseleave="hovered = false">
+          <p class="message-time">{{ formatTime(props.message.createdAt) }}
+            <!-- 삭제 버튼 -->
+            <span v-if="hovered" @click="deleteMessage(props.message.messageSeq)" class="delete-button">❌</span>
+          </p>
           <div class="my-message-content-row">
             <p v-if="props.message.type === 'text'" class="message-text">{{ props.message.message }}</p>
             <img v-else-if="props.message.type === 'image'" class="message-image"
@@ -156,6 +173,11 @@ const formatTime = (timestamp) => {
   flex-direction: row;
   align-items: flex-end;
   border-radius: 10px;
+}
+
+.delete-button {
+  cursor: pointer;
+  margin-left: 10px;
 }
 
 .my-message-content {

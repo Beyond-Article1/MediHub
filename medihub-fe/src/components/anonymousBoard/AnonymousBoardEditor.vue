@@ -1,16 +1,15 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { nextTick, ref, watch } from "vue";
 
+// 플러그인 임포트
 import EditorJS from "@editorjs/editorjs";
 import Header from "@editorjs/header";
 import List from "@editorjs/list";
 import Checklist from "@editorjs/checklist";
 import Table from "@editorjs/table";
 import CodeTool from "@editorjs/code";
-import LinkTool from "@editorjs/link";
 import Marker from "@editorjs/marker";
 import Quote from "@editorjs/quote";
-import Warning from "@editorjs/warning";
 import Embed from "@editorjs/embed";
 import InlineCode from "@editorjs/inline-code";
 import Delimiter from "@editorjs/delimiter";
@@ -19,51 +18,72 @@ import ImageTool from "@editorjs/image";
 import Underline from "@editorjs/underline";
 import ColorPlugin from "editorjs-text-color-plugin";
 
-let editorInstance;
-const imageInput = ref(null);
-const images = ref([]); // 업로드 할 이미지 파일 저장
+const props = defineProps({
 
-onMounted(() => {
+  initialData: {
+
+    type: Object,
+    // 초기 데이터
+    default: () => ({ blocks: [] }) }
+});
+
+let editorInstance = null;
+let checkOnce = true;
+
+// 이미지 파일 저장
+const images = ref([]);
+const imageInput = ref(null);
+
+const initializeEditor = async (data) => {
+
+  console.log("initializeEditor 호출됨.");
+  console.log("전달된 데이터: ", data);
+
+  if(editorInstance && typeof editorInstance.destroy === "function") {
+
+    // 안전하게 destroy 호출
+    editorInstance.destroy();
+
+    editorInstance = null;
+  }
+
+  const editorData = data && data.blocks && data.blocks.length > 0 ? data : { blocks: [] };
+
+  console.log("검사 후, Editor 데이터:", editorData);
+  console.log("블록 길이:", editorData.blocks.length);
+
+  await nextTick();
 
   editorInstance = new EditorJS({
 
     holder: "editor",
-    placeholder: "내용을 입력하세요.",
+    // 데이터가 있으면 placeholder 제거
+    placeholder: editorData.blocks.length > 0 ? "" : "내용을 입력하세요.",
+    data: data || { blocks: [] },
     tools: {
 
-      header: {
-
-        class: Header,
-        config: { levels: [2, 3, 4], defaultLevel: 2 },
-        inlineToolbar: ["bold", "italic", "underline", "textColor"]
-      },
-      paragraph: {
-
-        class: Paragraph,
-        inlineToolbar: ["bold", "italic", "underline", "marker", "textColor"]
-      },
-      textColor: {
-
-        class: ColorPlugin,
-        config: {
-
-          colorCollections: ["#FF5733", "#FFBD33", "#33FF57", "#3357FF", "#8C33FF", "#000000", "#FFFFFF"],
-          defaultColor: "#FF5733",
-          customPicker: true // 사용자 색상 선택기 활성화
-        },
-      },
+      header: { class: Header, config: { levels: [2, 3, 4], defaultLevel: 2 } },
+      paragraph: { class: Paragraph, inlineToolbar: true },
       list: { class: List, inlineToolbar: true },
       checklist: { class: Checklist, inlineToolbar: true },
       table: Table,
       code: CodeTool,
       quote: Quote,
-      warning: Warning,
       embed: Embed,
       inlineCode: InlineCode,
       delimiter: Delimiter,
       underline: Underline,
       marker: Marker,
-      linkTool: LinkTool,
+      textColor: {
+
+        class: ColorPlugin,
+        config: {
+
+          colorCollections: ["#FF5733", "#33FF57", "#3357FF", "#000000"],
+          defaultColor: "#FF5733",
+          customPicker: true
+        },
+      },
       image: {
 
         class: ImageTool,
@@ -75,7 +95,9 @@ onMounted(() => {
 
               const blobUrl = URL.createObjectURL(file);
 
-              images.value.push(file); // 이미지 파일 저장
+              images.value.push(file);
+
+              monitorImageLoad(blobUrl);
 
               return { success: 1, file: { url: blobUrl } };
             },
@@ -84,13 +106,24 @@ onMounted(() => {
       },
     },
   });
-});
+
+  checkOnce = false;
+};
+
+watch(
+    () => props.initialData,
+    (newData) => { if (newData) initializeEditor(newData); },
+    { immediate: true,  deep: true }
+);
 
 // 툴바 기능 메서드
 const insertHeader = (level) => editorInstance.blocks.insert("header", { level });
 const insertParagraph = () => editorInstance.blocks.insert("paragraph", {});
 const insertQuote = () => editorInstance.blocks.insert("quote", {});
-const insertWarning = () => editorInstance.blocks.insert("warning", { anonymousBoardTitle: "주의", message: "경고 내용" });
+const insertWarning = () => editorInstance.blocks.insert(
+    "warning",
+    { anonymousBoardTitle: "주의", message: "경고 내용" }
+);
 const insertDelimiter = () => editorInstance.blocks.insert("delimiter");
 const insertUnorderedList = () => editorInstance.blocks.insert("list", { style: "unordered" });
 const insertOrderedList = () => editorInstance.blocks.insert("list", { style: "ordered" });
@@ -101,18 +134,19 @@ const insertInlineCode = () => editorInstance.inlineToolbar.activate("inlineCode
 const insertEmbed = () => editorInstance.blocks.insert("embed", {});
 // 이미지 업로드 버튼 클릭
 const triggerImageUpload = () => imageInput.value.click();
+
 const handleImageUpload = (event) => {
 
   const file = event.target.files[0];
 
-  if (!file) return;
+  if(!file) return;
 
   const reader = new FileReader();
 
   reader.onload = (e) => insertImage(e.target.result);
-
   reader.readAsDataURL(file);
 };
+
 const insertImage = (url) => editorInstance.blocks.insert("image", { file: { url } });
 // 텍스트 정렬 및 색상
 const setTextAlignment = (alignment) => editorInstance.blocks.update(
@@ -122,29 +156,80 @@ const setTextAlignment = (alignment) => editorInstance.blocks.update(
 const changeTextColor = () => editorInstance.inlineToolbar.activate("textColor");
 // 인라인 서식 툴
 const applyInlineTool = (tool) => editorInstance.inlineToolbar.activate(tool);
-// 저장 시 데이터와 이미지 처리
-const getEditorData = async () => {
 
-  const editorData = await editorInstance.save();
+const monitorImageLoad = (url) => {
 
-  const formData = new FormData();
+  const img = new Image();
 
-  formData.append("anonymousBoardContent", JSON.stringify(editorData)); // JSON 데이터 저장
+  img.src = url;
 
-  images.value.forEach((file, index) => {
+  // 이미지 로드 성공
+  img.onload = () => { console.log("이미지 로드 성공:", url); };
+  // 이미지 로드 실패
+  img.onerror = () => {
 
-    formData.append("images", file, `img-${index + 1}`);
-  });
+    console.error("이미지 로드 실패:", url);
 
-  return { anonymousBoardContent: editorData, images: images.value }; // 저장된 데이터 반환
+    alert("이미지 로드에 실패하였습니다. 해당 블록이 삭제됩니다.");
+
+    // 실패한 이미지 블록 삭제
+    removeImageBlock(url);
+  };
+  // DOM에 추가하지 않고 로드 상태만 확인
 };
 
-defineExpose({ getEditorData });
+const removeImageBlock = (url) => {
+
+  const blocksCount = editorInstance.blocks.getBlocksCount();
+
+  for(let i = 0; i < blocksCount; i++) {
+
+    const block = editorInstance.blocks.getBlockByIndex(i);
+
+    if(block && block.type === "image" && block.data.file.url === url) {
+
+      // 이미지 블록 삭제
+      editorInstance.blocks.delete(i);
+
+      console.log("삭제된 이미지 블록:", url);
+
+      break;
+    }
+  }
+};
+
+const getEditorData = async () => {
+
+  if(!editorInstance) {
+
+    console.warn("Editor instance is not initialized.");
+
+    return { anonymousBoardContent: { blocks: [] }, images: [] };
+  }
+
+  try {
+
+    const savedData = await editorInstance.save();
+
+    return { anonymousBoardContent: savedData, images: images.value };
+  } catch(error) {
+
+    console.error("Error saving editor data:", error);
+
+    return { anonymousBoardContent: { blocks: [] }, images: [] };
+  }
+};
+
+defineExpose({
+
+  // 부모 컴포넌트에서 호출할 수 있도록 노출
+  getEditorData,
+  initializeEditor
+});
 </script>
 
 <template>
   <div class="board-editor">
-    <!-- 툴바 -->
     <div class="toolbar">
       <button @click="insertLink" title="링크"><i class="bi bi-link-45deg"></i></button>
       <button @click="insertParagraph" title="본문"><i class="bi bi-fonts"></i></button>
@@ -174,7 +259,6 @@ defineExpose({ getEditorData });
 
     <!-- Editor.js 에디터 -->
     <div id="editor"></div>
-
     <input type="file" ref="imageInput" @change="handleImageUpload" style="display: none" />
   </div>
 </template>
@@ -194,13 +278,19 @@ defineExpose({ getEditorData });
   right: auto !important;
   transform: none !important;
 }
+
 :deep(.ce-block__content) {
-  max-width: 1200px !important; /* 최대 폭을 1000px로 고정 */
+  max-width: 1000px !important; /* 최대 폭을 1000px로 고정 */
   margin: 0 auto; /* 내용 중앙 정렬 */
 }
 
 :deep(.ce-toolbar__content){
-  max-width: 1200px !important; /* 최대 폭을 1000px로 고정 */
+  max-width: 1000px !important; /* 최대 폭을 1000px로 고정 */
+}
+
+:deep(.codex-editor__redactor) {
+  padding: 0 !important; /* redactor 요소 스타일 제거 */
+  margin: 0 !important; /* redactor 요소 스타일 제거 */
 }
 
 .board-editor {

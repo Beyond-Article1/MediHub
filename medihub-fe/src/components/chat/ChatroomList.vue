@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import { useAuthStore } from '@/store/authStore.js';
 import { useWebSocketStore } from "@/store/webSocket.js";
@@ -8,6 +8,7 @@ import SelectUserModal from './SelectUserModal.vue';
 
 const emit = defineEmits(['open-chatroom']); // 이벤트 정의 (부모에게 이벤트 전달)
 const authStore = useAuthStore();
+const userSeq = ref(null);
 const webSocketStore = useWebSocketStore();
 const chatStore = useChatStore();
 
@@ -15,8 +16,38 @@ const isModalOpen = ref(false); // 모달 열림 상태
 const openModal = () => (isModalOpen.value = true);
 const closeModal = () => (isModalOpen.value = false);
 
-onMounted(() => {
-  webSocketStore.getUserChatrooms();  // 채팅방 목록 가져오기
+const partnerNames = ref({}); // 채팅방 Seq별 상대방 이름 저장
+const partnerProfileUrls = ref({}); // 채팅방 Seq별 상대방 프로필 URL 저장
+
+onMounted(async () => {
+  userSeq.value = Number(localStorage.getItem('userSeq'));
+
+  if(webSocketStore.isConnected == false) {
+    webSocketStore.connectWebSocket();
+  } else {
+    await webSocketStore.getUserChatrooms();  // 채팅방 목록 가져오기
+  }
+
+  for (const room of chatStore.chatrooms) {
+    if (room.chatroomUsersCount === 2) {
+      try {
+        const response = await axios.get(`/chatroom/${room.chatroomSeq}/users`);
+        const participants = response.data.data;
+
+        // 현재 사용자와 다른 사용자를 필터링
+        const partner = participants.find(
+            (user) => user.userSeq !== userSeq.value
+        );
+
+        if (partner) {
+          partnerProfileUrls.value[room.chatroomSeq] = partner.userProfileUrl;
+          partnerNames.value[room.chatroomSeq] = partner.userName; // 상대방 이름 저장
+        }
+      } catch (error) {
+        console.error(`채팅방 ${room.chatroomSeq}의 데이터 로드 실패:`, error);
+      }
+    }
+  }
 });
 
 // 채팅방 생성
@@ -49,7 +80,11 @@ const createChatroom = async (users) => {
 // 채팅방을 더블클릭하면 해당 채팅방 상세 페이지로 이동
 const handleDoubleClick = (room) => {
   console.log('특정 채팅방 더블클릭 이벤트 발생');
-  emit('open-chatroom', room);  // 부모 컴포넌트로 이벤트 전달
+  emit("open-chatroom", {
+    ...room,
+    partnerName: partnerNames.value[room.chatroomSeq],
+    partnerProfileUrl: partnerProfileUrls.value[room.chatroomSeq],
+  });
 };
 
 // 날짜 포맷 함수
@@ -74,30 +109,78 @@ const formatDateOrTime = (timestamp) => {
     return `${month}-${day}`;
   }
 };
+
+const searchQuery = ref('');  // 검색어 상태
+// 검색된 채팅방 목록 필터링
+const filteredChatrooms = computed(() => {
+  if(!searchQuery.value.trim()) {
+    return chatStore.chatrooms;
+  }
+  return chatStore.chatrooms.filter((room) => {
+    const lowerQuery = searchQuery.value.toLowerCase();
+    const defaultName = room.chatroomDefaultName?.toLowerCase() || '';
+    const customName = room.chatroomCustomName?.toLowerCase() || '';
+    return defaultName.includes(lowerQuery) || customName.includes(lowerQuery);
+  })
+})
 </script>
 
 <template>
   <div class="chat-container">
-      <div class="chat-header">
-        <h2>대화</h2>
-        <button class="create-chatroom-btn" @click="openModal">
-          <img src="@/assets/images/chat/NewChat-Navy.png" alt="NewChat">
-        </button>
-      </div>
+    <div class="chat-header">
+      <h2>대화</h2>
+      <button class="create-chatroom-btn" @click="openModal">
+        <img src="@/assets/images/chat/NewChat-Navy.png" alt="NewChat">
+      </button>
+    </div>
+
+    <!-- 검색창 -->
+    <div class="chat-search">
+      <input
+        type="text"
+        v-model="searchQuery"
+        placeholder="이름/대화방명 검색"
+        class="search-input"
+      />
+    </div>
 
     <div class="chatroom-list" v-if="chatStore.chatrooms.length > 0">
       <!-- 채팅방 목록을 반복문으로 표시 -->
-      <div v-for="room in chatStore.chatrooms"  class="chatroom-item"
+      <div v-for="room in filteredChatrooms"  class="chatroom-item"
            :key="room.chatroomSeq"
            @dblclick="handleDoubleClick(room)">
         <div class="chatroom-info">
           <div class="chatroom-img">
-
+            <img
+                v-if="room.chatroomUsersCount === 1"
+                :src="authStore.profileImage"
+                alt="My Profile"
+            />
+            <img
+                v-else-if="room.chatroomUsersCount > 2"
+                src="@/assets/images/chat/group-chat.png"
+                alt="Group Chat"
+            />
+            <img
+                v-else
+                :src="partnerProfileUrls[room.chatroomSeq]"
+                alt="Partner Profile"
+            />
           </div>
           <div class="chatroom-content">
             <div class="chatroom-meta">
-              <h5 class="chatroom-name">{{ room.chatroomCustomName || room.chatroomDefaultName }}</h5>
-              <span class="chatroom-users">{{ room.chatroomUsersCount }}</span>
+              <h5 class="chatroom-name">
+                <!-- 1:1 채팅일 경우 상대방 이름 표시 -->
+                <template v-if="room.chatroomUsersCount === 2">
+                  {{ room.chatroomCustomName || partnerNames[room.chatroomSeq] }}
+                </template>
+
+                <!-- 단체 채팅일 경우 customName이 없으면 defaultName 표시 -->
+                <template v-else>
+                  {{ room.chatroomCustomName || room.chatroomDefaultName }}
+                </template>
+              </h5>
+              <span v-if="room.chatroomUsersCount !== 2" class="chatroom-users">{{ room.chatroomUsersCount }}</span>
               <span class="chatroom-last-time">{{ formatDateOrTime(room.lastMessageTime) }}</span>
             </div>
             <div class="chatroom-last">
@@ -121,6 +204,7 @@ const formatDateOrTime = (timestamp) => {
 .chat-container {
   position: absolute;
   padding: 20px;
+  width: 88%;
   height: 600px;
   background-color: #fff;
   border-radius: 4px;
@@ -161,6 +245,25 @@ const formatDateOrTime = (timestamp) => {
   height: 25px;
 }
 
+.chat-search {
+  margin-top: 10px;
+}
+
+.search-input {
+  width: 90%;
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.chatroom-img img {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px; /* 이미지와 내용 사이 간격 추가 */
+  border-radius: 50%;
+}
+
 .chatroom-list {
   margin-top: 15px;
   overflow-y: auto;
@@ -187,12 +290,14 @@ const formatDateOrTime = (timestamp) => {
 
 .chatroom-meta {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .chatroom-info {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
   flex-grow: 1;
   min-width: 0;
 }
@@ -203,7 +308,7 @@ const formatDateOrTime = (timestamp) => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap; /* 한 줄로 유지 */
-  max-width: 310px;
+  max-width: 250px;
   margin-right: 3px;
 }
 
@@ -224,6 +329,7 @@ const formatDateOrTime = (timestamp) => {
 .chatroom-last-time{
   font-size: 12px;
   color: #777;
+  margin-left: auto;
 }
 
 .chatroom-last-message {

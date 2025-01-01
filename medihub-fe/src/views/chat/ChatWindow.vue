@@ -1,11 +1,19 @@
 <script setup>
-import { ref } from 'vue';
+import {onMounted, ref} from 'vue';
 import { useAuthStore } from "@/store/authStore.js";
+import { useWebSocketStore } from "@/store/webSocket.js";
 import Organization from "@/components/chat/Organization.vue";
 import ChatroomList from "@/components/chat/ChatroomList.vue";
 import FileBox from "@/components/chat/FileBox.vue";
 
 const authStore = useAuthStore();
+const webSocketStore = useWebSocketStore();
+
+onMounted(() => {
+  if(webSocketStore.isConnected == false) {
+    webSocketStore.connectWebSocket();
+  }
+})
 
 // 채팅창 상태 관리
 const isChatOpen = ref(true);     // 채팅창 열기/닫기 상태

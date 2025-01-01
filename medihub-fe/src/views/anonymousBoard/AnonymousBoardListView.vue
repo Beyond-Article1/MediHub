@@ -1,16 +1,16 @@
 <script setup>
 import { ref } from 'vue';
-
 import axios from "axios";
-import router from "@/router/index.js"; // Pinia 스토어 가져오기
+
+import router from "@/router/index.js";
+import SearchBox from '@/components/anonymousBoard/AnonymousBoardSearchBox.vue';
 import BoardList from '@/components/anonymousBoard/AnonymousBoardList.vue';
 import LineDivider from "@/components/anonymousBoard/AnonymousBoardLineDivider.vue";
-import SearchBox from '@/components/common/SearchBox.vue';
 
+const searchResult = ref([]);
 const searchQuery = ref('');
 const sortOption = ref('작성순');
 const itemCount = ref(10);
-const searchResult = ref([]); // 검색 결과 상태 추가
 
 const search = async (query) => {
 
@@ -20,19 +20,20 @@ const search = async (query) => {
 
     const response = await axios.get(`/find/anonymousBoard/${query}`);
 
-    searchResult.value = response.data; // 검색 결과를 searchResult에 저장
+    searchResult.value = response.data.data;
   } catch(error) {
 
     console.error('Error searching:', error);
 
-    searchResult.value = []; // 에러 발생 시 빈 배열로 초기화
+    searchResult.value = [];
   }
 };
+
 const createBoard = () => {
 
   console.log("Create new board button clicked");
 
-  router.push('/anonymous-board/create'); // 게시글 작성 페이지로 이동
+  router.push('/anonymous-board/create');
 };
 </script>
 
@@ -47,14 +48,19 @@ const createBoard = () => {
       <div>
           <select class="sort-select" v-model="sortOption">
             <option value="작성순">작성순</option>
+
             <option value="최신순">최신순</option>
+
             <option value="조회순">조회순</option>
           </select>
 
           <select class="item-select" v-model.number="itemCount">
             <option value="10">10</option>
+
             <option value="20">20</option>
+
             <option value="50">50</option>
+
             <option value="100">100</option>
           </select>
       </div>
@@ -65,13 +71,8 @@ const createBoard = () => {
     <LineDivider />
 
     <div class="main-content">
-      <!-- sort-option, item-count 전달 -->
-      <BoardList
-          class="board-section"
-          :sort-option="sortOption"
-          :item-count="itemCount"
-          :search-result="searchResult"
-      />
+      <!-- sort-option, item-count, search-result 전달 -->
+      <BoardList class="board-section" :sort-option="sortOption" :item-count="itemCount" :search-result="searchResult"/>
     </div>
   </div>
 </template>

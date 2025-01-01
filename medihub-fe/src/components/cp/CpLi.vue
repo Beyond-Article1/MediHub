@@ -1,6 +1,6 @@
 <script setup>
-import {defineEmits, defineProps} from "vue";
-import {useAuthStore} from "@/store/authStore.js";
+import { defineEmits, defineProps } from "vue";
+import { useAuthStore } from "@/store/authStore.js";
 import LocalDateTimeFormat from "@/components/common/LocalDateTimeFormat.vue";
 import BookmarkButton from "@/components/common/button/BookmarkButton.vue";
 import axios from 'axios';
@@ -17,7 +17,9 @@ const props = defineProps({
 const emit = defineEmits();
 
 // 파일 다운로드 함수
-const downloadFile = () => {
+const downloadFile = (event) => {
+  event.stopPropagation(); // 이벤트 전파 방지
+  console.log(`다운로드할 URL: ${props.data.cpUrl}`);
   const link = document.createElement('a');
   link.href = props.data.cpUrl; // 데이터 파일의 URL
   link.download = props.data.cpName; // 다운로드할 때 사용할 파일 이름

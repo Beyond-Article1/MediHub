@@ -31,6 +31,14 @@
     <div v-if="showCreateModal" class="modal-backdrop">
       <div class="modal-content p-4">
         <h5 class="mb-3 fw-bold">직급 등록</h5>
+        <!-- 부서 선택 -->
+        <select v-model="selectedDeptSeq" class="form-select mb-3">
+          <option disabled value="">부서를 선택해주세요</option>
+          <option v-for="dept in departments" :key="dept.deptSeq" :value="dept.deptSeq">
+            {{ dept.deptName }}
+          </option>
+        </select>
+        <!-- 직급명 입력 -->
         <input
             type="text"
             class="form-control mb-3"
@@ -48,6 +56,14 @@
     <div v-if="showEditModal" class="modal-backdrop">
       <div class="modal-content p-4">
         <h5 class="mb-3 fw-bold">직급 수정</h5>
+        <!-- 부서 선택 -->
+        <select v-model="editDeptSeq" class="form-select mb-3">
+          <option disabled value="">부서를 선택해주세요</option>
+          <option v-for="dept in departments" :key="dept.deptSeq" :value="dept.deptSeq">
+            {{ dept.deptName }}
+          </option>
+        </select>
+        <!-- 직급명 수정 -->
         <input
             type="text"
             class="form-control mb-3"
@@ -67,21 +83,28 @@
 import { ref, onMounted } from "vue";
 import axios from "axios";
 
-const rankings = ref([]); // 직급 데이터
+const rankings = ref([]);
+const departments = ref([]);
+const selectedDeptSeq = ref("");
 const showCreateModal = ref(false);
 const newRankingName = ref("");
 
 const showEditModal = ref(false);
 const editRankingName = ref("");
+const editDeptSeq = ref("");
 const editRankingSeq = ref(null);
 
-// 직급 데이터 가져오기
-const fetchRankings = async () => {
+// 데이터 로드
+const fetchDepartmentsAndRankings = async () => {
   try {
-    const response = await axios.get("/api/v1/ranking");
-    rankings.value = response.data.data;
+    const [deptRes, rankingRes] = await Promise.all([
+      axios.get("/api/v1/dept"),
+      axios.get("/api/v1/ranking"),
+    ]);
+    departments.value = deptRes.data.data;
+    rankings.value = rankingRes.data.data;
   } catch (error) {
-    console.error("직급 데이터 가져오기 실패", error);
+    console.error("데이터 불러오기 실패:", error);
   }
 };
 
@@ -92,6 +115,7 @@ const openCreateModal = () => {
 const closeCreateModal = () => {
   showCreateModal.value = false;
   newRankingName.value = "";
+  selectedDeptSeq.value = "";
 };
 
 // 수정 모달 열기/닫기
@@ -108,14 +132,17 @@ const closeEditModal = () => {
 
 // 직급 등록
 const createRanking = async () => {
-  if (!newRankingName.value.trim()) {
-    alert("직급명을 입력해주세요.");
+  if (!newRankingName.value.trim() || !selectedDeptSeq.value) {
+    alert("부서와 직급명을 입력해주세요.");
     return;
   }
 
   try {
-    await axios.post("/api/v1/ranking", { rankingName: newRankingName.value });
-    await fetchRankings();
+    await axios.post("/api/v1/ranking", {
+      deptSeq: selectedDeptSeq.value,
+      rankingName: newRankingName.value,
+    });
+    await fetchDepartmentsAndRankings();
     closeCreateModal();
   } catch (error) {
     console.error("직급 등록 실패", error);
@@ -124,19 +151,23 @@ const createRanking = async () => {
 
 // 직급 수정
 const updateRanking = async () => {
-  if (!editRankingName.value.trim()) {
-    alert("직급명을 입력해주세요.");
+  if (!editRankingName.value.trim() || !editDeptSeq.value) {
+    alert("부서와 직급명을 입력해주세요.");
     return;
   }
 
   try {
-    await axios.put(`/api/v1/ranking/${editRankingSeq.value}`, { rankingName: editRankingName.value });
-    await fetchRankings();
+    await axios.put(`/api/v1/ranking/${editRankingSeq.value}`, {
+      deptSeq: editDeptSeq.value,
+      rankingName: editRankingName.value,
+    });
+    await fetchDepartmentsAndRankings();
     closeEditModal();
   } catch (error) {
     console.error("직급 수정 실패", error);
   }
 };
+
 
 // 직급 삭제
 const deleteRanking = async (rankingSeq) => {
@@ -148,7 +179,8 @@ const deleteRanking = async (rankingSeq) => {
   }
 };
 
-onMounted(fetchRankings);
+onMounted(fetchDepartmentsAndRankings);
+
 </script>
 
 <style scoped>

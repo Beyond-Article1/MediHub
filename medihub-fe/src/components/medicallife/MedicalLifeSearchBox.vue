@@ -24,13 +24,13 @@ const onSearch = () => {
 // 검색어 변경 시 자동 완성 목록을 갱신
 const fetchSuggestions = async (query) => {
 
-  if (query.length > 0) {
+  if(query.length > 0) {
 
     try {
 
-      const response = await axios.get(`/find/anonymousBoard/autoComplete/${query}`);
+      const response = await axios.get(`/find/medicalLife/autoComplete/${query}`);
 
-      suggestions.value = response.data; // 자동 완성 제안 저장
+      suggestions.value = response.data.data; // 자동 완성 제안 저장
       isSuggestionsVisible.value = true; // 제안 목록 표시
     } catch(error) {
 

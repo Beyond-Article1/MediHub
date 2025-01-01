@@ -1,3 +1,166 @@
+<script setup>
+import { ref, computed, onMounted } from "vue";
+import axios from "axios";
+
+import router from "@/router/index.js";
+import LineDivider from "@/components/common/LineDivider.vue";
+import Pagination from "@/components/common/Pagination.vue";
+import SearchBox from "@/components/medicallife/MedicalLifeSearchBox.vue";
+
+// 상태 변수
+const searchResult = ref([]);
+const departments = ref([]);
+const parts = ref([]);
+const posts = ref([]);
+const openDept = ref(null);
+const selectedDeptName = ref("");
+const selectedPartName = ref("");
+const sortOption = ref("latest");
+const itemsPerPage = ref(10);
+const currentPage = ref(1);
+const selectedPartSeq = ref(null);
+const searchQuery = ref("");
+
+const search = async (query) => {
+
+  console.log(`Searching for: ${query}`);
+
+  try {
+
+    const response = await axios.get(`/find/medicalLife/${query}`);
+
+    console.log('Search response:', response);
+
+    searchResult.value = response.data.data.map((item) => ({
+
+      id: item.medicalLifeSeq,
+      title: item.medicalLifeTitle,
+      tags: item.keywordList || [],
+      author: `${item.userName} (${item.rankingName})`,
+      userSeq: item.userSeq,
+      deptName: item.deptName,
+      partName: item.partName,
+      date: new Date(item.createdAt).toLocaleDateString(),
+      views: item.medicalLifeViewCount
+    }));
+  } catch(error) {
+
+    console.error('Error searching:', error);
+
+    searchResult.value = [];
+  }
+};
+
+const fetchDepartmentsAndParts = async () => {
+
+  try {
+
+    const [deptRes, partRes] = await Promise.all([axios.get("/api/v1/dept"), axios.get("/api/v1/part")]);
+
+    departments.value = deptRes.data.data;
+    parts.value = partRes.data.data;
+  } catch(error) {
+
+    console.error("부서/과 데이터 가져오기 실패:", error);
+  }
+};
+
+const fetchPosts = async () => {
+
+  try {
+
+    const response = await axios.get("/medical-life");
+
+    posts.value = response.data.data.map((item) => ({
+
+      id: item.medicalLifeSeq,
+      title: item.medicalLifeTitle,
+      tags: item.keywords || [],
+      author: `${item.userName} (${item.rankingName})`,
+      userSeq: item.userSeq,
+      deptName: item.deptName,
+      partName: item.partName,
+      date: new Date(item.createdAt).toLocaleDateString(),
+      views: item.medicalLifeViewCount
+    }));
+  } catch(error) {
+
+    console.error("게시글 데이터 가져오기 실패:", error);
+  }
+};
+
+const filteredParts = computed(() =>
+
+    parts.value.filter((part) => part.deptSeq === openDept.value)
+);
+
+const filteredPosts = computed(() => {
+
+  const postsToFilter = searchResult.value.length ? searchResult.value : posts.value;
+
+  return postsToFilter.filter(
+      (post) =>
+          (!selectedDeptName.value || post.deptName === selectedDeptName.value) &&
+          (!selectedPartName.value || post.partName === selectedPartName.value)
+  );
+});
+
+const sortedPosts = computed(() => {
+
+  switch(sortOption.value) {
+
+    case "views":
+      return [...filteredPosts.value].sort((a, b) => b.views - a.views);
+    case "latest":
+      return [...filteredPosts.value].sort((a, b) => new Date(b.date) - new Date(a.date));
+    case "createdAt":
+    default:
+      return [...filteredPosts.value];
+  }
+});
+
+const paginatedPosts = computed(() => {
+
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+
+  return sortedPosts.value.slice(start, start + itemsPerPage.value);
+});
+
+const toggleDept = (deptSeq, deptName) => {
+
+  openDept.value = openDept.value === deptSeq ? null : deptSeq;
+  selectedDeptName.value = deptName;
+  selectedPartName.value = "";
+};
+
+const selectPart = (partSeq, partName) => {
+
+  selectedPartName.value = partName;
+};
+
+const changePage = (page) => {
+
+  currentPage.value = page;
+};
+
+const goToDetail = (id) => {
+
+  router.push({name: "MedicalLifeDetail", params: {id}});
+};
+
+const goToCreate = () => {
+
+  router.push({name: 'MedicalLifeCreate'});
+};
+
+// 컴포넌트 초기화
+onMounted(() => {
+
+  fetchDepartmentsAndParts();
+  fetchPosts();
+});
+</script>
+
 <template>
   <div class="d-flex">
     <!-- 왼쪽 사이드바: 부서와 과 -->
@@ -39,9 +202,17 @@
       <div class="row mb-3 align-items-center">
         <div class="col-auto">
           <h4 class="fw-bold mb-0">Medical Life</h4>
+          <div class="selected-info mt-2">
+      <span v-if="selectedDeptName" class="badge bg-primary me-2">
+        과: {{ selectedDeptName }}
+      </span>
+            <span v-if="selectedPartName" class="badge bg-secondary">
+        부서: {{ selectedPartName }}
+      </span>
+          </div>
         </div>
         <div class="col d-flex justify-content-center">
-          <SearchBox @update:search="updateSearch" />
+          <SearchBox v-model="searchQuery" @search="search" />
         </div>
         <div class="col-auto text-end">
           <button class="btn custom-btn" @click="goToCreate">글쓰기</button>
@@ -119,135 +290,6 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted } from "vue";
-import { useRouter } from "vue-router";
-import LineDivider from "@/components/common/LineDivider.vue";
-import Pagination from "@/components/common/Pagination.vue";
-import SearchBox from "@/components/common/SearchBox.vue";
-import axios from "axios";
-
-// 상태 변수
-const posts = ref([]);
-const departments = ref([]);
-const parts = ref([]);
-
-const openDept = ref(null);
-const selectedDeptSeq = ref(null);
-const selectedPartSeq = ref(null);
-const selectedDeptName = ref("");
-const selectedPartName = ref("");
-
-const searchQuery = ref("");
-const sortOption = ref("latest");
-const itemsPerPage = ref(10);
-const currentPage = ref(1);
-
-const router = useRouter(); // 라우터 사용
-
-// API 데이터 가져오기
-const fetchDepartmentsAndParts = async () => {
-  try {
-    const [deptRes, partRes] = await Promise.all([
-      axios.get("/api/v1/dept"),
-      axios.get("/api/v1/part"),
-    ]);
-    departments.value = deptRes.data.data;
-    parts.value = partRes.data.data;
-  } catch (error) {
-    console.error("부서/과 데이터 가져오기 실패:", error);
-  }
-};
-
-const fetchPosts = async () => {
-  try {
-    const response = await axios.get("/medical-life");
-    posts.value = response.data.data.map((item) => ({
-      id: item.medicalLifeSeq,
-      title: item.medicalLifeTitle,
-      tags: item.keywords || [], // 키워드 리스트
-      author: `${item.userName} (${item.rankingName})`,
-      userSeq: item.userSeq,
-      deptSeq: item.deptSeq, // 작성자의 부서 번호
-      partSeq: item.partSeq, // 작성자의 과 번호
-      date: new Date(item.createdAt).toLocaleDateString(), // 작성일 포맷
-      views: item.medicalLifeViewCount, // 조회수
-    }));
-  } catch (error) {
-    console.error("게시글 데이터 가져오기 실패:", error);
-  }
-};
-
-
-// 컴퓨티드
-const filteredParts = computed(() =>
-    parts.value.filter((part) => part.deptSeq === openDept.value)
-);
-const filteredPosts = computed(() =>
-    posts.value.filter(
-        (post) =>
-            post.title.includes(searchQuery.value) ||
-            post.tags.some((tag) => tag.includes(searchQuery.value))
-    )
-);
-const sortedPosts = computed(() => {
-  switch (sortOption.value) {
-    case "views":
-      return [...filteredPosts.value].sort((a, b) => b.views - a.views); // 조회순
-    case "latest":
-      return [...filteredPosts.value].sort(
-          (a, b) => new Date(b.date) - new Date(a.date)
-      ); // 최신순
-    case "createdAt":
-    default:
-      return [...filteredPosts.value]; // 작성순 (기본)
-  }
-});
-const paginatedPosts = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage.value;
-  return sortedPosts.value.slice(start, start + itemsPerPage.value);
-});
-
-// 함수
-const toggleDept = (deptSeq, deptName) => {
-  openDept.value = openDept.value === deptSeq ? null : deptSeq;
-  selectedDeptSeq.value = deptSeq;
-  selectedDeptName.value = deptName;
-  selectedPartSeq.value = null;
-  selectedPartName.value = "";
-  fetchPosts();
-};
-
-const selectPart = (partSeq, partName) => {
-  selectedPartSeq.value = partSeq;
-  selectedPartName.value = partName;
-  fetchPosts();
-};
-
-const updateSearch = (query) => {
-  searchQuery.value = query;
-  currentPage.value = 1;
-};
-
-const changePage = (page) => {
-  currentPage.value = page;
-};
-
-const goToDetail = (id) => {
-  router.push({ name: "MedicalLifeDetail", params: { id } });
-};
-
-const goToCreate = () => {
-  router.push({ name: 'MedicalLifeCreate' });
-};
-
-// 컴포넌트 초기화
-onMounted(() => {
-  fetchDepartmentsAndParts();
-  fetchPosts();
-});
-</script>
-
 <style scoped>
 .d-flex {
   display: flex;
@@ -269,7 +311,7 @@ onMounted(() => {
 
 .dept-item.active,
 .part-item.active {
-  background-color: #007bff;
+  background-color: #ffc653;
   color: white;
 }
 
@@ -303,4 +345,14 @@ onMounted(() => {
 .table-responsive {
   margin-top: 1rem;
 }
+
+.selected-info {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.selected-info .badge {
+  font-size: 0.85rem;
+}
+
 </style>

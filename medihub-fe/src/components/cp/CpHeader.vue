@@ -4,7 +4,7 @@ import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router"; // useRouter 추가
 
 import CpTitleComponent from "@/components/cp/CpTitle.vue";
-import SearchBox from "@/components/common/SearchBox.vue";
+import SearchBox from "@/components/anonymousBoard/AnonymousBoardSearchBox.vue";
 import LineDivider from "@/components/common/LineDivider.vue";
 
 // vue 설정 변수
