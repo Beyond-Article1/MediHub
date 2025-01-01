@@ -18,16 +18,28 @@ export const useAuthStore = defineStore('auth', () => {
         profileImage: null,
     });
 
-    onMounted(() => {
+    onMounted(async () => {
         const access = localStorage.getItem('accessToken');
         const refresh = localStorage.getItem('refreshToken');
 
-        if (access) {
-            accessToken.value = access;
-        }
+        if (access) accessToken.value = access;
         if (refresh) {
-            refreshToken.value = refresh; // Refresh Token을 불러오기
-            console.log("onMounted - Refresh Token:", refresh);
+            refreshToken.value = refresh;
+
+            if (refreshTokenExpired()) {
+                console.warn("Refresh Token 만료. 로그아웃 처리.");
+                await logout();
+                return;
+            }
+        }
+
+        if (access && decodeToken(access)?.exp * 1000 < Date.now()) {
+            try {
+                await reissueTokens(refresh);
+            } catch (error) {
+                console.error("토큰 재발급 실패:", error);
+                await logout();
+            }
         }
     });
 
@@ -69,6 +81,34 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.setItem('userSeq', userSeq.value);
     }
 
+    function refreshTokenExpired() {
+        const expirationTime = localStorage.getItem('refreshTokenExpiration');
+        return expirationTime && Date.now() > Number(expirationTime);
+    }
+
+    async function reissueTokens(refresh) {
+        try {
+            const response = await axios.post("/api/v1/token/reissue", null, {
+                headers: { "Refresh-Token": refresh },
+            });
+
+            const newAccessToken = response.headers["access-token"];
+            const newRefreshToken = response.headers["refresh-token"];
+            const refreshTokenExpiration = response.headers["refresh-token-expiration"];
+
+            if (newAccessToken && newRefreshToken && refreshTokenExpiration) {
+                login(newAccessToken, newRefreshToken);
+                localStorage.setItem('refreshTokenExpiration', refreshTokenExpiration);
+            } else {
+                throw new Error("토큰 재발급 실패");
+            }
+        } catch (error) {
+            console.error("[AuthStore] 토큰 재발급 실패:", error);
+            throw error;
+        }
+    }
+
+
     function setUserInfo(data) {
         userInfo.value = {
             userId: data.userId,
@@ -105,9 +145,11 @@ export const useAuthStore = defineStore('auth', () => {
         refreshToken.value = null;
         userSeq.value = null;
         userRole.value = null;
+        userInfo.value = { userId: null, userName: null, rankingName: null, partName: null, userEmail: null, userPhone: null, profileImage: null };
 
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
+        localStorage.clear();
     }
 
     // 권한 확인
