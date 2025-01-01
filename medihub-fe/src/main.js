@@ -19,6 +19,6 @@ axios.interceptors.request.use((config)=>{
     return config;
 });
 
-axios.defaults.baseURL = 'http://localhost:8088';
+axios.defaults.baseURL = 'https://api.medihub.info/api';
 app.config.globalProperties.axios = axios;
 app.use(router).use(pinia).mount("#app");
