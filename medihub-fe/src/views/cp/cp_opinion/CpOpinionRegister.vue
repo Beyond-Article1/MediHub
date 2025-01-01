@@ -218,7 +218,7 @@ const handleTemplateSave = async ({title: templateTitle, openScope}) => {
     formData.append("previewImage", imageBlob, "template-preview.png");
 
     // 서버로 전송
-    const response = await fetch("http://localhost:8088/template", {
+    const response = await fetch("/template", {
       method: "POST",
       body: formData,
       headers: {
