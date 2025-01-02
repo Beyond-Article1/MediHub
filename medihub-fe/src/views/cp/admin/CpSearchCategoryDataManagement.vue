@@ -283,6 +283,7 @@ watch(selectedOption, (newValue) => {
   display: flex; /* Flexbox 사용 */
   flex-wrap: wrap; /* 줄바꿈 허용 */
   gap: 1rem; /* 카드 간의 간격 */
+  margin-left: 2%;
 }
 
 .add-button {
