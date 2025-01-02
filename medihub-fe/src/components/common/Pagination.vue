@@ -84,7 +84,7 @@ const changePage = (page) => {
     <button
         class="pagination-button"
         :disabled="currentBlock * 5 >= totalPages"
-        @click="changePage(totalPages - 4)"
+        @click="changePage(totalPages)"
     >
       마지막
     </button>

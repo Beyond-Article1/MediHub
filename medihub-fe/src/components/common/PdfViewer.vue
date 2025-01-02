@@ -1,13 +1,17 @@
 <script setup>
-import {onMounted, ref, watch, defineProps} from 'vue';
-import {useRoute} from "vue-router";
+import { onMounted, ref, watch, defineProps } from 'vue';
+import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 import * as pdfjsLib from 'pdfjs-dist';
+import workerUrl from 'pdfjs-dist/build/pdf.worker.mjs?url';
 
 import Button from "@/components/common/button/Button.vue";
 import IconButton from "@/components/common/button/IconButton.vue";
 import DropBox from "@/components/common/SingleSelectDropBox.vue";
 import CpModal from "@/components/cp/CpModal.vue";
+
+// pdfjs-dist 모듈 경로 설정
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
 // vue 설정 변수
 const props = defineProps({
@@ -21,6 +25,7 @@ const props = defineProps({
   }
 });
 const route = useRoute();
+const router = useRouter();
 
 // PDF 관련 변수
 const currentPage = ref(1); // 현재 보고 있는 페이지 번호
@@ -50,8 +55,6 @@ const isModalVisible = ref(false); // 마커 정보 모달의 표시 여부
 const CANVAS_WIDTH = 1000; // 캔버스의 너비
 const CANVAS_HEIGHT = 620; // 캔버스의 높이
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
-
 // 마운트 시점 실행 함수
 onMounted(async () => {
   pdfCanvas.value = document.getElementById('pdf-canvas');
@@ -66,7 +69,7 @@ watch(() => props.pdfUrl, async (newUrl) => {
     await fetchCpOpinionLocationData(props.data.cpVersionSeq);
     currentPage.value = 1;
     await loadPage(newUrl);
-    setMarkerOnPDF();
+    await setMarkerOnPDF();
   }
 });
 
@@ -287,31 +290,35 @@ function addMarker(x, y) {
   const markerImage = new Image();
   markerImage.src = '/icons/marker.png';
 
-  const markerWidth = markerImage.width / MARKER_SCALE_FACTOR;
-  const markerHeight = markerImage.height / MARKER_SCALE_FACTOR;
-
   markerImage.onload = () => {
     const ctx = pdfCanvas.value.getContext('2d');
 
+    const markerWidth = markerImage.width / MARKER_SCALE_FACTOR;
+    const markerHeight = markerImage.height / MARKER_SCALE_FACTOR;
+
+    // 마커를 그리기
     ctx.drawImage(markerImage,
         x - (markerWidth / 2),
         y - (markerHeight / 2),
         markerWidth,
         markerHeight
     );
+
+    // 마커 추가 완료 후 위치 정보 업데이트
+    const newPosition = {
+      cpVersionSeq: route.params.cpVersionSeq,
+      cpOpinionLocationSeq: -1,
+      cpOpinionLocationPageNum: currentPage.value,
+      cpOpinionLocationX: x - (markerWidth / 2),
+      cpOpinionLocationY: y - (markerHeight / 2)
+    };
+
+    existingMarkers.value.push(newPosition);
+    console.log(existingMarkers.value);
   };
 
-  const newPosition = {
-    cpVersionSeq: route.params.cpVersionSeq,
-    cpOpinionLocationSeq: -1,
-    cpOpinionLocationPageNum: currentPage.value,
-    cpOpinionLocationX: x - (markerWidth / 2),
-    cpOpinionLocationY: y - (markerHeight / 2)
-  };
-
-  existingMarkers.value.push(newPosition);
-  console.log("추가됨");
-  console.log(existingMarkers.value);
+  // 이미지 로드 전에 마커 추가 로그 확인
+  console.log("마커 추가 완료");
 }
 
 // 이전 페이지 이동 함수
@@ -325,6 +332,18 @@ function goToPreviousPage() {
 function goToNextPage() {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
+  }
+}
+
+// 등록 페이지 이동 함수
+function goToRegisterPage() {
+  const cpVersionSeq = route.params.cpVersionSeq; // route 변수 사용
+  if (props.cpOpinionLocationSeq === -1) {
+    // cpOpinionLocationSeq가 -1인 경우 x, y 좌표도 전달
+    router.push(`/cp/${cpVersionSeq}/cpOpinionLocation/${props.cpOpinionLocationSeq}/cpOpinion?pageNum=${props.pageNum}&x=${props.x}&y=${props.y}`);
+  } else {
+    // cpOpinionLocationSeq가 -1이 아닐 경우
+    router.push(`/cp/${cpVersionSeq}/cpOpinionLocation/${props.cpOpinionLocationSeq}/cpOpinion`);
   }
 }
 
@@ -444,11 +463,13 @@ const downloadFile = () => {
       />
     </div>
 
-    <CpModal :isVisible="isModalVisible" @close="isModalVisible = false"
+    <CpModal :isVisible="isModalVisible"
              :page-num="currentPage"
              :x="clickedMarkerData.x"
              :y="clickedMarkerData.y"
-             :cpOpinionLocationSeq="clickedMarkerData.cpOpinionLocationSeq">
+             :cpOpinionLocationSeq="clickedMarkerData.cpOpinionLocationSeq"
+             @close="isModalVisible = false"
+             @register="goToRegisterPage">
       <div>
         <ul>
           <li v-for="(opinion, index) in cpOpinionLocationList" :key="index">{{ opinion }}</li>
