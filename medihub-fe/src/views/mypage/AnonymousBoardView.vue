@@ -15,7 +15,7 @@ const fetchMyPosts = async () => {
     const response = await axios.get("/anonymous-board/myPage"); // API 호출
     posts.value = response.data.data.map((post) => ({
       title: post.anonymousBoardTitle,
-      content: post.anonymousBoardContent,
+      content: extractText(post.anonymousBoardContent),
       viewCount: post.anonymousBoardViewCount,
       date: new Date(post.createdAt).toLocaleDateString("ko-KR"),
     }));
@@ -31,7 +31,7 @@ const fetchBookmarkedPosts = async () => {
     const response = await axios.get("/anonymous-board/myPage/bookmark"); // API 호출
     posts.value = response.data.data.map((post) => ({
       title: post.anonymousBoardTitle,
-      content: post.anonymousBoardContent,
+      content: extractText(post.anonymousBoardContent),
       viewCount: post.anonymousBoardViewCount,
       date: new Date(post.createdAt).toLocaleDateString("ko-KR"),
     }));
