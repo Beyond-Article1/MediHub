@@ -43,16 +43,12 @@ onMounted(() => {
   fetchData();
 });
 
-// 버튼 클릭 이벤트 핸들러
-const handleButtonClick = (buttonId) => {
-  console.log(`${buttonId} 클릭됨`);
-};
 </script>
 
 <template>
   <div class="container">
     <div class="pdf-viewer-container">
-      <PdfViewer :data="cp" :pdf-url="cp.cpUrl" @handleButtonClick="handleButtonClick"/>
+      <PdfViewer :data="cp" :pdf-url="cp.cpUrl"/>
     </div>
   </div>
 </template>
