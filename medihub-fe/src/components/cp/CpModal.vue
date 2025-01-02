@@ -1,7 +1,9 @@
 <script setup>
-import {watch, defineEmits, ref} from 'vue';
 import axios from "axios";
-import {useRoute, useRouter} from "vue-router";
+
+import { watch, defineEmits, ref } from 'vue';
+import { useRoute } from "vue-router";
+
 import Button from "@/components/common/button/Button.vue";
 import CpOpinionLi from "@/components/cp/CpOpinionLi.vue";
 import LineDivider from "@/components/common/LineDivider.vue";
@@ -83,8 +85,8 @@ watch(() => props.isVisible, async (newValue) => {
           <Pagination
               :totalData="totalData"
               :limitPage="5"
-          :page="currentPage"
-          @updatePage="updatePage"
+              :page="currentPage"
+              @updatePage="updatePage"
           />
         </template>
         <template v-else>
