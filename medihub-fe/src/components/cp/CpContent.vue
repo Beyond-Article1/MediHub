@@ -42,7 +42,6 @@ async function fetchData() {
 onMounted(() => {
   fetchData();
 });
-
 </script>
 
 <template>
