@@ -5,21 +5,13 @@ import {useRoute, useRouter} from "vue-router";
 import Button from "@/components/common/button/Button.vue";
 import CpOpinionLi from "@/components/cp/CpOpinionLi.vue";
 import LineDivider from "@/components/common/LineDivider.vue";
+import Pagination from "@/components/common/Pagination.vue";
 
 // vue 설정 변수
 const props = defineProps({
   isVisible: {
     type: Boolean,
     required: true
-  },
-  pageNum: {
-    type: Number
-  },
-  x: {
-    type: Number
-  },
-  y: {
-    type: Number
   },
   cpOpinionLocationSeq: {
     type: Number,
@@ -32,7 +24,8 @@ const route = useRoute(); // 라우트
 
 // 데이터 저장 변수
 const cpOpinionList = ref([]); // CP 의견 리스트
-const cpOpinionContent = ref();      // 파싱된 CP 의견
+const totalData = ref(0); // 전체 데이터 개수
+const currentPage = ref(1); // 현재 페이지
 
 // emit 함수
 const closeModal = () => {
@@ -40,14 +33,14 @@ const closeModal = () => {
 };
 
 // 데이터 가져오기 함수
-async function fetchData() {
+async function fetchData(page = 1) {
   if (props.cpOpinionLocationSeq !== -1) {
     try {
-      const response = await axios.get(`cp/${route.params.cpVersionSeq}/cpOpinionLocation/${props.cpOpinionLocationSeq}`);
-
+      const response = await axios.get(`cp/${route.params.cpVersionSeq}/cpOpinionLocation/${props.cpOpinionLocationSeq}?pageNum=${page}`);
       if (response.status === 200) {
         console.log("CP 의견 조회 성공");
         cpOpinionList.value = response.data.data; // 데이터 저장
+        totalData.value = response.data.totalCount; // 전체 데이터 개수 저장
         console.log(cpOpinionList.value);
       } else {
         console.log("CP 의견 조회 실패");
@@ -58,34 +51,16 @@ async function fetchData() {
   }
 }
 
-// x와 y 프로퍼티 감시
-watch(() => [props.x, props.y], async ([newX, newY]) => {
-  console.log(`x: ${newX}, y: ${newY} 로 변경됨`);
-  await fetchData(); // 데이터 가져오기
-});
-
-// 등록 함수
-function registerOpinion() {
-  const cpVersionSeq = route.params.cpVersionSeq; // route 변수 사용
-  if (props.cpOpinionLocationSeq === -1) {
-    // cpOpinionLocationSeq가 -1인 경우 x, y 좌표도 전달
-    router.push(`/cp/${cpVersionSeq}/cpOpinionLocation/${props.cpOpinionLocationSeq}/cpOpinion?pageNum=${props.pageNum}&x=${props.x}&y=${props.y}`);
-  } else {
-    // cpOpinionLocationSeq가 -1이 아닐 경우
-    router.push(`/cp/${cpVersionSeq}/cpOpinionLocation/${props.cpOpinionLocationSeq}/cpOpinion`);
-  }
-}
-
-// CP 의견 조회 페이지 이동 함수
-function navigateToOpinion(cpOpinionSeq) {
-  console.log("CP 의견 화면으로 이동합니다.");
-  router.push(`/cp/${route.params.cpVersionSeq}/cpOpinionLocation/${props.cpOpinionLocationSeq}/cpOpinion/${cpOpinionSeq}`);
+// 페이지 변경 이벤트 핸들러
+const updatePage = (pageNum) => {
+  currentPage.value = pageNum; // 현재 페이지 업데이트
+  fetchData(pageNum); // 페이지에 맞는 데이터 가져오기
 }
 
 // Modal이 열릴 때 데이터 가져오기
 watch(() => props.isVisible, async (newValue) => {
   if (newValue) {
-    await fetchData(); // Modal이 열리면 데이터 가져오기
+    await fetchData(currentPage.value); // Modal이 열리면 데이터 가져오기
   }
 });
 </script>
@@ -102,6 +77,12 @@ watch(() => props.isVisible, async (newValue) => {
             <CpOpinionLi :data="cpOpinion" @click="navigateToOpinion(cpOpinion.cpOpinionSeq)"/>
             <LineDivider/>
           </div>
+          <Pagination
+              :totalData="totalData"
+              :limitPage="5"
+          :page="currentPage"
+          @updatePage="updatePage"
+          />
         </template>
         <template v-else>
           <p>등록된 의견이 없습니다.</p>
