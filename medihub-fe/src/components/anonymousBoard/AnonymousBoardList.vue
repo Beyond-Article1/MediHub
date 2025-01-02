@@ -1,14 +1,14 @@
 <script setup>
-import { ref, onMounted, computed, defineProps } from 'vue';
+import { defineProps, ref, computed, watch, onMounted } from 'vue';
 import axios from 'axios';
 
-import router from "@/router/index.js"; // Pinia 스토어 가져오기
+import router from "@/router/index.js";
 import LocalDateTimeFormat from '@/components/common/LocalDateTimeFormat.vue';
+import Pagination from '@/components/common/Pagination.vue';
 import beforeLike from '@/assets/images/like/before-like.png';
 import afterLike from '@/assets/images/like/after-like.png';
 import beforeBookmark from "@/assets/images/bookmark/before-bookmark.png";
 import afterBookmark from "@/assets/images/bookmark/after-bookmark.png";
-import Pagination from '@/components/common/Pagination.vue'; // Pagination 컴포넌트 임포트
 
 const props = defineProps({
 
@@ -29,10 +29,10 @@ const props = defineProps({
   }
 });
 
-const totalBoards = ref(0);
-const boardList = ref([]); // 게시글 목록 상태
-const currentPage = ref(1); // 현재 페이지 상태
-const itemCount = ref(10); // 게시글 개수 상태 추가
+const boardList = ref([]);
+const currentPage = ref(1);
+// props에서 itemCount를 받아서 상태로 관리
+const itemCount = ref(props.itemCount);
 
 const fetchBoardList = async () => {
 
@@ -46,8 +46,13 @@ const fetchBoardList = async () => {
       isBookmark: false,
       keywordList: board.keywordList || []
     })) || [];
-    // 총 익명 게시글 수 계산
     totalBoards.value = boardList.value.length;
+
+    // 각 익명 게시글의 좋아요 및 북마크 상태 업데이트
+    await Promise.all(boardList.value.map(boardItem => {
+
+      return Promise.all([updateLikeStatus(boardItem), updateBookmarkStatus(boardItem)]);
+    }));
   } catch(error) {
 
     console.error('Error fetching board list:', error);
@@ -56,60 +61,154 @@ const fetchBoardList = async () => {
   }
 };
 
-// 정렬된 익명 게시글 목록
 const sortedBoardList = computed(() => {
 
-  return [...(props.searchResult.length > 0 ? props.searchResult : boardList.value)].sort((a, b) => {
+  const boards = Array.isArray(props.searchResult) &&
+      props.searchResult.length > 0 ?
+      props.searchResult :
+      boardList.value;
+
+  return boards.sort((a, b) => {
 
     if(props.sortOption === '작성순') {
 
-      // 오름차순 정렬
       return new Date(a.createdAt) - new Date(b.createdAt);
     } else if(props.sortOption === '최신순') {
 
-      // 내림차순 정렬
       return new Date(b.createdAt) - new Date(a.createdAt);
-      // 내림차순 정렬
-    } else if(props.sortOption === '조회순') return b.anonymousBoardViewCount - a.anonymousBoardViewCount;
+    } else if(props.sortOption === '조회순') {
+
+      return b.anonymousBoardViewCount - a.anonymousBoardViewCount;
+    }
 
     return 0;
   });
 });
 
-// 현재 페이지에 맞는 익명 게시물 리스트 계산
-const paginatedBoards = computed(() => {
+const totalBoards = computed(() => {
 
-  // 시작 인덱스
-  const start = (currentPage.value - 1) * props.itemCount;
-
-  return sortedBoardList.value.slice(start, start + props.itemCount);
+  // searchResult가 있을 경우 그 길이를, 없으면 boardList의 길이를 반환
+  return Array.isArray(props.searchResult) &&
+      props.searchResult.length > 0 ?
+      props.searchResult.length :
+      boardList.value.length;
 });
 
-// 페이지 변경 핸들러
+const paginatedBoards = computed(() => {
+
+  const boardsToPaginate = sortedBoardList.value;
+  const start = (currentPage.value - 1) * itemCount.value;
+  // 유효한 페이지 범위 확인
+  const end = start + itemCount.value;
+
+  return boardsToPaginate.slice(start, end);
+});
+
 const changePage = (page) => {
 
-  // 현재 페이지 업데이트
   currentPage.value = page;
-};
-
-// 좋아요 버튼 클릭 이벤트
-const toggleLike = (boardItem) => {
-
-  // 좋아요 상태 전환
-  boardItem.isLiked = !boardItem.isLiked;
-};
-
-// 북마크 버튼 클릭 이벤트
-const toggleBookmark = (boardItem) => {
-
-  // 북마크 상태 전환
-  boardItem.isBookmark = !boardItem.isBookmark;
 };
 
 const goToDetail = (id) => {
 
   router.push({ name: 'AnonymousBoardDetail', params: { id } });
 };
+
+const toggleLike = async (boardItem) => {
+
+  const anonymousBoardSeq = boardItem.anonymousBoardSeq;
+
+  try {
+
+    const response = await axios.patch(`/anonymous-board/${anonymousBoardSeq}/prefer`);
+
+    boardItem.isLiked = response.data.data;
+
+    alert(boardItem.isLiked ? '좋아요가 등록되었습니다.' : '좋아요가 취소되었습니다.');
+  } catch(error) {
+
+    console.error('좋아요 처리 중 오류 발생:', error);
+
+    alert('좋아요 처리에 실패했습니다.');
+  }
+};
+
+const toggleBookmark = async (boardItem) => {
+
+  const anonymousBoardSeq = boardItem.anonymousBoardSeq;
+
+  try {
+
+    const response = await axios.patch(`/anonymous-board/${anonymousBoardSeq}/bookmark`);
+
+    boardItem.isBookmark = response.data.data;
+
+    alert(boardItem.isBookmark ? '북마크가 등록되었습니다.' : '북마크가 해제되었습니다.');
+  } catch(error) {
+
+    console.error('북마크 처리 중 오류 발생:', error);
+
+    alert('북마크 처리에 실패했습니다.');
+  }
+};
+
+const updateLikeStatus = async (boardItem) => {
+
+  try {
+
+    const response = await axios.get(`/anonymous-board/${boardItem.anonymousBoardSeq}/prefer`);
+
+    // 응답이 존재하고, 데이터가 있으면 좋아요 상태 설정
+    boardItem.isLiked = response.data?.data ?? false;
+  } catch(error) {
+
+    // 404 에러가 발생할 경우, 기본 값 false 설정
+    if(error.response && error.response.status === 404) {
+
+      console.warn(`익명 게시글 ${boardItem.anonymousBoardSeq}번에 대한 좋아요 상태가 없습니다.`);
+
+      boardItem.isLiked = false;
+    } else {
+
+      console.error('좋아요 상태 확인 중 오류 발생:', error);
+
+      boardItem.isLiked = false;
+    }
+  }
+};
+
+const updateBookmarkStatus = async (boardItem) => {
+
+  try {
+
+    const response = await axios.get(`/anonymous-board/${boardItem.anonymousBoardSeq}/bookmark`);
+
+    // 응답이 존재하고, 데이터가 있으면 북마크 상태 설정
+    boardItem.isBookmark = response.data?.data ?? false;
+  } catch(error) {
+
+    // 404 에러가 발생할 경우, 기본 값 false 설정
+    if(error.response && error.response.status === 404) {
+
+      console.warn(`익명 게시글 ${boardItem.anonymousBoardSeq}번에 대한 북마크 상태가 없습니다.`);
+
+      boardItem.isBookmark = false;
+    } else {
+
+      console.error('북마크 상태 확인 중 오류 발생:', error);
+
+      boardItem.isBookmark = false;
+    }
+  }
+};
+
+// itemCount가 변경될 때마다 currentPage를 조정
+// itemCount 변경 시 페이지를 1로 초기화
+watch(() => props.itemCount, (newItemCount) => {
+
+  itemCount.value = newItemCount;
+  currentPage.value = 1;
+});
 
 onMounted(() => {
 
@@ -148,8 +247,8 @@ onMounted(() => {
 
           <td>
             <div class="keywordList">
-              <span class="keyword" v-for="(keyword, index) in boardItem.keywordList" :key="index">
-                # {{ keyword.keywordName }}
+              <span class="keyword" v-for="(keyword, index) in boardItem.keywordList.slice(0, 2)" :key="index">
+                # {{ keyword.keywordName.length > 10 ? keyword.keywordName.slice(0, 10) + '...' : keyword.keywordName }}
               </span>
             </div>
           </td>
