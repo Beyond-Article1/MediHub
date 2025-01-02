@@ -1,5 +1,5 @@
 <script setup>
-import { nextTick, ref, watch } from "vue";
+import { ref, nextTick, watch } from "vue";
 
 // 플러그인 임포트
 import EditorJS from "@editorjs/editorjs";
