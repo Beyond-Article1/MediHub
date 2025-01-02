@@ -1,5 +1,5 @@
 import {defineStore} from "pinia";
-import {onMounted, ref} from "vue";
+import {onMounted, onUnmounted, ref} from "vue";
 import axios from "axios";
 
 export const useAuthStore = defineStore('auth', () => {
@@ -11,14 +11,28 @@ export const useAuthStore = defineStore('auth', () => {
     const userInfo = ref({
         userId: null,
         userName: null,
-        rankingName: null, // 직책
-        partName: null,    // 부서
+        rankingName: null,
+        partName: null,
         userEmail: null,
         userPhone: null,
         profileImage: null,
     });
 
+    const clearStorageOnUnload = () => {
+        window.addEventListener("beforeunload", () => {
+            console.log("[AuthStore] 브라우저 닫힘 또는 새로고침 이벤트 발생");
+            localStorage.clear();
+            console.log("[AuthStore] localStorage 초기화 완료");
+        });
+    };
+
+    const removeUnloadListener = () => {
+        window.removeEventListener("beforeunload", clearStorageOnUnload);
+    };
+
     onMounted(async () => {
+        clearStorageOnUnload();
+
         const access = localStorage.getItem('accessToken');
         const refresh = localStorage.getItem('refreshToken');
 
@@ -43,11 +57,15 @@ export const useAuthStore = defineStore('auth', () => {
         }
     });
 
+    onUnmounted(() => {
+        removeUnloadListener();
+    });
+
     // JWT 토큰 디코딩 유틸리티 함수
     function decodeToken(token) {
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
-            console.log("[AuthStore] Decoded payload: ", payload); // 디코딩된 payload 확인
+            console.log("[AuthStore] Decoded payload: ", payload);
             return payload;
         } catch (error) {
             console.error("[AuthStore] 디코딩 에러: ", error);
@@ -71,7 +89,7 @@ export const useAuthStore = defineStore('auth', () => {
 
         const payload = decodeToken(token);
         if (payload) {
-            userRole.value = payload.auth; // `auth`에서 역할 설정
+            userRole.value = payload.auth;
             userSeq.value = payload.userSeq;
             console.log("[AuthStore] userRole:" , userRole.value);
             console.log("[AuthStore] userSeq:" , userSeq.value);
@@ -83,6 +101,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     function refreshTokenExpired() {
         const expirationTime = localStorage.getItem('refreshTokenExpiration');
+        console.log("[AuthStore] Refresh Token 만료 시간:", expirationTime);
         return expirationTime && Date.now() > Number(expirationTime);
     }
 
@@ -113,8 +132,8 @@ export const useAuthStore = defineStore('auth', () => {
         userInfo.value = {
             userId: data.userId,
             userName: data.userName,
-            rankingName: data.rankingName, // 직책
-            partName: data.partName,       // 부서
+            rankingName: data.rankingName,
+            partName: data.partName,
             userEmail: data.userEmail,
             userPhone: data.userPhone,
             profileImage: data.profileImage || null,
@@ -124,7 +143,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     // 로그아웃 처리
     async function logout() {
-        console.log("[AuthStore] Logout 시작"); // 로그아웃 디버깅
+        console.log("[AuthStore] Logout 시작");
 
         try {
             if (accessToken.value) {
@@ -154,9 +173,9 @@ export const useAuthStore = defineStore('auth', () => {
 
     // 권한 확인
     function isAuthorized(requiredRole) {
-        console.log("[AuthStore] role: ", requiredRole); // 권한 확인 디버깅
+        console.log("[AuthStore] role: ", requiredRole);
         if (!userRole.value) return false;
-        return userRole.value === requiredRole; // 역할 비교
+        return userRole.value === requiredRole;
     }
 
     return {
