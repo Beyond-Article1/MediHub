@@ -333,6 +333,7 @@ function goToNextPage() {
   }
 }
 
+// 등록 페이지 이동 함수
 function goToRegisterPage() {
   const cpVersionSeq = route.params.cpVersionSeq; // route 변수 사용
   if (props.cpOpinionLocationSeq === -1) {
