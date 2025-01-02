@@ -222,7 +222,7 @@ function moveToItem(menu) {
       route = '/userDetail';
       break;
     case 'myPage':
-      route = '/myPage/journal';
+      route = '/myPage/followmember';
       break;
     default:
       route = '/';
