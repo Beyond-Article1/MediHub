@@ -218,7 +218,7 @@ watch(selectedOption, (newValue) => {
 
 <template>
   <div>
-    <CpHeader/>
+    <CpHeader />
     <div class="d-flex">
       <div class="me-3 position-relative">
         <DropBox
@@ -270,7 +270,7 @@ watch(selectedOption, (newValue) => {
 
 <style scoped>
 .d-flex {
-  display: flex !important;
+  display: flex;
   justify-content: center;
 }
 
@@ -287,6 +287,8 @@ watch(selectedOption, (newValue) => {
   flex-wrap: wrap; /* 줄바꿈 허용 */
   gap: 1rem; /* 카드 간의 간격 */
   margin-left: 2%;
+  max-height: 400px; /* 최대 높이 설정 */
+  overflow-y: auto; /* 세로 스크롤 가능 */
 }
 
 .add-button {
@@ -328,4 +330,3 @@ watch(selectedOption, (newValue) => {
   position: relative; /* 드롭박스 부모 요소에 상대 위치 설정 */
 }
 </style>
-
