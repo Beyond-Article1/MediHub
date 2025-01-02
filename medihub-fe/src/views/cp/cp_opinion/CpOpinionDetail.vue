@@ -6,7 +6,7 @@ import {useAuthStore} from "@/store/authStore.js";
 import axios from "axios";
 
 import KeywordList from "@/components/case_sharing/case_sharing/KeywordList.vue";
-import CaseContent from "@/components/case_sharing/case_sharing/CaseSharingContent.vue";
+import CpOpinionContent from "@/components/cp/CpOpinionContent.vue";
 import ContentTable from "@/components/case_sharing/case_sharing/ContentTable.vue";
 import LocalDateTimeFormat from "@/components/common/LocalDateTimeFormat.vue";
 import SvgIconButton from "@/components/common/button/svgIconButton.vue";
@@ -171,7 +171,7 @@ async function voteAgainst() {
       <div class="main-content">
         <KeywordList :keywords="cpOpinion.keywordList"/>
         <hr class="divider"/>
-        <CaseContent v-if="cpOpinion.cpOpinionContent" :content="jsonCpOpinion"/>
+        <CpOpinionContent v-if="cpOpinion.cpOpinionContent" :content="jsonCpOpinion"/>
       </div>
       <div class="sidebar">
         <div class="sticky-container">

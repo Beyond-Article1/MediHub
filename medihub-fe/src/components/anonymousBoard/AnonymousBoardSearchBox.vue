@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineEmits } from 'vue';
+import { defineProps, defineEmits, ref } from 'vue';
 import axios from 'axios';
 
 const props = defineProps({
