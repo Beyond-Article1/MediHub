@@ -1,6 +1,6 @@
 <script setup>
 import {onMounted, ref, watch, defineProps} from 'vue';
-import {useRoute} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import axios from "axios";
 import * as pdfjsLib from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.mjs?url';
@@ -25,6 +25,7 @@ const props = defineProps({
   }
 });
 const route = useRoute();
+const router = useRouter();
 
 // PDF 관련 변수
 const currentPage = ref(1); // 현재 보고 있는 페이지 번호
@@ -68,7 +69,7 @@ watch(() => props.pdfUrl, async (newUrl) => {
     await fetchCpOpinionLocationData(props.data.cpVersionSeq);
     currentPage.value = 1;
     await loadPage(newUrl);
-    setMarkerOnPDF();
+    await setMarkerOnPDF();
   }
 });
 
@@ -303,6 +304,8 @@ function addMarker(x, y) {
     );
   };
 
+  console.log("마커 추가 완료");
+
   const newPosition = {
     cpVersionSeq: route.params.cpVersionSeq,
     cpOpinionLocationSeq: -1,
@@ -312,7 +315,7 @@ function addMarker(x, y) {
   };
 
   existingMarkers.value.push(newPosition);
-  console.log("추가됨");
+  // console.log("존재하는 마커 리스트에 값 추가 완료");
   console.log(existingMarkers.value);
 }
 
@@ -327,6 +330,17 @@ function goToPreviousPage() {
 function goToNextPage() {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
+  }
+}
+
+function goToRegisterPage() {
+  const cpVersionSeq = route.params.cpVersionSeq; // route 변수 사용
+  if (props.cpOpinionLocationSeq === -1) {
+    // cpOpinionLocationSeq가 -1인 경우 x, y 좌표도 전달
+    router.push(`/cp/${cpVersionSeq}/cpOpinionLocation/${props.cpOpinionLocationSeq}/cpOpinion?pageNum=${props.pageNum}&x=${props.x}&y=${props.y}`);
+  } else {
+    // cpOpinionLocationSeq가 -1이 아닐 경우
+    router.push(`/cp/${cpVersionSeq}/cpOpinionLocation/${props.cpOpinionLocationSeq}/cpOpinion`);
   }
 }
 
@@ -446,11 +460,13 @@ const downloadFile = () => {
       />
     </div>
 
-    <CpModal :isVisible="isModalVisible" @close="isModalVisible = false"
+    <CpModal :isVisible="isModalVisible"
              :page-num="currentPage"
              :x="clickedMarkerData.x"
              :y="clickedMarkerData.y"
-             :cpOpinionLocationSeq="clickedMarkerData.cpOpinionLocationSeq">
+             :cpOpinionLocationSeq="clickedMarkerData.cpOpinionLocationSeq"
+             @close="isModalVisible = false"
+             @register="goToRegisterPage">
       <div>
         <ul>
           <li v-for="(opinion, index) in cpOpinionLocationList" :key="index">{{ opinion }}</li>

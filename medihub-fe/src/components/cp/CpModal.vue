@@ -18,8 +18,7 @@ const props = defineProps({
     default: -1
   }
 }); // props 정의
-const emit = defineEmits(['close']);  // emit 정의
-const router = useRouter(); // 라우터
+const emit = defineEmits(['close', 'register']);  // emit 정의
 const route = useRoute(); // 라우트
 
 // 데이터 저장 변수
@@ -31,6 +30,10 @@ const currentPage = ref(1); // 현재 페이지
 const closeModal = () => {
   emit('close');
 };
+
+const registerOpinion = () => {
+  emit('register')
+}
 
 // 데이터 가져오기 함수
 async function fetchData(page = 1) {
