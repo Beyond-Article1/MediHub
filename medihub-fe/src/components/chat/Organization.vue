@@ -229,7 +229,7 @@ const createChatroom = async (userSeq) => {
             :key="user.userSeq"
             class="user-item"
             @dblclick="createChatroom(user.userSeq)">
-          <img :src="user.profileImage || 'src/assets/images/chat/Default_Profile.png'" alt="Profile" />
+          <img :src="user.profileImage || '@/assets/images/chat/Default_Profile.png'" alt="Profile" />
           <div class="user-info">
             <p class="user-name">{{ user.userName }} {{ user.rankingName }}</p>
             <p class="user-details">{{ user.deptName }} | {{ user.partName }} | {{ user.userPhone }}</p>

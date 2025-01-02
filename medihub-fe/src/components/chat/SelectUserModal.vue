@@ -69,7 +69,7 @@ onMounted(getUsers);
         >
           <!-- 프로필 사진 -->
           <div class="user-profile">
-            <img :src="user.profileImage || 'src/assets/images/chat/Default_Profile.png'" alt="Profile" />
+            <img :src="user.profileImage || '@/assets/images/chat/Default_Profile.png'" alt="Profile" />
           </div>
           <!-- 사용자 정보 -->
           <div class="user-info">

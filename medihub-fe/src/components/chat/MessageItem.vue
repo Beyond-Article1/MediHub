@@ -18,15 +18,15 @@ const getFileIcon = (filename) => {
   const extension = filename.split(".").pop().toLowerCase();
   switch(extension) {
     case "pdf":
-      return "src/assets/images/chat/pdf-icon.png";
+      return "@/assets/images/chat/pdf-icon.png";
     case "xls":
     case "xlsx":
-      return "src/assets/images/chat/excel-icon.png"
+      return "@/assets/images/chat/excel-icon.png"
     case "doc":
     case "docx":
-      return "src/assets/images/chat/word-icon.png"
+      return "@/assets/images/chat/word-icon.png"
     default:
-      return "src/assets/images/chat/download.png"
+      return "@/assets/images/chat/download.png"
   }
 };
 

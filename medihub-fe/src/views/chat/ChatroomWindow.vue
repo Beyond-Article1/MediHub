@@ -366,7 +366,7 @@ const stopDrag = () => {
 
     <!-- 채팅방 정보 헤더 -->
     <div class="chatroom-header">
-      <img :src="props.room.partnerProfileUrl || 'src/assets/images/chat/group-chat.png'" />
+      <img :src="props.room.partnerProfileUrl || '@/assets/images/chat/group-chat.png'" />
       <div class="chatroom-info">
         <h4>{{ room.chatroomCustomName || props.room.partnerName || room.chatroomDefaultName }}</h4>
         <p @click="openParticipantModal" style="cursor: pointer;">
