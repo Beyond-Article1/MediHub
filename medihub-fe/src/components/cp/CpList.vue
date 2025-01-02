@@ -46,9 +46,9 @@ async function fetchData() {
       console.log("응답 데이터:", response.data.data); // 응답 데이터 확인
 
       cpList.value = response.data.data;
-      console.log(`cpList.value = ${cpList.value}`);
+      // console.log(`cpList.value = ${cpList.value}`);
 
-      console.log(cpList.value);
+      // console.log(cpList.value);
     } else {
       console.log("CP 리스트 조회 실패");
     }
