@@ -15,8 +15,8 @@ export const useWebSocketStore = defineStore('webSocket', ws => {
 
     // WebSocket 연결 서버 URL
     const socketUrl = window.location.protocol === 'https:'
-        ? 'https://localhost:8088/ws'
-        : 'http://localhost:8088/ws';
+        ? 'https://api.medihub.info/api/ws'
+        : 'http://api.medihub.info/api/ws';
 
     /* 1. WebSocket 연결 함수 */
     function connectWebSocket() {
