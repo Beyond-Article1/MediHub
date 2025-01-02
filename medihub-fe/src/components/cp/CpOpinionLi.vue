@@ -80,7 +80,7 @@ function stripHtml(html) {
         <span>{{ props.data.negativeVotes }}</span>
       </div>
       <div style="margin-left: 2%">
-        <span>{{ props.data.positiveRatio }}</span>
+        <span>{{ props.data.positiveRatio.toFixed(2) }}</span>
         <span>%</span>
       </div>
     </div>
