@@ -1,20 +1,18 @@
 <script setup>
-import { defineEmits, defineProps } from "vue";
-import { useAuthStore } from "@/store/authStore.js";
+import {defineEmits, defineProps} from "vue";
+import {useAuthStore} from "@/store/authStore.js";
 import LocalDateTimeFormat from "@/components/common/LocalDateTimeFormat.vue";
 import BookmarkButton from "@/components/common/button/BookmarkButton.vue";
 import axios from 'axios';
 
-// Props 정의
+// vue 관련 변수
 const props = defineProps({
   data: {
     type: Object,
     required: true
   }
 });
-
-// 이벤트 정의
-const emit = defineEmits();
+const emit = defineEmits('update');
 
 // 파일 다운로드 함수
 const downloadFile = (event) => {
@@ -34,7 +32,12 @@ async function updateBookmark(cpVersionSeq) {
     const response = await axios.post(`cp/bookmark/${cpVersionSeq}`, {});
 
     if (response.status === 200) {
-      console.log("북마크 토글 성공");
+      // console.log("북마크 토글 성공");
+      if (props.data.bookmarked === true) {
+        alert("북마크 해제되었습니다.");
+      } else {
+        alert("북마크 설정되었습니다.");
+      }
       emit('update'); // 데이터 새로고침을 위한 이벤트 발생
     } else {
       console.log("북마크 토글 실패");
