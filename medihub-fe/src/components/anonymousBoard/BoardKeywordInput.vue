@@ -1,37 +1,55 @@
 <script setup>
-import { ref, defineEmits } from "vue";
+import { defineProps, defineEmits, ref, watch } from "vue";
 
-const keywords = ref([]);
+const props = defineProps({
+
+  keywordList: {
+
+    type: Array,
+    default: () => []
+  }
+});
+const emit = defineEmits(["update:keywordList"]);
+
+// 로컬 상태 관리
+const localKeywordList = ref([...props.keywordList]);
 const keywordInput = ref("");
-const emit = defineEmits(["update:keywords"]);
 
 const addKeyword = () => {
 
-  if(keywordInput.value.trim() && keywords.value.length < 10) {
+  if(keywordInput.value.trim() && localKeywordList.value.length < 10) {
 
-    keywords.value.push(keywordInput.value.trim());
+    localKeywordList.value.push(keywordInput.value.trim());
     keywordInput.value = "";
 
-    emit("update:keywords", keywords.value);
+    // 부모 컴포넌트에 업데이트
+    emit("update:keywordList", localKeywordList.value);
   }
 };
+
 const removeKeyword = (index) => {
 
-  keywords.value.splice(index, 1);
+  localKeywordList.value.splice(index, 1);
 
-  emit("update:keywords", keywords.value);
+  emit("update:keywordList", localKeywordList.value);
 };
+
+watch(() => props.keywordList, (newVal) => { localKeywordList.value = [...newVal]; });
 </script>
 
 <template>
   <div class="keyword-input">
-    <input v-model="keywordInput" @keydown.enter.prevent="addKeyword" placeholder="# 키워드를 입력해 주세요. (최대 10개)"/>
+    <input
+        v-model="keywordInput"
+        @keydown.enter.prevent="addKeyword"
+        placeholder="# 키워드를 입력해 주세요. (최대 10개)"
+    />
 
-    <span class="keyword" v-for="(keyword, index) in keywords" :key="index">
+    <div class="keyword" v-for="(keyword, index) in localKeywordList" :key="index">
       # {{ keyword }}
 
       <button @click="removeKeyword(index)">X</button>
-    </span>
+    </div>
   </div>
 </template>
 

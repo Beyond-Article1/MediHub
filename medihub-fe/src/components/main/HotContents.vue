@@ -33,7 +33,10 @@
 
     <!-- MEDICAL LIFE Section -->
     <div class="section">
-      <h5>MEDICAL LIFE</h5>
+      <div class="section-header">
+        <h5>MEDICAL LIFE</h5>
+        <button @click="goToMedicalLifeList" class="more-button">+</button>
+      </div>
       <ul class="detailed-list">
         <li
             v-for="(lifeItem, index) in medicalLifeList"
@@ -136,6 +139,10 @@ const goToCaseSharingList = () => {
 
 const goToMedicalLifeDetail = (medicalLifeSeq) => {
   router.push(`/medicalLife/${medicalLifeSeq}`);
+};
+
+const goToMedicalLifeList = () => {
+  router.push("/medicallife");
 };
 
 onMounted(() => {

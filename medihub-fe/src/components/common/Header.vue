@@ -222,7 +222,7 @@ function moveToItem(menu) {
       route = '/userDetail';
       break;
     case 'myPage':
-      route = '/myPage/journal';
+      route = '/myPage/followmember';
       break;
     default:
       route = '/';
@@ -256,6 +256,7 @@ const connectSSE = () => {
   eventSource.value = new EventSourcePolyfill(sseUrl, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
+      heartbeatTimeout: 60000 // 60초로 설정
     },
   }, {withCredentials: true});
 

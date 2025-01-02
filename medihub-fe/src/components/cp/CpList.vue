@@ -1,16 +1,18 @@
 <script setup>
-import {onMounted, ref, watch} from "vue";
-import {useRouter, useRoute} from "vue-router";
-import {useCpCategoryStore} from "@/store/cpCategoryStore.js";
+import { onMounted, ref, watch, computed } from "vue";
+import { useRouter } from "vue-router";
+import { useCpCategoryStore } from "@/store/cpCategoryStore.js";
 import axios from "axios";
 import CpLi from "@/components/cp/CpLi.vue";
 import CpLiInfo from "@/components/cp/CpLiInfo.vue";
+import Pagination from "@/components/common/Pagination.vue";
 
 // vue 설정 변수
 const router = useRouter();
-const route = useRoute(); // 현재 라우트 정보를 가져옴
 const cpList = ref([]); // CP 리스트를 저장할 ref
 const cpCategoryStore = useCpCategoryStore();
+const currentPage = ref(1); // 현재 페이지
+const limitPage = ref(10); // 한 페이지에 보여줄 데이터 개수
 
 // 데이터 호출 함수
 async function fetchData() {
@@ -43,15 +45,18 @@ async function fetchData() {
       console.log("CP 리스트 조회 성공");
       console.log("응답 데이터:", response.data.data); // 응답 데이터 확인
 
-      cpList.value = response.data.data;
-      console.log(`cpList.value = ${cpList.value}`);
+      // bookmarked가 true인 항목을 먼저 보여주기 위해 정렬
+      cpList.value = response.data.data.sort((a, b) => {
+        return (b.bookmarked ? 1 : 0) - (a.bookmarked ? 1 : 0); // bookmarked가 true인 항목을 앞에 배치
+      });
 
-      console.log(cpList.value);
+      // console.log(`cpList.value = ${cpList.value}`);
+      // console.log(cpList.value);
     } else {
       console.log("CP 리스트 조회 실패");
     }
   } catch (error) {
-    if(error.status === 404) {
+    if (error.response && error.response.status === 404) {
       console.log("조회 결과가 없습니다.");
       cpList.value = [];
     }
@@ -66,25 +71,39 @@ const moveCpVersionPage = (cpVersionSeq) => {
 // Pinia 스토어의 selectedDataList 변경 감시 및 API 호출
 watch(() => cpCategoryStore.selectedDataList, (newValue) => {
   console.log("Pinia의 selectedDataList가 변경되었습니다:", newValue);
-  // API 호출
-  fetchData();
+  fetchData(); // API 호출
 }, {deep: true}); // deep: true를 사용하여 중첩 배열의 변경도 감지
 
 // 컴포넌트 마운트 시 데이터 호출
 onMounted(() => {
   fetchData(); // 초기 데이터 호출
 });
+
+// 페이지 변경 핸들러
+const handlePageChange = (page) => {
+  currentPage.value = page;
+  fetchData(); // 페이지가 변경될 때 데이터 다시 호출
+};
+
+// 페이지네이션을 위한 전체 데이터 개수 계산
+const totalData = computed(() => cpList.value.length); // 전체 데이터 개수
 </script>
 
 <template>
   <div class="cp-container">
     <CpLiInfo/>
     <CpLi
-        v-for="cp in cpList"
+        v-for="cp in cpList.slice((currentPage - 1) * limitPage, currentPage * limitPage)"
         :key="cp.cpVersionSeq"
         :data="cp"
         @update="fetchData"
         @move="moveCpVersionPage"
+    />
+    <Pagination
+        :totalData="totalData"
+        :limitPage="limitPage"
+        :page="currentPage"
+        @updatePage="handlePageChange"
     />
   </div>
 </template>

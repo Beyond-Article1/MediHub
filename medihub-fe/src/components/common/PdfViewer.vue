@@ -1,13 +1,17 @@
 <script setup>
 import {onMounted, ref, watch, defineProps} from 'vue';
-import {useRoute} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import axios from "axios";
 import * as pdfjsLib from 'pdfjs-dist';
+import workerUrl from 'pdfjs-dist/build/pdf.worker.mjs?url';
 
 import Button from "@/components/common/button/Button.vue";
 import IconButton from "@/components/common/button/IconButton.vue";
 import DropBox from "@/components/common/SingleSelectDropBox.vue";
 import CpModal from "@/components/cp/CpModal.vue";
+
+// pdfjs-dist 모듈 경로 설정
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
 // vue 설정 변수
 const props = defineProps({
@@ -21,6 +25,7 @@ const props = defineProps({
   }
 });
 const route = useRoute();
+const router = useRouter();
 
 // PDF 관련 변수
 const currentPage = ref(1); // 현재 보고 있는 페이지 번호
@@ -33,7 +38,7 @@ const isMarkerEnabled = ref(false); // 마커 추가 기능의 활성화 여부
 const clickedMarkerData = ref({x: null, y: null, cpOpinionLocationSeq: null}); // 클릭한 마커의 위치 및 정보
 const existingMarkers = ref([]); // 기존 마커 정보를 저장하는 배열
 const isMarkerVisible = ref(true); // 마커의 표시 여부
-const MARKER_CHECK_RADIUS = 11; // 마커 클릭 감지 반경
+const MARKER_CHECK_RADIUS = 30; // 마커 클릭 감지 반경
 const MARKER_SCALE_FACTOR = 14; // 마커 이미지 크기 조정 비율
 
 // CP 관련 변수
@@ -50,8 +55,6 @@ const isModalVisible = ref(false); // 마커 정보 모달의 표시 여부
 const CANVAS_WIDTH = 1000; // 캔버스의 너비
 const CANVAS_HEIGHT = 620; // 캔버스의 높이
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
-
 // 마운트 시점 실행 함수
 onMounted(async () => {
   pdfCanvas.value = document.getElementById('pdf-canvas');
@@ -66,7 +69,7 @@ watch(() => props.pdfUrl, async (newUrl) => {
     await fetchCpOpinionLocationData(props.data.cpVersionSeq);
     currentPage.value = 1;
     await loadPage(newUrl);
-    setMarkerOnPDF();
+    await setMarkerOnPDF();
   }
 });
 
@@ -120,6 +123,13 @@ const handlePdfClick = (event) => {
   const y = event.offsetY;
 
   const existingMarker = existingMarkers.value.find(marker => {
+    // console.log(`clicked pos x = ${x}`);
+    // console.log(`existingMarker's x = ${marker.cpOpinionLocationX}`);
+    // console.log(`clicked pos y = ${y}`);
+    // console.log(`existingMarker's y = ${marker.cpOpinionLocationY}`);
+    //
+    // console.log("x 좌표 검사: ", Math.abs(marker.cpOpinionLocationX - x));
+    // console.log("y 좌표 검사: ", Math.abs(marker.cpOpinionLocationY - y));
     return Math.abs(marker.cpOpinionLocationX - x) < MARKER_CHECK_RADIUS
         && Math.abs(marker.cpOpinionLocationY - y) < MARKER_CHECK_RADIUS;
   });
@@ -138,6 +148,7 @@ const handlePdfClick = (event) => {
       console.log("새로운 위치 입니다.");
       addMarker(x, y);
       clickedMarkerData.value = {x, y, cpOpinionLocationSeq: -1};
+      console.log(clickedMarkerData.value);
       isModalVisible.value = true; // 모달 열기
     }
   }
@@ -287,31 +298,36 @@ function addMarker(x, y) {
   const markerImage = new Image();
   markerImage.src = '/icons/marker.png';
 
-  const markerWidth = markerImage.width / MARKER_SCALE_FACTOR;
-  const markerHeight = markerImage.height / MARKER_SCALE_FACTOR;
-
   markerImage.onload = () => {
     const ctx = pdfCanvas.value.getContext('2d');
 
+    const markerWidth = markerImage.width / MARKER_SCALE_FACTOR;
+    const markerHeight = markerImage.height / MARKER_SCALE_FACTOR;
+
+    // 마커를 그리기
     ctx.drawImage(markerImage,
         x - (markerWidth / 2),
         y - (markerHeight / 2),
         markerWidth,
         markerHeight
     );
+
+    // 마커 추가 완료 후 위치 정보 업데이트
+    const newPosition = {
+      cpVersionSeq: route.params.cpVersionSeq,
+      cpOpinionLocationSeq: -1,
+      cpOpinionLocationPageNum: currentPage.value,
+      cpOpinionLocationX: x - (markerWidth / 2),
+      cpOpinionLocationY: y - (markerHeight / 2)
+    };
+
+    existingMarkers.value.push(newPosition);
+    console.log("존재하는 마커 리스트에 새로운 좌표 추가됨");
+    console.log(existingMarkers.value);
   };
 
-  const newPosition = {
-    cpVersionSeq: route.params.cpVersionSeq,
-    cpOpinionLocationSeq: -1,
-    cpOpinionLocationPageNum: currentPage.value,
-    cpOpinionLocationX: x - (markerWidth / 2),
-    cpOpinionLocationY: y - (markerHeight / 2)
-  };
-
-  existingMarkers.value.push(newPosition);
-  console.log("추가됨");
-  console.log(existingMarkers.value);
+  // 이미지 로드 전에 마커 추가 로그 확인
+  console.log("마커 추가 완료");
 }
 
 // 이전 페이지 이동 함수
@@ -326,6 +342,49 @@ function goToNextPage() {
   if (currentPage.value < totalPages.value) {
     currentPage.value++;
   }
+}
+
+// 등록 페이지 이동 함수
+function goToRegisterPage() {
+  console.log("CP 의견 등록 페이지로 이동합니다.");
+  const cpVersionSeq = route.params.cpVersionSeq; // route 변수 사용
+
+  // clickedMarkerData에서 cpOpinionLocationSeq를 안전하게 가져오기
+  const cpOpinionLocationSeq = Number.parseFloat(clickedMarkerData.value.cpOpinionLocationSeq);
+  if (isNaN(cpOpinionLocationSeq)) {
+    console.error("cpOpinionLocationSeq가 유효하지 않습니다.");
+    return; // 유효하지 않으면 함수 종료
+  }
+
+  let url;
+  if (cpOpinionLocationSeq === -1) {
+    // cpOpinionLocationSeq가 -1인 경우 x, y 좌표도 전달
+    let pageNum = Number.parseFloat(currentPage.value);
+    let x = Number.parseFloat(clickedMarkerData.value.x);
+    let y = Number.parseFloat(clickedMarkerData.value.y);
+
+    // NaN 체크
+    if (isNaN(pageNum) || isNaN(x) || isNaN(y)) {
+      console.error("페이지 번호 또는 좌표가 유효하지 않습니다.");
+      return; // 유효하지 않으면 함수 종료
+    }
+
+    url = `/cp/${cpVersionSeq}/cpOpinionLocation/${cpOpinionLocationSeq}/cpOpinion?pageNum=${pageNum}&x=${x}&y=${y}`;
+    console.log(`이동 url: ${url}`);
+    router.push(url);
+  } else {
+    // cpOpinionLocationSeq가 -1이 아닐 경우
+    console.log(`clickedMarkerData.cpOpinionLocationSeq: ${clickedMarkerData.value.cpOpinionLocationSeq}`);
+    url = `/cp/${cpVersionSeq}/cpOpinionLocation/${cpOpinionLocationSeq}/cpOpinion`;
+    console.log(`이동 url: ${url}`);
+    router.push(url);
+  }
+}
+
+// CP 의견 조회 페이지 이동 함수
+function goToCpOpinionPage(cpOpinionSeq) {
+  console.log("CP 의견 화면으로 이동합니다.");
+  router.push(`/cp/${route.params.cpVersionSeq}/cpOpinionLocation/${clickedMarkerData.value.cpOpinionLocationSeq}/cpOpinion/${cpOpinionSeq}`);
 }
 
 // 마커 기능 토글링 함수
@@ -444,11 +503,12 @@ const downloadFile = () => {
       />
     </div>
 
-    <CpModal :isVisible="isModalVisible" @close="isModalVisible = false"
-             :page-num="currentPage"
-             :x="clickedMarkerData.x"
-             :y="clickedMarkerData.y"
-             :cpOpinionLocationSeq="clickedMarkerData.cpOpinionLocationSeq">
+    <CpModal :isVisible="isModalVisible"
+             :cpOpinionLocationSeq="clickedMarkerData.cpOpinionLocationSeq"
+             :currentPage="currentPage"
+             @close="isModalVisible = false"
+             @register="goToRegisterPage"
+             @detail="goToCpOpinionPage">
       <div>
         <ul>
           <li v-for="(opinion, index) in cpOpinionLocationList" :key="index">{{ opinion }}</li>

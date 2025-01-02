@@ -18,12 +18,12 @@ import { ref } from "vue";
 
 // 사이드바 메뉴 항목 정의
 const menuItems = ref([
-  { name: "JOURNAL", path: "/myPage/journal" },
-  { name: "CASE-SHARING", path: "/myPage/CaseSharing" },
-  { name: "MEDICALLIFE", path: "/myPage/MedicalLife" },
-  { name: "Anonymous-Board", path: "/myPage/anonymousboard" },
+  { name: "FOLLOW MEMBER", path: "/myPage/followmember" },
+  { name: "CASE SHARING", path: "/myPage/CaseSharing" },
+  { name: "MEDICAL LIFE", path: "/myPage/MedicalLife" },
+  { name: "ANONYMOUS BOARD", path: "/myPage/anonymousboard" },
   { name: "CP", path: "/myPage/CP" },
-  { name: "FOLLOWMEMBER", path: "/myPage/followmember" },
+  { name: "JOURNAL", path: "/myPage/journal" },
 ]);
 </script>
 
