@@ -120,7 +120,7 @@ async function sendData(formData) {
       cpOpinionLocationSeq = await createNewLocation(); // await를 사용하여 비동기 처리
     }
 
-    const response = await axios.post(`cp/${route.params.cpVersionSeq}/cpOpinionLocation/${cpOpinionLocationSeq}`, formData);
+    const response = await axios.post(`/cp/${route.params.cpVersionSeq}/cpOpinionLocation/${cpOpinionLocationSeq}`, formData);
 
     // console.log(`상태코드: ${response.status}`);
     if (response.status === 200 || response.status === 201) {
