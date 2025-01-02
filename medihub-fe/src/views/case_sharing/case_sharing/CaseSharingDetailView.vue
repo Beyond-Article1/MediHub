@@ -42,8 +42,8 @@
           <img
               :src="
         isBookmarked
-          ? '/src/assets/images/bookmark/after-bookmark.png'
-          : '/src/assets/images/bookmark/before-bookmark.png'
+          ? '@/assets/images/bookmark/after-bookmark.png'
+          : '@/assets/images/bookmark/before-bookmark.png'
       "
               alt="북마크"
               class="bookmark-icon"
