@@ -290,33 +290,35 @@ function addMarker(x, y) {
   const markerImage = new Image();
   markerImage.src = '/icons/marker.png';
 
-  const markerWidth = markerImage.width / MARKER_SCALE_FACTOR;
-  const markerHeight = markerImage.height / MARKER_SCALE_FACTOR;
-
   markerImage.onload = () => {
     const ctx = pdfCanvas.value.getContext('2d');
 
+    const markerWidth = markerImage.width / MARKER_SCALE_FACTOR;
+    const markerHeight = markerImage.height / MARKER_SCALE_FACTOR;
+
+    // 마커를 그리기
     ctx.drawImage(markerImage,
         x - (markerWidth / 2),
         y - (markerHeight / 2),
         markerWidth,
         markerHeight
     );
+
+    // 마커 추가 완료 후 위치 정보 업데이트
+    const newPosition = {
+      cpVersionSeq: route.params.cpVersionSeq,
+      cpOpinionLocationSeq: -1,
+      cpOpinionLocationPageNum: currentPage.value,
+      cpOpinionLocationX: x - (markerWidth / 2),
+      cpOpinionLocationY: y - (markerHeight / 2)
+    };
+
+    existingMarkers.value.push(newPosition);
+    console.log(existingMarkers.value);
   };
 
+  // 이미지 로드 전에 마커 추가 로그 확인
   console.log("마커 추가 완료");
-
-  const newPosition = {
-    cpVersionSeq: route.params.cpVersionSeq,
-    cpOpinionLocationSeq: -1,
-    cpOpinionLocationPageNum: currentPage.value,
-    cpOpinionLocationX: x - (markerWidth / 2),
-    cpOpinionLocationY: y - (markerHeight / 2)
-  };
-
-  existingMarkers.value.push(newPosition);
-  // console.log("존재하는 마커 리스트에 값 추가 완료");
-  console.log(existingMarkers.value);
 }
 
 // 이전 페이지 이동 함수
