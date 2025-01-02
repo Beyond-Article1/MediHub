@@ -123,7 +123,7 @@ const resetPassword = async () => {
   try {
     const confirmReset = confirm("비밀번호를 초기화하시겠습니까?");
     if (confirmReset) {
-      await axios.patch(`/api/v1/admin/users/${userSeq}/reset-password`);
+      await axios.patch(`/v1/admin/users/${userSeq}/reset-password`);
       alert("비밀번호가 초기화되었습니다. 새로운 비밀번호를 사용자에게 안내하세요.");
     }
     router.push({ name: "AdminUser" });
@@ -135,7 +135,7 @@ const resetPassword = async () => {
 
 const fetchRankingsByDept = async (deptSeq) => {
   try {
-    const response = await axios.get(`/api/v1/ranking/by-dept/${deptSeq}`);
+    const response = await axios.get(`/v1/ranking/by-dept/${deptSeq}`);
     filteredRankings.value = response.data.data;
   } catch (error) {
     console.error("부서별 직급 조회 실패:", error);
@@ -147,8 +147,8 @@ const fetchRankingsByDept = async (deptSeq) => {
 const fetchData = async () => {
   try {
     const [userRes, partRes] = await Promise.all([
-      axios.get(`/api/v1/admin/users/${userSeq}`), // 사용자 정보
-      axios.get("/api/v1/part"), // 과 정보
+      axios.get(`/v1/admin/users/${userSeq}`), // 사용자 정보
+      axios.get("/v1/part"), // 과 정보
     ]);
 
     form.value = userRes.data.data;
@@ -188,7 +188,7 @@ const submitForm = async () => {
   }
 
   try {
-    await axios.put(`/api/v1/admin/users/${userSeq}`, formData, {
+    await axios.put(`/v1/admin/users/${userSeq}`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     alert("수정되었습니다.");

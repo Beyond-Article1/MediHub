@@ -106,7 +106,7 @@ const handleLogin = async () => {
 // 사용자 정보 가져오기
 const fetchUserInfo = async () => {
   try {
-    const response = await axios.get("/api/v1/users", {
+    const response = await axios.get("/v1/users", {
       headers: {Authorization: `Bearer ${authStore.accessToken}`},
     });
 
@@ -149,7 +149,7 @@ axios.interceptors.response.use(
         if (authStore.refreshToken) {
           try {
             const reissueResponse = await axios.post(
-                "/api/v1/token/reissue",
+                "/v1/token/reissue",
                 null,
                 {
                   headers: {"Refresh-Token": authStore.refreshToken},

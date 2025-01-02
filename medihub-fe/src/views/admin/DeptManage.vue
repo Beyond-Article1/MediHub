@@ -78,7 +78,7 @@ const editDeptSeq = ref(null);
 // 부서 데이터 가져오기
 const fetchDepartments = async () => {
   try {
-    const response = await axios.get("/api/v1/dept");
+    const response = await axios.get("/v1/dept");
     departments.value = response.data.data;
   } catch (error) {
     console.error("부서 데이터 가져오기 실패", error);
@@ -114,7 +114,7 @@ const createDept = async () => {
   }
 
   try {
-    await axios.post("/api/v1/dept", { deptName: newDeptName.value });
+    await axios.post("/v1/dept", { deptName: newDeptName.value });
     await fetchDepartments();
     closeCreateModal();
   } catch (error) {
@@ -130,7 +130,7 @@ const updateDept = async () => {
   }
 
   try {
-    await axios.put(`/api/v1/dept/${editDeptSeq.value}`, { deptName: editDeptName.value });
+    await axios.put(`/v1/dept/${editDeptSeq.value}`, { deptName: editDeptName.value });
     await fetchDepartments();
     closeEditModal();
   } catch (error) {
@@ -141,7 +141,7 @@ const updateDept = async () => {
 // 부서 삭제
 const deleteDept = async (deptSeq) => {
   try {
-    await axios.delete(`/api/v1/dept/${deptSeq}`);
+    await axios.delete(`/v1/dept/${deptSeq}`);
     departments.value = departments.value.filter((dept) => dept.deptSeq !== deptSeq);
   } catch (error) {
     console.error("부서 삭제 실패", error);

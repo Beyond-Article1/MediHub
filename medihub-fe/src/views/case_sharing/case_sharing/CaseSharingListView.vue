@@ -22,7 +22,7 @@ const fetchIsDoctor = async () => {
 
   try {
 
-    const response = await axios.get('/api/v1/users/isDoctor');
+    const response = await axios.get('/v1/users/isDoctor');
 
     const { success, data } = response.data;
 

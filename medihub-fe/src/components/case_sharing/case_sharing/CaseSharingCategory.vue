@@ -30,7 +30,7 @@ const emit = defineEmits(["category-selected"]);
 const fetchCategories = async () => {
   try {
     console.log("Fetching categories from API...");
-    const response = await axios.get("/api/v1/part/1");
+    const response = await axios.get("/v1/part/1");
     console.log("API Response:", response);
 
     const { success, data } = response.data;

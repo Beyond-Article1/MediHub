@@ -21,9 +21,9 @@ const openDept = ref(null);
 const fetchDepartmentsAndParts = async () => {
   try {
     const [deptRes, partRes, userRes, followRes] = await Promise.all([
-      axios.get("/api/v1/dept"), // 부서 목록 조회
-      axios.get("/api/v1/part"), // 과 목록 조회
-      axios.get("/api/v1/admin/users", {
+      axios.get("/v1/dept"), // 부서 목록 조회
+      axios.get("/v1/part"), // 과 목록 조회
+      axios.get("/v1/admin/users", {
         headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
       }), // 사용자 목록 조회
       axios.get("/follow", {

@@ -55,7 +55,7 @@ const fetchDepartmentsAndParts = async () => {
 
   try {
 
-    const [deptRes, partRes] = await Promise.all([axios.get("/api/v1/dept"), axios.get("/api/v1/part")]);
+    const [deptRes, partRes] = await Promise.all([axios.get("/v1/dept"), axios.get("/v1/part")]);
 
     departments.value = deptRes.data.data;
     parts.value = partRes.data.data;

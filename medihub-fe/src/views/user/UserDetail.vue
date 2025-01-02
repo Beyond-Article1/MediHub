@@ -139,7 +139,7 @@ const handleImageUpload = (e) => {
 
 const fetchUserInfo = async () => {
   try {
-    const response = await axios.get("/api/v1/users", {
+    const response = await axios.get("/v1/users", {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
@@ -175,7 +175,7 @@ const updateUserInfo = async () => {
   }
 
   try {
-    await axios.put("/api/v1/users/userInfo", formData, {
+    await axios.put("/v1/users/userInfo", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,

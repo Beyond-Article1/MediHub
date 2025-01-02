@@ -89,7 +89,7 @@ export const useAuthStore = defineStore('auth', () => {
         try {
             if (accessToken.value) {
                 // 로그아웃 API 호출
-                await axios.post("/api/v1/token/logout", {}, {
+                await axios.post("/v1/token/logout", {}, {
                     headers: {
                         Authorization: `Bearer ${accessToken.value}`,
                     },
