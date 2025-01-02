@@ -17,42 +17,55 @@ const props = defineProps({
   },
   cpOpinionLocationSeq: {
     type: Number,
-    default: -1
+    default: 0
+  },
+  currentPage: {
+    type: Number,
+    default: 0
   }
 }); // props 정의
-const emit = defineEmits(['close', 'register']);  // emit 정의
+const emit = defineEmits(['close', 'register', 'detail']);  // emit 정의
 const route = useRoute(); // 라우트
 
 // 데이터 저장 변수
 const cpOpinionList = ref([]); // CP 의견 리스트
 const totalData = ref(0); // 전체 데이터 개수
-const currentPage = ref(1); // 현재 페이지
 
 // emit 함수
 const closeModal = () => {
   emit('close');
-};
-
+};                   // 모달 닫기
 const registerOpinion = () => {
-  emit('register')
-}
+  emit('register');
+}               // 등록 페이지 이동
+const navigateToOpinion = (cpOpinionSeq) => {
+  emit('detail');
+} // 의견 페이지 이동
 
 // 데이터 가져오기 함수
-async function fetchData(page = 1) {
+async function fetchData() {
+  console.log("fetchData 호출됨");
+  console.log(props);
   if (props.cpOpinionLocationSeq !== -1) {
     try {
-      const response = await axios.get(`cp/${route.params.cpVersionSeq}/cpOpinionLocation/${props.cpOpinionLocationSeq}?pageNum=${page}`);
+      let url = `cp/${route.params.cpVersionSeq}/cpOpinionLocation/${props.cpOpinionLocationSeq}?pageNum=${props.currentPage}`
+      console.log(`url = ${url}`)
+      const response = await axios.get(url);
       if (response.status === 200) {
         console.log("CP 의견 조회 성공");
         cpOpinionList.value = response.data.data; // 데이터 저장
-        totalData.value = response.data.totalCount; // 전체 데이터 개수 저장
-        console.log(cpOpinionList.value);
+        totalData.value = cpOpinionList.value.length;
+        // console.log(cpOpinionList.value);
+        // console.log(`response.data.totalCount = ${totalData.value}`);
       } else {
         console.log("CP 의견 조회 실패");
       }
     } catch (error) {
       console.error("예기치 못한 오류가 발생했습니다. 에러: ", error);
     }
+  } else {
+    cpOpinionList.value = ref([]);      // 빈 데이터로 변경
+    totalData.value = 0;                      // 전체 데이터 개수 0으로 변경
   }
 }
 
@@ -64,8 +77,8 @@ const updatePage = (pageNum) => {
 
 // Modal이 열릴 때 데이터 가져오기
 watch(() => props.isVisible, async (newValue) => {
-  if (newValue) {
-    await fetchData(currentPage.value); // Modal이 열리면 데이터 가져오기
+  if (newValue === true) {
+    await fetchData();
   }
 });
 </script>
