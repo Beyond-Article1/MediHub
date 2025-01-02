@@ -1,6 +1,6 @@
 <script setup>
-import {onMounted, ref, watch, defineProps} from 'vue';
-import {useRoute, useRouter} from "vue-router";
+import { onMounted, ref, watch, defineProps } from 'vue';
+import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 import * as pdfjsLib from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.mjs?url';
