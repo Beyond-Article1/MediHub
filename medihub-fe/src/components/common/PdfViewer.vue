@@ -3,11 +3,15 @@ import {onMounted, ref, watch, defineProps} from 'vue';
 import {useRoute} from "vue-router";
 import axios from "axios";
 import * as pdfjsLib from 'pdfjs-dist';
+import workerUrl from 'pdfjs-dist/build/pdf.worker.mjs?url';
 
 import Button from "@/components/common/button/Button.vue";
 import IconButton from "@/components/common/button/IconButton.vue";
 import DropBox from "@/components/common/SingleSelectDropBox.vue";
 import CpModal from "@/components/cp/CpModal.vue";
+
+// pdfjs-dist 모듈 경로 설정
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
 // vue 설정 변수
 const props = defineProps({
@@ -49,8 +53,6 @@ const isModalVisible = ref(false); // 마커 정보 모달의 표시 여부
 // 캔버스 크기 설정
 const CANVAS_WIDTH = 1000; // 캔버스의 너비
 const CANVAS_HEIGHT = 620; // 캔버스의 높이
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs';
 
 // 마운트 시점 실행 함수
 onMounted(async () => {
