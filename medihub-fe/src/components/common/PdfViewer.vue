@@ -384,7 +384,7 @@ function goToRegisterPage() {
 // CP 의견 조회 페이지 이동 함수
 function goToCpOpinionPage(cpOpinionSeq) {
   console.log("CP 의견 화면으로 이동합니다.");
-  router.push(`/cp/${route.params.cpVersionSeq}/cpOpinionLocation/${props.cpOpinionLocationSeq}/cpOpinion/${cpOpinionSeq}`);
+  router.push(`/cp/${route.params.cpVersionSeq}/cpOpinionLocation/${clickedMarkerData.value.cpOpinionLocationSeq}/cpOpinion/${cpOpinionSeq}`);
 }
 
 // 마커 기능 토글링 함수
@@ -508,7 +508,7 @@ const downloadFile = () => {
              :currentPage="currentPage"
              @close="isModalVisible = false"
              @register="goToRegisterPage"
-             @detail="goToCpOpinionPage(cpOpinionSeq)">
+             @detail="goToCpOpinionPage">
       <div>
         <ul>
           <li v-for="(opinion, index) in cpOpinionLocationList" :key="index">{{ opinion }}</li>

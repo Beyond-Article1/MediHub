@@ -39,7 +39,7 @@ const registerOpinion = () => {
   emit('register');
 }               // 등록 페이지 이동
 const navigateToOpinion = (cpOpinionSeq) => {
-  emit('detail');
+  emit('detail', cpOpinionSeq);
 } // 의견 페이지 이동
 
 // 데이터 가져오기 함수
