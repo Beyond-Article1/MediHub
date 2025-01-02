@@ -1,7 +1,7 @@
 <script setup>
 import axios from "axios";
-import {ref, onMounted, watch} from "vue";
-import {useRoute, useRouter} from "vue-router";
+import { ref, onMounted, watch } from "vue";
+import { useRouter } from "vue-router";
 
 import CpHeader from "@/components/cp/CpHeader.vue";
 import DropBox from "@/components/common/SingleSelectDropBox.vue";
@@ -112,7 +112,7 @@ async function updateCpSearchCategoryData(newName) {
 
       if (response.status === 200) {
         console.log("CP 검색 카테고리 수정 성공");
-        fetchCpSearchCategoryDataData(selectedOption.value); // 데이터 갱신
+        await fetchCpSearchCategoryDataData(selectedOption.value); // 데이터 갱신
       } else {
         console.error("CP 검색 카테고리 수정 실패", response.status);
       }
@@ -132,7 +132,8 @@ async function deleteCpSearchCategoryData() {
 
     if (response.status === 200) {
       console.log("삭제 성공");
-      fetchCpSearchCategoryDataData(selectedOption.value); // 데이터 갱신
+      const cpSearchCategorySeq = findSelectedCategory(selectedOption.value).cpSearchCategorySeq;
+      await fetchCpSearchCategoryDataData(cpSearchCategorySeq); // 데이터 갱신
     } else {
       console.error("삭제 실패", response.status);
     }
@@ -166,7 +167,7 @@ async function addCpSearchCategoryData(newName) {
 
     if (response.status === 201) {
       console.log("생성 성공");
-      fetchCpSearchCategoryDataData(cpSearchCategorySeq); // 데이터 갱신
+      await fetchCpSearchCategoryDataData(cpSearchCategorySeq); // 데이터 갱신
     } else {
       console.error("생성 실패", response.status);
     }
@@ -209,7 +210,9 @@ onMounted(() => {
 // CP 검색 카테고리 변경 감지 함수
 watch(selectedOption, (newValue) => {
   console.log(`선택된 옵션: ${newValue}`);
-  fetchCpSearchCategoryDataData(newValue);
+  const cpSearchCategorySeq = findSelectedCategory(newValue).cpSearchCategorySeq;
+  // console.log(`선택된 옵션 시퀀스: ${cpSearchCategorySeq}`);
+  fetchCpSearchCategoryDataData(cpSearchCategorySeq);
 });
 </script>
 
