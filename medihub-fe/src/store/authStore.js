@@ -43,7 +43,7 @@ export const useAuthStore = defineStore('auth', () => {
         }
 
         if (access) {
-            fetchUserInfo(); // API를 통해 사용자 정보 불러오기
+            await fetchUserInfo(); // API를 통해 사용자 정보 불러오기
         }
     });
 
