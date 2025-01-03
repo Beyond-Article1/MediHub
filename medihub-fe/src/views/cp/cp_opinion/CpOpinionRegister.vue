@@ -2,14 +2,13 @@
 import html2canvas from "html2canvas";
 import axios from "axios";
 
-import {onMounted, ref} from "vue";
+import {ref} from "vue";
 import {useAuthStore} from '@/store/authStore.js';
 import {useRoute, useRouter} from "vue-router";
 
 import Button from "@/components/common/button/Button.vue";
 import CaseEditor from "@/components/case_sharing/case_sharing/CaseSharingEditor.vue";
 import CaseTagInput from "@/components/case_sharing/case_sharing/CaseTagInput.vue";
-import TemplateCreateModal from "@/components/case_sharing/template/TemplateCreateModal.vue";
 
 // Vue 설정 변수
 const authStore = useAuthStore();
@@ -212,7 +211,7 @@ function redirectPage() {
 
 .editor-wrapper {
   width: 100%;
-  max-width: 1400px;
+  max-width: 1200px;
   height: 650px;
   margin-bottom: 20px;
   background-color: white;
@@ -222,7 +221,7 @@ function redirectPage() {
 }
 
 .editor-wrapper CaseEditor {
-  max-width: 1400px;
+  width: 1400px !important;
 }
 
 .case-tags {

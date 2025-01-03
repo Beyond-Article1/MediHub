@@ -52,13 +52,20 @@ watch(() => cpCategoryStore.selectedDataList, (newValue) => {
   newValue.forEach(item => {
     console.log("카테고리 시퀀스:", item.categorySeq); // 선택된 카테고리 시퀀스 출력
   });
-}, { deep: true }); // deep: true를 사용하여 중첩 배열의 변경도 감지
+}, {deep: true}); // deep: true를 사용하여 중첩 배열의 변경도 감지
 
 // 드롭박스에서 선택된 데이터 저장
 const updateSelectedData = (index, selectedValues) => {
   const categorySeq = cpSearchCategoryList.value[index].cpSearchCategorySeq; // 현재 카테고리의 시퀀스
   cpCategoryStore.selectedDataList[index] = {categorySeq, dataSeq: selectedValues}; // 카테고리 시퀀스와 선택된 데이터 시퀀스 저장
 };
+
+// CP 검색 카테고리 페이지 이동 함수
+function goToSearchCategoryUpdatePage() {
+  router.push({
+    name: 'CpSearchCategoryDataManagementPage'
+  })
+}
 
 // 컴포넌트 마운트 시 데이터 호출
 onMounted(() => {
