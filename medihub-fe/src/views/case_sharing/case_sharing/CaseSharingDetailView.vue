@@ -15,7 +15,6 @@
         </div>
       </div>
       <!-- 버튼 그룹 -->
-      <!-- 버튼 그룹 -->
       <div class="button-group">
         <button
             class="action-button"
@@ -42,8 +41,8 @@
           <img
               :src="
         isBookmarked
-          ? '@/assets/images/bookmark/after-bookmark.png'
-          : '@/assets/images/bookmark/before-bookmark.png'
+          ? afterBookmark
+          : beforeBookmark
       "
               alt="북마크"
               class="bookmark-icon"
@@ -101,6 +100,9 @@ import CaseContent from "@/components/case_sharing/case_sharing/CaseSharingConte
 import ContentTable from "@/components/case_sharing/case_sharing/ContentTable.vue";
 import CaseSharingVersion from "@/components/case_sharing/case_sharing/CaseSharingVersion.vue";
 import { useAuthStore } from "@/store/authStore";
+
+import afterBookmark from "@/assets/images/bookmark/after-bookmark.png";
+import beforeBookmark from "@/assets/images/bookmark/before-bookmark.png";
 
 const authStore = useAuthStore();
 const route = useRoute();
