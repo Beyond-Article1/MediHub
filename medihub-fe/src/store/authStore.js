@@ -20,9 +20,16 @@ export const useAuthStore = defineStore('auth', () => {
 
     const clearStorageOnUnload = () => {
         window.addEventListener("beforeunload", () => {
-            console.log("[AuthStore] 브라우저 닫힘 또는 새로고침 이벤트 발생");
-            localStorage.clear();
-            console.log("[AuthStore] localStorage 초기화 완료");
+
+            if (!sessionStorage.getItem("isRefreshed")) {
+                console.log("[AuthStore] 브라우저 닫힘 이벤트 발생");
+                localStorage.clear();
+                console.log("[AuthStore] localStorage 초기화 완료");
+            }
+        });
+
+        window.addEventListener("load", () => {
+            sessionStorage.setItem("isRefreshed", true);
         });
     };
 
