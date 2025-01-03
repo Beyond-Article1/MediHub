@@ -102,7 +102,7 @@ const stopDrag = () => {
   <div v-if="isChatOpen" class="chat-window" @mousedown="startDrag">
     <header class="chat-header">
       <div class="chat-header-profile">
-        <img :src="authStore.userInfo.profileImage || '@/assets/images/chat/default-profile.png'" alt="profile">
+        <img :src="authStore.userInfo.profileImage || '/chat/profile.png'" alt="profile">
       </div>
       <div class="chat-header-menu">
         <button

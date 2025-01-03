@@ -1,7 +1,7 @@
 <script setup>
 import axios from "axios";
-import {ref, onMounted, watch} from "vue";
-import {useRoute, useRouter} from "vue-router";
+import { ref, onMounted, watch } from "vue";
+import { useRouter } from "vue-router";
 
 import CpHeader from "@/components/cp/CpHeader.vue";
 import DropBox from "@/components/common/SingleSelectDropBox.vue";
@@ -112,7 +112,7 @@ async function updateCpSearchCategoryData(newName) {
 
       if (response.status === 200) {
         console.log("CP 검색 카테고리 수정 성공");
-        fetchCpSearchCategoryDataData(selectedOption.value); // 데이터 갱신
+        await fetchCpSearchCategoryDataData(selectedOption.value); // 데이터 갱신
       } else {
         console.error("CP 검색 카테고리 수정 실패", response.status);
       }
@@ -132,7 +132,8 @@ async function deleteCpSearchCategoryData() {
 
     if (response.status === 200) {
       console.log("삭제 성공");
-      fetchCpSearchCategoryDataData(selectedOption.value); // 데이터 갱신
+      const cpSearchCategorySeq = findSelectedCategory(selectedOption.value).cpSearchCategorySeq;
+      await fetchCpSearchCategoryDataData(cpSearchCategorySeq); // 데이터 갱신
     } else {
       console.error("삭제 실패", response.status);
     }
@@ -166,7 +167,7 @@ async function addCpSearchCategoryData(newName) {
 
     if (response.status === 201) {
       console.log("생성 성공");
-      fetchCpSearchCategoryDataData(cpSearchCategorySeq); // 데이터 갱신
+      await fetchCpSearchCategoryDataData(cpSearchCategorySeq); // 데이터 갱신
     } else {
       console.error("생성 실패", response.status);
     }
@@ -209,13 +210,15 @@ onMounted(() => {
 // CP 검색 카테고리 변경 감지 함수
 watch(selectedOption, (newValue) => {
   console.log(`선택된 옵션: ${newValue}`);
-  fetchCpSearchCategoryDataData(newValue);
+  const cpSearchCategorySeq = findSelectedCategory(newValue).cpSearchCategorySeq;
+  // console.log(`선택된 옵션 시퀀스: ${cpSearchCategorySeq}`);
+  fetchCpSearchCategoryDataData(cpSearchCategorySeq);
 });
 </script>
 
 <template>
   <div>
-    <CpHeader/>
+    <CpHeader />
     <div class="d-flex">
       <div class="me-3 position-relative">
         <DropBox
@@ -267,7 +270,7 @@ watch(selectedOption, (newValue) => {
 
 <style scoped>
 .d-flex {
-  display: flex !important;
+  display: flex;
   justify-content: center;
 }
 
@@ -283,6 +286,9 @@ watch(selectedOption, (newValue) => {
   display: flex; /* Flexbox 사용 */
   flex-wrap: wrap; /* 줄바꿈 허용 */
   gap: 1rem; /* 카드 간의 간격 */
+  margin-left: 2%;
+  max-height: 400px; /* 최대 높이 설정 */
+  overflow-y: auto; /* 세로 스크롤 가능 */
 }
 
 .add-button {
@@ -324,4 +330,3 @@ watch(selectedOption, (newValue) => {
   position: relative; /* 드롭박스 부모 요소에 상대 위치 설정 */
 }
 </style>
-
