@@ -1,18 +1,16 @@
 <script setup>
-import html2canvas from "html2canvas";
 import axios from "axios";
 
-import {ref} from "vue";
-import {useAuthStore} from '@/store/authStore.js';
-import {useRoute, useRouter} from "vue-router";
+import { ref } from "vue";
+import { useAuthStore } from '@/store/authStore.js';
+import { useRoute, useRouter } from "vue-router";
 
 import Button from "@/components/common/button/Button.vue";
-import CaseEditor from "@/components/case_sharing/case_sharing/CaseSharingEditor.vue";
+import CpOpinionContent from "@/components/cp/CpOpinionContent.vue";
 import CaseTagInput from "@/components/case_sharing/case_sharing/CaseTagInput.vue";
 
 // Vue 설정 변수
 const authStore = useAuthStore();
-const accessToken = authStore.accessToken;
 const router = useRouter();
 const route = useRoute();
 
@@ -162,7 +160,7 @@ function redirectPage() {
     </div>
     <!-- Editor.js 에디터 -->
     <div class="editor-wrapper">
-      <CaseEditor ref="caseEditor"/>
+      <CpOpinionContent ref="caseEditor"/>
     </div>
     <!-- 태그 입력 -->
     <div class="case-tags">
@@ -210,18 +208,13 @@ function redirectPage() {
 }
 
 .editor-wrapper {
-  width: 100%;
-  max-width: 1200px;
+  width: 1400px;
   height: 650px;
   margin-bottom: 20px;
   background-color: white;
   border: 1px solid #ddd;
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.editor-wrapper CaseEditor {
-  width: 1400px !important;
 }
 
 .case-tags {
