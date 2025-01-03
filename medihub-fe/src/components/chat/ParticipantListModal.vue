@@ -18,7 +18,7 @@ const emit = defineEmits(['close']);
 
       <ul class="participant-list">
         <li v-for="participant in participants" :key="participant.userSeq" class="participant-item">
-          <img :src="participant.userProfileUrl || '/default-profile.png'" alt="프로필 이미지" class="profile-img"/>
+          <img :src="participant.userProfileUrl || '/chat/profile.png'" alt="프로필 이미지" class="profile-img"/>
           <div class="participant-info">
             <span class="user-name">{{ participant.userName }}</span>
             <span class="user-details">{{ participant.partName }} {{ participant.rankingName }}</span>

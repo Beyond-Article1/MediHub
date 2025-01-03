@@ -69,7 +69,7 @@ onMounted(getUsers);
         >
           <!-- 프로필 사진 -->
           <div class="user-profile">
-            <img :src="user.profileImage || 'src/assets/images/chat/Default_Profile.png'" alt="Profile" />
+            <img :src="user.profileImage || '/chat/profile.png'" alt="Profile" />
           </div>
           <!-- 사용자 정보 -->
           <div class="user-info">
@@ -101,6 +101,7 @@ onMounted(getUsers);
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 10000;
 }
 
 .search-input {

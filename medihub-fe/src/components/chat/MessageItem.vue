@@ -18,15 +18,15 @@ const getFileIcon = (filename) => {
   const extension = filename.split(".").pop().toLowerCase();
   switch(extension) {
     case "pdf":
-      return "src/assets/images/chat/pdf-icon.png";
+      return "/chat/pdf-icon.png";
     case "xls":
     case "xlsx":
-      return "src/assets/images/chat/excel-icon.png"
+      return "/chat/excel-icon.png"
     case "doc":
     case "docx":
-      return "src/assets/images/chat/word-icon.png"
+      return "/chat/word-icon.png"
     default:
-      return "src/assets/images/chat/download.png"
+      return "/chat/download.png"
   }
 };
 
@@ -92,8 +92,9 @@ const formatTime = (timestamp) => {
             />
             <div v-else-if="props.message.type === 'file'" class="file-message">
               <img :src="getFileIcon(props.message.attachment.originName)" alt="파일 아이콘" />
-              <span>{{ props.message.attachment.originName }}</span>
-              <button @click="openFile(props.message.attachment.url)">다운로드</button>
+              <div class="file-message-row">
+                <span>{{ props.message.attachment.originName }}</span>
+                <span class="open-link" @click="openFile(props.message.attachment.url)">열기</span>              </div>
             </div>
           </div>
         </div>
@@ -116,8 +117,7 @@ const formatTime = (timestamp) => {
               <img :src="getFileIcon(props.message.attachment.originName)" alt="파일 아이콘" />
               <div class="file-message-row">
                 <span>{{ props.message.attachment.originName }}</span>
-                <button @click="openFile(props.message.attachment.url)">다운로드</button>
-              </div>
+                <span class="open-link" @click="openFile(props.message.attachment.url)">열기</span>              </div>
             </div>
             <p class="message-time">{{ formatTime(props.message.createdAt) }}</p>
           </div>
@@ -197,6 +197,14 @@ const formatTime = (timestamp) => {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+.my-message-content .file-message {
+  background-color: #ffe3a9;
+}
+
+.my-message-content .file-message-row {
+  background-color: #ffe3a9;
+}
+
 .my-message .message-time {
   font-size: 0.8rem;
   color: #777;
@@ -258,6 +266,8 @@ const formatTime = (timestamp) => {
 .file-message {
   display: flex;
   flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
   margin-top: 10px;
   padding: 10px;
   background-color: #f9f9f9;
@@ -282,18 +292,25 @@ const formatTime = (timestamp) => {
   margin-right: 10px;
 }
 
+.file-message .open-link {
+  font-size: 14px;
+  color: #007bff;
+  cursor: pointer;
+  text-decoration: none;
+  margin-left: auto;
+}
+
+.file-message .open-link:hover {
+  text-decoration: underline;
+}
+
 .file-message button {
-  background-color: #FFC653;
+  background: none;
   border: none;
   padding: 5px 5px;
   font-size: 0.8rem;
-  color: white;
-  border-radius: 5px;
+  color: silver;
   cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.file-message button:hover {
-  background-color: #ff9f00;
+  text-decoration: underline;
 }
 </style>
