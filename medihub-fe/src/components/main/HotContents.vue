@@ -113,6 +113,7 @@ const fetchCaseSharingTop3 = async () => {
     const response = await axios.get("/case_sharing/top3");
     if (response.data.success) {
       caseList.value = response.data.data;
+      console.log(response.data.data);
     }
   } catch (error) {
     console.error("Error fetching top 3 cases:", error);

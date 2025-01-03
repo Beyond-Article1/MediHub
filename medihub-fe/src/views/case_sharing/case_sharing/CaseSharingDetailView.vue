@@ -16,15 +16,34 @@
       </div>
       <!-- 버튼 그룹 -->
       <div class="button-group">
-        <button class="action-button" @click="toggleFocusMode">댓글 달기</button>
-        <button class="action-button" @click="goToEditPage">수정</button>
-        <button class="action-button" @click="deleteCase">삭제</button>
+        <button
+            class="action-button"
+            @click="toggleFocusMode"
+        >
+          댓글 달기
+        </button>
+        <button
+            v-if="isAuthorOrAdmin"
+            class="action-button"
+            @click="goToEditPage"
+        >
+          수정
+        </button>
+        <button
+            v-if="isAuthorOrAdmin"
+            class="action-button"
+            @click="deleteCase"
+        >
+          삭제
+        </button>
         <!-- 북마크 버튼 -->
         <div class="bookmark-container" @click="toggleBookmark">
           <img
-              :src="isBookmarked
-        ? '/src/assets/images/bookmark/after-bookmark.png'
-        : '/src/assets/images/bookmark/before-bookmark.png'"
+              :src="
+        isBookmarked
+          ? afterBookmark
+          : beforeBookmark
+      "
               alt="북마크"
               class="bookmark-icon"
           />
@@ -80,7 +99,12 @@ import KeywordList from "@/components/case_sharing/case_sharing/KeywordList.vue"
 import CaseContent from "@/components/case_sharing/case_sharing/CaseSharingContent.vue";
 import ContentTable from "@/components/case_sharing/case_sharing/ContentTable.vue";
 import CaseSharingVersion from "@/components/case_sharing/case_sharing/CaseSharingVersion.vue";
+import { useAuthStore } from "@/store/authStore";
 
+import afterBookmark from "@/assets/images/bookmark/after-bookmark.png";
+import beforeBookmark from "@/assets/images/bookmark/before-bookmark.png";
+
+const authStore = useAuthStore();
 const route = useRoute();
 const router = useRouter();
 const caseData = ref({
@@ -96,6 +120,13 @@ const caseData = ref({
 
 const isFocusMode = ref(false);
 const selectedBlock = ref(null);
+
+const isAuthorOrAdmin = computed(() => {
+  return (
+      caseData.value.authorId === authStore.userInfo.userId || // 작성자인지 확인
+      authStore.userRole === "ADMIN" // 관리자인지 확인
+  );
+});
 
 const toggleFocusMode = () => {
   isFocusMode.value = !isFocusMode.value;
@@ -120,6 +151,7 @@ const fetchCaseDetail = async () => {
       caseData.value = {
         title: data.caseSharingTitle,
         author: data.caseAuthor,
+        authorId: data.caseAuthorId,
         rank: data.caseAuthorRankName,
         viewCount: data.caseSharingViewCount,
         content: JSON.parse(data.caseSharingContent), // JSON 파싱

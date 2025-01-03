@@ -197,9 +197,6 @@ const removeImageBlock = (url) => {
   }
 };
 
-
-
-
 // getEditorData 메서드 추가
 const getEditorData = async () => {
   if (!editorInstance) {

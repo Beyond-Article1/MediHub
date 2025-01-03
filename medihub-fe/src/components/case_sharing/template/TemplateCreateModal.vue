@@ -30,7 +30,7 @@
         </label>
 
         <label>
-          <input type="radio" v-model="openScope" value="SHARED" />
+          <input type="radio" v-model="openScope" value="CLASS_OPEN" />
           부서 공유
           <span class="checkbox-description">저장된 템플릿이 같은 부서 사용자들에 공유됩니다.</span>
         </label>

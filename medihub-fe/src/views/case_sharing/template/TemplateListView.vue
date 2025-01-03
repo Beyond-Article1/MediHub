@@ -29,7 +29,15 @@ const fetchTemplates = async () => {
     const response = await axios.get(url, config);
 
     if (response.data.success) {
-      templates.value = response.data.data; // 데이터 업데이트
+      // 추가된 필드 포함하여 데이터 처리
+      templates.value = response.data.data.map((template) => ({
+        templateSeq: template.templateSeq,
+        templateTitle: template.templateTitle,
+        templatePreviewImgUrl: template.templatePreviewImgUrl,
+        userName: template.userName, // 작성자 이름
+        authorRankName: template.authorRankName, // 작성자 직위명
+        createdAt: new Date(template.createdAt).toLocaleDateString("ko-KR"), // 생성 날짜
+      }));
     } else {
       console.error("API 오류:", response.data.error);
     }
@@ -140,6 +148,12 @@ onMounted(fetchTemplates);
           </button>
         </div>
         <div class="template-title">{{ template.templateTitle }}</div>
+        <div class="template-meta">
+          <div class="template-author">
+            {{ template.userName }} {{ template.authorRankName || "직위 없음" }}
+          </div>
+          <div class="template-date">{{ template.createdAt }}</div>
+        </div>
       </div>
     </div>
 
@@ -219,15 +233,16 @@ onMounted(fetchTemplates);
   gap: 20px;
   justify-content: space-around;
   margin-top: 40px;
-  margin-bottom: 80px;
+  margin-bottom: 40px;
 }
 
 .template-item {
   cursor: pointer;
   width: 250px;
-  height: 400px;
+  height: 450px;
   border: 1px solid #ddd;
   border-radius: 10px;
+  background-color: #f8f8f8;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
   overflow: hidden;
@@ -241,6 +256,7 @@ onMounted(fetchTemplates);
 .template-image {
   background-color: #f8f8f8;
   height: 350px;
+  margin-bottom: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -257,8 +273,7 @@ onMounted(fetchTemplates);
 
 .template-title {
   font-size: 16px;
-  padding: 10px 0;
-  background-color: #fafafa;
+  background-color: #f8f8f8;
   font-weight: bold;
 }
 
@@ -290,9 +305,29 @@ onMounted(fetchTemplates);
   justify-content: center;
 }
 
+.template-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+}
 
 .template-item:hover .delete-button {
   display: flex;
   transform: translateY(-5px);
+}
+
+.template-author {
+  font-size: 14px;
+  color: #555;
+  margin-top: 10px;
+  margin-right: auto;
+}
+
+.template-date {
+  font-size: 12px;
+  color: #888;
+  margin-top: auto;
+  margin-left: auto;
 }
 </style>
