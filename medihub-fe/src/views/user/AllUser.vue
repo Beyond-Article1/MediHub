@@ -121,7 +121,8 @@ const filteredUsers = computed(() => {
     const matchesPart = !selectedPartSeq.value || user.partName === selectedPartName.value;
     const isActive = user.userStatus !== "DELETE";
     return matchesDept && matchesPart && isActive;
-  });
+  })
+      .sort((a, b) => a.rankingNum - b.rankingNum);
 });
 
 // 페이지네이션 데이터

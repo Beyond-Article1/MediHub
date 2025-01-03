@@ -2,24 +2,35 @@
 import { ref, computed, onMounted } from "vue";
 import axios from "axios";
 import Sidebar from "@/components/user/MyPage.vue";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 const posts = ref([]);
 const filteredPosts = ref([]); // 필터링된 게시물 저장
 const currentPage = ref(1);
 const itemsPerPage = 5;
 const currentFilter = ref("myPosts");
 
+const goToPostDetail = (postId) => {
+  if (!postId) {
+    console.error("메디컬 라이프 아이디가 없습니다.");
+    return;
+  }
+  router.push(`/medicalLife/${postId}`);
+};
+
 // 내가 쓴 게시물 가져오기
 const fetchMyPosts = async () => {
   try {
     const response = await axios.get("/medical-life/mypage");
     posts.value = response.data.data.map((post) => ({
+      id: post.medicalLifeSeq, // 게시물 ID 추가
       title: post.medicalLifeTitle,
       content: extractText(post.medicalLifeContent),
       viewCount: post.medicalLifeViewCount,
       date: new Date(post.createdAt).toLocaleDateString("ko-KR"),
     }));
-    filteredPosts.value = [...posts.value]; // 필터링 초기화
+    filteredPosts.value = [...posts.value];
   } catch (error) {
     console.error("내 메디컬 라이프 불러오기 실패:", error);
   }
@@ -30,6 +41,7 @@ const fetchBookmarkedPosts = async () => {
   try {
     const response = await axios.get("/medical-life/mypage/bookmark");
     posts.value = response.data.data.map((post) => ({
+      id: post.medicalLifeSeq, // 게시물 ID 추가
       title: post.medicalLifeTitle,
       content: extractText(post.medicalLifeContent),
       author: post.userName,
@@ -37,7 +49,7 @@ const fetchBookmarkedPosts = async () => {
       viewCount: post.medicalLifeViewCount,
       date: new Date(post.createdAt).toLocaleDateString("ko-KR"),
     }));
-    filteredPosts.value = [...posts.value]; // 필터링 초기화
+    filteredPosts.value = [...posts.value];
   } catch (error) {
     console.error("북마크된 메디컬 라이프 가져오기 실패:", error);
   }
@@ -134,13 +146,18 @@ onMounted(fetchMyPosts);
           </tr>
           </thead>
           <tbody>
-          <tr v-for="(post, index) in paginatedPosts" :key="index">
-            <td>{{ post.title }}</td>
-            <td>{{ post.content }}</td>
-            <td v-if="currentFilter === 'bookmarks'">{{ post.author }}</td>
-            <td v-if="currentFilter === 'bookmarks'">{{ post.department }}</td>
-            <td>{{ post.date }}</td>
-            <td>{{ post.viewCount }}</td>
+          <tr
+              v-for="(post, index) in paginatedPosts"
+              :key="index"
+              @click="goToPostDetail(post.id)"
+          style="cursor: pointer;"
+          >
+          <td>{{ post.title }}</td>
+          <td>{{ post.content }}</td>
+          <td v-if="currentFilter === 'bookmarks'">{{ post.author }}</td>
+          <td v-if="currentFilter === 'bookmarks'">{{ post.department }}</td>
+          <td>{{ post.date }}</td>
+          <td>{{ post.viewCount }}</td>
           </tr>
           </tbody>
         </table>

@@ -2,23 +2,36 @@
 import { ref, computed, onMounted } from "vue";
 import axios from "axios";
 import Sidebar from "@/components/user/MyPage.vue";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 const caseSharingPosts = ref([]); // 전체 게시물 데이터 저장
 const filteredPosts = ref([]); // 필터링된 게시물 저장
 const currentPage = ref(1); // 현재 페이지
 const itemsPerPage = 5; // 페이지당 항목 수
 const currentFilter = ref("myPosts"); // 현재 필터 상태 ("myPosts" 또는 "bookmarks")
 
+// 게시물 상세 페이지로 이동
+const goToPostDetail = (postId) => {
+  if (!postId) {
+    console.error("케이스공유 아이디가 없습니다.");
+    return;
+  }
+  router.push(`/case_sharing/${postId}`); // 게시물 상세 페이지로 이동
+};
+
+
 // 내가 작성한 케이스 공유 데이터 가져오기
 const fetchMyPosts = async () => {
   try {
-    const response = await axios.get("/case_sharing/my"); // API 호출
+    const response = await axios.get("/case_sharing/my");
     caseSharingPosts.value = response.data.data.map((post) => ({
-      title: post.caseSharingTitle, // 제목
-      date: new Date(post.regDate).toLocaleDateString(), // 작성일자
-      viewCount: post.caseSharingViewCount, // 조회수
+      id: post.caseSharingSeq,
+      title: post.caseSharingTitle,
+      date: new Date(post.regDate).toLocaleDateString(),
+      viewCount: post.caseSharingViewCount,
     }));
-    filteredPosts.value = [...caseSharingPosts.value]; // 필터링 초기화
+    filteredPosts.value = [...caseSharingPosts.value];
   } catch (error) {
     console.error("내 케이스 공유 가져오기 실패:", error);
   }
@@ -27,30 +40,18 @@ const fetchMyPosts = async () => {
 // 내가 북마크한 케이스 공유 데이터 가져오기
 const fetchBookmarkedPosts = async () => {
   try {
-    const response = await axios.get("/case_sharing/my/bookmark"); // API 호출
+    const response = await axios.get("/case_sharing/my/bookmark");
     caseSharingPosts.value = response.data.data.map((post) => ({
-      title: post.caseSharingTitle, // 제목
-      author: post.caseAuthor, // 작성자
-      authorRank: post.caseAuthorRankName, // 작성자 직위
-      date: new Date(post.regDate).toLocaleDateString(), // 작성일자
+      id: post.caseSharingSeq,
+      title: post.caseSharingTitle,
+      author: post.caseAuthor,
+      authorRank: post.caseAuthorRankName,
+      date: new Date(post.regDate).toLocaleDateString(),
       viewCount: post.caseSharingViewCount,
     }));
-    filteredPosts.value = [...caseSharingPosts.value]; // 필터링 초기화
+    filteredPosts.value = [...caseSharingPosts.value];
   } catch (error) {
     console.error("북마크된 케이스 공유 가져오기 실패:", error);
-  }
-};
-
-const parseMedicalLifeContent = (content) => {
-  try {
-    const parsedContent = JSON.parse(content);
-    const textBlocks = parsedContent.blocks
-        .filter((block) => block.type === "paragraph")
-        .map((block) => block.data.text);
-    return textBlocks.join(" ");
-  } catch (error) {
-    console.error("콘텐츠 파싱 실패:", error);
-    return "내용 없음";
   }
 };
 
@@ -131,12 +132,17 @@ onMounted(fetchMyPosts);
           </tr>
           </thead>
           <tbody>
-          <tr v-for="(post, index) in paginatedPosts" :key="index">
-            <td>{{ post.title }}</td>
-            <td v-if="currentFilter === 'bookmarks'">{{ post.author }}</td>
-            <td v-if="currentFilter === 'bookmarks'">{{ post.authorRank }}</td>
-            <td>{{ post.date }}</td>
-            <td>{{ post.viewCount }}</td> <!-- 조회수는 항상 표시 -->
+          <tr
+              v-for="(post, index) in paginatedPosts"
+              :key="index"
+              @click="goToPostDetail(post.id)"
+          style="cursor: pointer;"
+          >
+          <td>{{ post.title }}</td>
+          <td v-if="currentFilter === 'bookmarks'">{{ post.author }}</td>
+          <td v-if="currentFilter === 'bookmarks'">{{ post.authorRank }}</td>
+          <td>{{ post.date }}</td>
+          <td>{{ post.viewCount }}</td>
           </tr>
           </tbody>
         </table>

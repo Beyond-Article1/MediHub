@@ -2,7 +2,9 @@
 import { ref, computed, onMounted } from "vue";
 import axios from "axios";
 import Sidebar from "@/components/user/MyPage.vue";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 // 필요한 CP 버전 및 의견 위치 시퀀스
 const cpVersionSeq = 1;
 const cpOpinionLocationSeq = 1;
@@ -15,6 +17,10 @@ const currentFilter = ref("myPosts");
 
 const MAX_CONTENT_LENGTH = 50;
 
+const goToOpinionDetail = (opinionId) => {
+  router.push(`/cp/${opinionId}`);
+};
+
 // 내가 쓴 CP 의견 데이터 가져오기
 const fetchMyCpOpinions = async () => {
   try {
@@ -22,16 +28,14 @@ const fetchMyCpOpinions = async () => {
         `/cp/${cpVersionSeq}/cpOpinionLocation/myOpinion`
     );
     cpOpinions.value = response.data.data.map((opinion) => ({
-      content: truncateText(extractText(opinion.cpOpinionContent), MAX_CONTENT_LENGTH), // 의견 내용
-      createdAt: new Date(opinion.createdAt).toLocaleDateString(), // 작성일
-      viewCount: opinion.cpOpinionViewCount, // 조회수
-      positiveRatio: opinion.positiveRatio.toFixed(2), // 찬성 비율
-      negativeRatio: opinion.negativeRatio.toFixed(2), // 반대 비율
+      id: opinion.cpOpinionSeq, // 의견 ID 추가
+      content: truncateText(extractText(opinion.cpOpinionContent), MAX_CONTENT_LENGTH),
+      createdAt: new Date(opinion.createdAt).toLocaleDateString(),
+      viewCount: opinion.cpOpinionViewCount,
+      positiveRatio: opinion.positiveRatio.toFixed(2),
+      negativeRatio: opinion.negativeRatio.toFixed(2),
     }));
-    console.log("조회된 작성한 의견 정보");
-    console.log(response.status);
-    console.log(cpOpinions.value);
-    filteredOpinions.value = [...cpOpinions.value]; // 필터 초기화
+    filteredOpinions.value = [...cpOpinions.value];
   } catch (error) {
     console.error("내가 쓴 CP 의견 데이터 가져오기 실패:", error);
   }
@@ -42,14 +46,14 @@ const fetchBookmarkedCpOpinions = async () => {
   try {
     const response = await axios.get(`/cp/mypage`);
     cpOpinions.value = response.data.data.map((cp) => ({
-      cpName: cp.cpName, // CP 이름
-      cpVersion: cp.cpVersion, // CP 버전
-      userName: cp.userName, // 작성자
-      partName: cp.partName, // 과명
-      viewCount: cp.cpViewCount, // 조회수
+      id: cp.cpVersionSeq,
+      cpName: cp.cpName,
+      cpVersion: cp.cpVersion,
+      userName: cp.userName,
+      partName: cp.partName,
+      viewCount: cp.cpViewCount,
     }));
-    console.log("북마크된 CP 데이터:", cpOpinions.value);
-    filteredOpinions.value = [...cpOpinions.value]; // 필터 초기화
+    filteredOpinions.value = [...cpOpinions.value];
   } catch (error) {
     console.error("북마크된 CP 의견 데이터 가져오기 실패:", error);
   }
@@ -161,23 +165,27 @@ onMounted(fetchMyCpOpinions);
               v-for="(opinion, index) in paginatedOpinions"
               :key="index"
               v-if="currentFilter === 'myPosts'"
+              @click="goToOpinionDetail(opinion.id)"
+          style="cursor: pointer;"
           >
-            <td>{{ opinion.content }}</td>
-            <td>{{ opinion.createdAt }}</td>
-            <td>{{ opinion.viewCount }}</td>
-            <td>{{ opinion.positiveRatio }}%</td>
-            <td>{{ opinion.negativeRatio }}%</td>
+          <td>{{ opinion.content }}</td>
+          <td>{{ opinion.createdAt }}</td>
+          <td>{{ opinion.viewCount }}</td>
+          <td>{{ opinion.positiveRatio }}%</td>
+          <td>{{ opinion.negativeRatio }}%</td>
           </tr>
           <tr
               v-for="(cp, index) in paginatedOpinions"
               :key="index"
               v-if="currentFilter === 'bookmarks'"
+              @click="goToOpinionDetail(cp.id)"
+          style="cursor: pointer;"
           >
-            <td>{{ cp.cpName }}</td>
-            <td>{{ cp.cpVersion }}</td>
-            <td>{{ cp.userName }}</td>
-            <td>{{ cp.partName }}</td>
-            <td>{{ cp.viewCount }}</td>
+          <td>{{ cp.cpName }}</td>
+          <td>{{ cp.cpVersion }}</td>
+          <td>{{ cp.userName }}</td>
+          <td>{{ cp.partName }}</td>
+          <td>{{ cp.viewCount }}</td>
           </tr>
           </tbody>
         </table>
