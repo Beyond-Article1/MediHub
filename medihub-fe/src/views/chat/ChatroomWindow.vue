@@ -591,6 +591,7 @@ const stopDrag = () => {
 .message-input-btn .attach-button img {
   width: 30px;
   height: auto;
+  cursor: pointer;
 }
 
 .message-input-btn .send-button {
