@@ -2,24 +2,31 @@
 import { ref, computed, onMounted } from "vue";
 import axios from "axios";
 import Sidebar from "@/components/user/MyPage.vue";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 const posts = ref([]);
 const filteredPosts = ref([]); // 필터링된 게시물 저장
 const currentPage = ref(1);
 const itemsPerPage = 5;
 const currentFilter = ref("myPosts");
 
+const goToPostDetail = (postId) => {
+  router.push(`/anonymous-board/${postId}`);
+};
+
 // 내가 쓴 게시물 가져오기
 const fetchMyPosts = async () => {
   try {
-    const response = await axios.get("/anonymous-board/myPage"); // API 호출
+    const response = await axios.get("/anonymous-board/myPage");
     posts.value = response.data.data.map((post) => ({
+      id: post.anonymousBoardSeq,
       title: post.anonymousBoardTitle,
       content: extractText(post.anonymousBoardContent),
       viewCount: post.anonymousBoardViewCount,
       date: new Date(post.createdAt).toLocaleDateString("ko-KR"),
     }));
-    filteredPosts.value = [...posts.value]; // 필터링 초기화
+    filteredPosts.value = [...posts.value];
   } catch (error) {
     console.error("내 메디컬 라이프 불러오기 실패:", error);
   }
@@ -28,14 +35,15 @@ const fetchMyPosts = async () => {
 // 내가 북마크한 게시물 가져오기
 const fetchBookmarkedPosts = async () => {
   try {
-    const response = await axios.get("/anonymous-board/myPage/bookmark"); // API 호출
+    const response = await axios.get("/anonymous-board/myPage/bookmark");
     posts.value = response.data.data.map((post) => ({
+      id: post.anonymousBoardSeq,
       title: post.anonymousBoardTitle,
       content: extractText(post.anonymousBoardContent),
       viewCount: post.anonymousBoardViewCount,
       date: new Date(post.createdAt).toLocaleDateString("ko-KR"),
     }));
-    filteredPosts.value = [...posts.value]; // 필터링 초기화
+    filteredPosts.value = [...posts.value];
   } catch (error) {
     console.error("북마크된 메디컬 라이프 가져오기 실패:", error);
   }
@@ -130,11 +138,16 @@ onMounted(fetchMyPosts);
           </tr>
           </thead>
           <tbody>
-          <tr v-for="(post, index) in paginatedPosts" :key="index">
-            <td>{{ post.title }}</td>
-            <td>{{ post.content }}</td>
-            <td>{{ post.date }}</td>
-            <td>{{ post.viewCount }}</td>
+          <tr
+              v-for="(post, index) in paginatedPosts"
+              :key="index"
+              @click="goToPostDetail(post.id)"
+          style="cursor: pointer;"
+          >
+          <td>{{ post.title }}</td>
+          <td>{{ post.content }}</td>
+          <td>{{ post.date }}</td>
+          <td>{{ post.viewCount }}</td>
           </tr>
           </tbody>
         </table>
