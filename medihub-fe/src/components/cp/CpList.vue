@@ -45,10 +45,13 @@ async function fetchData() {
       console.log("CP 리스트 조회 성공");
       console.log("응답 데이터:", response.data.data); // 응답 데이터 확인
 
-      cpList.value = response.data.data;
-      console.log(`cpList.value = ${cpList.value}`);
+      // bookmarked가 true인 항목을 먼저 보여주기 위해 정렬
+      cpList.value = response.data.data.sort((a, b) => {
+        return (b.bookmarked ? 1 : 0) - (a.bookmarked ? 1 : 0); // bookmarked가 true인 항목을 앞에 배치
+      });
 
-      console.log(cpList.value);
+      // console.log(`cpList.value = ${cpList.value}`);
+      // console.log(cpList.value);
     } else {
       console.log("CP 리스트 조회 실패");
     }

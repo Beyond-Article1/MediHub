@@ -57,6 +57,7 @@ const isSameDay = (date1, date2) => {
 
 onMounted(() => {
   userSeq.value = Number(localStorage.getItem('userSeq'));
+  getParticipants();
   getChatMessages();
 });
 
@@ -81,6 +82,29 @@ const getParticipants = async () => {
     console.error(`참여자 목록 불러오기 실패:`, error);
   }
 }
+
+// 헤더 이미지 경로 계산 함수
+const getHeaderImage = () => {
+  if (participants.value.length === 1) {
+    // 사용자 혼자만 있을 경우 자신의 프로필 이미지
+    return authStore.userInfo.profileImage || '/chat/profile.png';
+  } else if (participants.value.length > 2) {
+    // 단체 채팅일 경우 그룹 채팅 이미지
+    return '/chat/group-chat.png';
+  } else if (participants.value.length === 2) {
+    // 1:1 채팅일 경우 상대방 프로필 이미지
+    const partner = participants.value.find((p) => p.userSeq !== userSeq.value);
+    return partner?.userProfileUrl || '/chat/profile.png';
+  }
+};
+
+const getPartnerName = () => {
+  if (participants.value.length === 2) {
+    const partner = participants.value.find((p) => p.userSeq !== userSeq.value);
+    return partner?.userName || '알 수 없는 사용자'; // 상대방 이름 반환
+  }
+  return props.room.chatroomDefaultName; // 기본 채팅방 이름 반환
+};
 
 const deletedMessageSeqs = ref([]); // 삭제된 메시지 ID(MessageSeq) 목록
 // 채팅방이 열려있고 새 메시지가 수신되었을 때 처리
@@ -366,9 +390,9 @@ const stopDrag = () => {
 
     <!-- 채팅방 정보 헤더 -->
     <div class="chatroom-header">
-      <img :src="props.room.partnerProfileUrl || '@/assets/images/chat/group-chat.png'" />
+      <img :src="props.room.partnerProfileUrl || getHeaderImage() ||'/chat/group-chat.png'" />
       <div class="chatroom-info">
-        <h4>{{ room.chatroomCustomName || props.room.partnerName || room.chatroomDefaultName }}</h4>
+        <h4>{{ room.chatroomCustomName || getPartnerName() || room.chatroomDefaultName }}</h4>
         <p @click="openParticipantModal" style="cursor: pointer;">
           참여자 {{ props.room.chatroomUsersCount }}
         </p>

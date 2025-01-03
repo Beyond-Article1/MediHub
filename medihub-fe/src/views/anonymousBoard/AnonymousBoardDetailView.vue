@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
 
@@ -26,8 +26,6 @@ const boardData = ref({
   createdAt: "",
   keywordList: []
 });
-const isLiked = ref(false);
-const isBookmarked = ref(false);
 const comment = ref([]);
 const commentCount = ref(0);
 const totalComment = ref(0);
@@ -66,8 +64,10 @@ const fetchBoardDetail = async () => {
         keywordList: data.keywordList || []
       };
       // 좋아요와 북마크 상태 초기화
-      isLiked.value = data.isLiked || false;
-      isBookmarked.value = data.isBookmark || false;
+      boardData.value.isLiked = false;
+      boardData.value.isBookmark = false;
+
+      await Promise.all([updateLikeStatus(anonymousBoardSeq), updateBookmarkStatus(anonymousBoardSeq)]);
     } else console.error("API 응답 오류:", result.error);
 
     await fetchComment(anonymousBoardSeq);
@@ -110,18 +110,74 @@ const data = computed(() => {
   }
 });
 
-// 좋아요 버튼 클릭 이벤트
-const toggleLike = () => {
+const toggleLike = async () => {
 
-  // 좋아요 상태 전환
-  isLiked.value = !isLiked.value;
+  const anonymousBoardSeq = route.params.id;
+
+  try {
+
+    const response = await axios.patch(`/anonymous-board/${anonymousBoardSeq}/prefer`);
+
+    boardData.value.isLiked = response.data.data;
+
+    alert(boardData.value.isLiked ? '좋아요가 등록되었습니다.' : '좋아요가 취소되었습니다.');
+  } catch(error) {
+
+    console.error('좋아요 처리 중 오류 발생:', error);
+
+    alert('좋아요 처리에 실패했습니다.');
+  }
 };
 
-// 북마크 버튼 클릭 이벤트
-const toggleBookmark = () => {
+const toggleBookmark = async () => {
 
-  // 북마크 상태 전환
-  isBookmarked.value = !isBookmarked.value;
+  const anonymousBoardSeq = route.params.id;
+
+  try {
+
+    const response = await axios.patch(`/anonymous-board/${anonymousBoardSeq}/bookmark`);
+
+    boardData.value.isBookmark = response.data.data;
+
+    alert(boardData.value.isBookmark ? '북마크가 등록되었습니다.' : '북마크가 해제되었습니다.');
+  } catch(error) {
+
+    console.error('북마크 처리 중 오류 발생:', error);
+
+    alert('북마크 처리에 실패했습니다.');
+  }
+};
+
+const updateLikeStatus = async (anonymousBoardSeq) => {
+
+  try {
+
+    const response = await axios.get(`/anonymous-board/${anonymousBoardSeq}/prefer`);
+
+    // 서버에서 반환된 좋아요 상태
+    boardData.value.isLiked = response.data.data;
+  } catch(error) {
+
+    console.error('좋아요 상태 확인 중 오류 발생:', error);
+
+    boardData.value.isLiked = false;
+  }
+};
+
+const updateBookmarkStatus = async (anonymousBoardSeq) => {
+
+  try {
+
+    const response = await axios.get(`/anonymous-board/${anonymousBoardSeq}/bookmark`);
+
+    // 서버에서 반환된 북마크 상태
+    boardData.value.isBookmark = response.data.data;
+  } catch(error) {
+
+    console.error('북마크 상태 확인 중 오류 발생:', error);
+
+    boardData.value.isBookmark = false;
+  }
 };
 
 const goToEditPage = () => {
@@ -441,11 +497,11 @@ onBeforeUnmount(() => {
 
       <div class="actions">
         <div class="like-btn align-mid" @click.stop="toggleLike">
-          <img :src="isLiked ? afterLike : beforeLike" :alt="isLiked ? 'After' : 'Before'"/>
+          <img :src="boardData.isLiked ? afterLike : beforeLike" alt="좋아요"/>
         </div>
 
         <div class="bookmark-btn align-mid" @click.stop="toggleBookmark">
-          <img :src="isBookmarked ? afterBookmark : beforeBookmark" :alt="isBookmarked ? 'After' : 'Before'"/>
+          <img :src="boardData.isBookmark ? afterBookmark : beforeBookmark" alt="북마크"/>
         </div>
       </div>
     </div>

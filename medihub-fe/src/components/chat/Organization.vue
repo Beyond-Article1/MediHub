@@ -47,7 +47,7 @@ const getUserData = async () => {
       deptName: partMap[user.partName] || "부서 없음", // 과명에 해당하는 부서명 추가
     }));
 
-    console.info("user 매핑 결과: ", users.value);
+    //console.info("user 매핑 결과: ", users.value);
 
   } catch (error) {
     console.error("데이터 불러오기 실패:", error);
@@ -229,7 +229,7 @@ const createChatroom = async (userSeq) => {
             :key="user.userSeq"
             class="user-item"
             @dblclick="createChatroom(user.userSeq)">
-          <img :src="user.profileImage || '@/assets/images/chat/Default_Profile.png'" alt="Profile" />
+          <img :src="user.profileImage || '/chat/profile.png'" alt="Profile" />
           <div class="user-info">
             <p class="user-name">{{ user.userName }} {{ user.rankingName }}</p>
             <p class="user-details">{{ user.deptName }} | {{ user.partName }} | {{ user.userPhone }}</p>

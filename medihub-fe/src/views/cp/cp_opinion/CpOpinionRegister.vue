@@ -2,14 +2,13 @@
 import html2canvas from "html2canvas";
 import axios from "axios";
 
-import {onMounted, ref} from "vue";
+import {ref} from "vue";
 import {useAuthStore} from '@/store/authStore.js';
 import {useRoute, useRouter} from "vue-router";
 
 import Button from "@/components/common/button/Button.vue";
 import CaseEditor from "@/components/case_sharing/case_sharing/CaseSharingEditor.vue";
 import CaseTagInput from "@/components/case_sharing/case_sharing/CaseTagInput.vue";
-import TemplateCreateModal from "@/components/case_sharing/template/TemplateCreateModal.vue";
 
 // Vue 설정 변수
 const authStore = useAuthStore();
@@ -131,7 +130,7 @@ async function sendData(formData) {
       console.log("새로운 CP 의견 생성에 실패하였습니다.");
       console.log(response.status);
       console.log("CP 의견 위치를 삭제합니다.");
-      deleteLocation();
+      await deleteLocation();
       throw new Error("Failed to register opinion.");
     }
   } catch (error) {
@@ -150,91 +149,6 @@ function redirectPage() {
     }
   })
 }
-
-const isModalOpen = ref(false);
-
-const closeModal = () => {
-  isModalOpen.value = false;
-};
-
-const handleTemplateSave = async ({title: templateTitle, openScope}) => {
-  try {
-    const {content} = await caseEditor.value.getEditorData();
-
-    if (!templateTitle.trim()) {
-      alert("템플릿 제목을 입력해주세요.");
-      return;
-    }
-
-    // 에디터의 실제 내용이 있는 요소 선택
-    const editorContent = document.querySelector(".codex-editor__redactor");
-
-    if (!editorContent) {
-      alert("캡처할 컨텐츠를 찾을 수 없습니다.");
-      return;
-    }
-
-    // 툴바 숨기기
-    const toolbar = document.querySelector(".toolbar");
-    if (toolbar) toolbar.style.display = "none";
-
-    // 여백 제거 및 스크롤 확장
-    const originalStyle = editorContent.style.cssText;
-    editorContent.style.margin = "0";
-    editorContent.style.padding = "0";
-    editorContent.style.height = "auto";
-    editorContent.style.overflow = "visible";
-
-    // html2canvas 캡처
-    const canvas = await html2canvas(editorContent, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-      logging: false,
-      backgroundColor: "#FFFFFF", // 배경색을 흰색으로 지정
-      windowWidth: editorContent.scrollWidth,
-      windowHeight: editorContent.scrollHeight,
-    });
-
-    // 원래 스타일 복구
-    if (toolbar) toolbar.style.display = "flex";
-    editorContent.style.cssText = originalStyle;
-
-    // 이미지 Blob 변환
-    const imageBlob = await new Promise((resolve) =>
-        canvas.toBlob(resolve, "image/png")
-    );
-
-    // FormData 생성
-    const formData = new FormData();
-    formData.append(
-        "data",
-        JSON.stringify({
-          templateTitle,
-          templateContent: JSON.stringify(content),
-          openScope,
-        })
-    );
-    formData.append("previewImage", imageBlob, "template-preview.png");
-
-    // 서버로 전송
-    const response = await fetch("/template", {
-      method: "POST",
-      body: formData,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    if (!response.ok) throw new Error("템플릿 저장 실패");
-
-    alert("템플릿이 성공적으로 저장되었습니다.");
-    closeModal();
-  } catch (error) {
-    console.error("Error saving template:", error);
-    alert("템플릿 저장 중 오류가 발생했습니다.");
-  }
-};
 </script>
 
 <template>
@@ -257,12 +171,6 @@ const handleTemplateSave = async ({title: templateTitle, openScope}) => {
         <CaseTagInput @update:keywords="updateKeywords"/>
       </div>
     </div>
-
-    <TemplateCreateModal
-        v-if="isModalOpen"
-        @close="closeModal"
-        @save-template="handleTemplateSave"
-    />
   </div>
 </template>
 
@@ -303,13 +211,17 @@ const handleTemplateSave = async ({title: templateTitle, openScope}) => {
 
 .editor-wrapper {
   width: 100%;
-  max-width: 1400px;
+  max-width: 1200px;
   height: 650px;
   margin-bottom: 20px;
   background-color: white;
   border: 1px solid #ddd;
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.editor-wrapper CaseEditor {
+  width: 1400px !important;
 }
 
 .case-tags {

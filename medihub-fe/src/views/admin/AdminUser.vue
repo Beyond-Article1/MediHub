@@ -149,12 +149,15 @@ const filteredParts = computed(() => {
   return parts.value.filter((part) => part.deptSeq === openDept.value);
 });
 
+// 필터링된 사용자
 const filteredUsers = computed(() => {
   return users.value.filter((user) => {
     const matchesDept = !selectedDeptName.value || user.deptName === selectedDeptName.value;
     const matchesPart = !selectedPartSeq.value || user.partName === selectedPartName.value;
-    return matchesDept && matchesPart;
-  });
+    const isActive = user.userStatus !== "DELETE";
+    return matchesDept && matchesPart && isActive;
+  })
+      .sort((a, b) => a.rankingNum - b.rankingNum);
 });
 
 const paginatedUsers = computed(() => {

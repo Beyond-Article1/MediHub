@@ -76,7 +76,7 @@ export const useWebSocketStore = defineStore('webSocket', ws => {
             });
 
             const userChatrooms = response.data.data;  // 사용자 채팅방 리스트 받아오기
-            console.log("사용자가 참여한 채팅방 리스트:", userChatrooms);
+            //console.log("사용자가 참여한 채팅방 리스트:", userChatrooms);
 
             userChatrooms.forEach((chatroom) => {
                 const chatroomSeq = chatroom.chatroomSeq;
@@ -116,7 +116,7 @@ export const useWebSocketStore = defineStore('webSocket', ws => {
         }
 
         if (subscriptions.value[chatroomSeq]) {
-            console.log(`채팅방 ${chatroomSeq}은 이미 구독 중입니다.`);
+            // console.log(`채팅방 ${chatroomSeq}은 이미 구독 중입니다.`);
             return;
         }
 
@@ -145,7 +145,7 @@ export const useWebSocketStore = defineStore('webSocket', ws => {
             );
 
             subscriptions.value[chatroomSeq] = subscription; // 구독 객체 저장
-            console.log(`채팅방 ${chatroomSeq}을 구독했습니다.`);
+            // console.log(`채팅방 ${chatroomSeq}을 구독했습니다.`);
         } catch(error) {
             console.error(`채팅방 ${chatroomSeq} 구독 중 오류 발생: `, error);
         }

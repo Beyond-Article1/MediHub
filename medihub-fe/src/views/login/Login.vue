@@ -77,9 +77,11 @@ const handleLogin = async () => {
     // 헤더에서 Access Token과 Refresh Token 추출
     const accessToken = response.headers["access-token"];
     const refreshToken = response.headers["refresh-token"];
+    const refreshTokenExpiration = response.headers["refresh-token-expiration"];
 
     if (accessToken && refreshToken) {
       authStore.login(accessToken, refreshToken);
+      localStorage.setItem("refreshTokenExpiration", refreshTokenExpiration);
 
       console.log("로그인 성공: AccessToken, RefreshToken 저장 완료");
       alert("로그인에 성공했습니다!");

@@ -50,6 +50,38 @@ onMounted(async () => {
   }
 });
 
+import { watch } from 'vue';
+
+watch(
+    () => chatStore.chatrooms, // 감시할 대상
+    async (newChatrooms, oldChatrooms) => {
+      // 새로 추가된 채팅방 찾기
+      const newRooms = newChatrooms.filter(
+          (room) => !oldChatrooms.some((oldRoom) => oldRoom.chatroomSeq === room.chatroomSeq)
+      );
+
+      for (const room of newRooms) {
+        if (room.chatroomUsersCount === 2) {
+          try {
+            const response = await axios.get(`/chatroom/${room.chatroomSeq}/users`);
+            const participants = response.data.data;
+
+            // 현재 사용자와 다른 사용자를 필터링
+            const partner = participants.find((user) => user.userSeq !== userSeq.value);
+
+            if (partner) {
+              partnerProfileUrls.value[room.chatroomSeq] = partner.userProfileUrl;
+              partnerNames.value[room.chatroomSeq] = partner.userName;
+            }
+          } catch (error) {
+            console.error(`채팅방 ${room.chatroomSeq}의 데이터 로드 실패:`, error);
+          }
+        }
+      }
+    },
+    { deep: true } // 배열 내부의 변화를 감지하기 위해 deep 옵션 활성화
+);
+
 // 채팅방 생성
 const createChatroom = async (users) => {
   if(!users || users.length === 0) {
@@ -153,7 +185,7 @@ const filteredChatrooms = computed(() => {
           <div class="chatroom-img">
             <img
                 v-if="room.chatroomUsersCount === 1"
-                :src="authStore.profileImage"
+                :src="authStore.userInfo.profileImage || '/chat/profile.png'"
                 alt="My Profile"
             />
             <img
@@ -163,7 +195,7 @@ const filteredChatrooms = computed(() => {
             />
             <img
                 v-else
-                :src="partnerProfileUrls[room.chatroomSeq]"
+                :src="partnerProfileUrls[room.chatroomSeq] || '/chat/profile.png'"
                 alt="Partner Profile"
             />
           </div>
@@ -172,7 +204,7 @@ const filteredChatrooms = computed(() => {
               <h5 class="chatroom-name">
                 <!-- 1:1 채팅일 경우 상대방 이름 표시 -->
                 <template v-if="room.chatroomUsersCount === 2">
-                  {{ room.chatroomCustomName || partnerNames[room.chatroomSeq] }}
+                  {{ room.chatroomCustomName || partnerNames[room.chatroomSeq] || room.chatroomDefaultName }}
                 </template>
 
                 <!-- 단체 채팅일 경우 customName이 없으면 defaultName 표시 -->

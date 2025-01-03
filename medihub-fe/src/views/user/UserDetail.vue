@@ -106,7 +106,8 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
-import { useRouter } from "vue-router"; // Vue Router 사용
+import { useRouter } from "vue-router";
+import response from "vue3-pdf-app"; // Vue Router 사용
 
 const router = useRouter(); // 라우터 객체 생성
 const defaultImage = "";
@@ -135,6 +136,9 @@ const triggerFileInput = () => {
 
 const handleImageUpload = (e) => {
   profileImageFile.value = e.target.files[0];
+  if (profileImageFile.value) {
+    user.value.profileImage = URL.createObjectURL(profileImageFile.value);
+  }
 };
 
 const fetchUserInfo = async () => {
@@ -161,9 +165,9 @@ const updateUserInfo = async () => {
       new Blob(
           [
             JSON.stringify({
-              userEmail: userEmail.value,
-              userPhone: userPhone.value,
-              userPassword: userPassword.value,
+              userEmail: userEmail.value || undefined,
+              userPhone: userPhone.value || undefined,
+              userPassword: userPassword.value || undefined,
             }),
           ],
           { type: "application/json" }
@@ -181,8 +185,19 @@ const updateUserInfo = async () => {
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
     });
+
+    const updatedProfileImageUrl = response?.data?.data?.profileImageUrl;
+
+    if (updatedProfileImageUrl) {
+      const timestampedUrl = `${updatedProfileImageUrl}?timestamp=${new Date().getTime()}`;
+      console.log("프로필 이미지 업데이트 URL:", timestampedUrl);
+      user.value.profileImage = timestampedUrl;
+    } else {
+      console.error("profileImageUrl이 백엔드 응답에 없습니다.");
+    }
+
     alert("정보 수정이 완료되었습니다.");
-    router.push("/main"); // 메인 페이지로 이동
+    router.push("/main");
   } catch (error) {
     console.error("정보 수정 실패:", error);
     alert("정보 수정에 실패했습니다.");

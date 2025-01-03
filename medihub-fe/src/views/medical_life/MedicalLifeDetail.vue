@@ -1,6 +1,6 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import {ref, onMounted, computed} from 'vue';
+import {useRoute, useRouter} from 'vue-router';
 
 import axios from 'axios';
 import LocalDateTimeFormat from '@/components/common/LocalDateTimeFormat.vue';
@@ -24,7 +24,7 @@ const router = useRouter(); // 라우터 추가
 const token = localStorage.getItem('accessToken');
 const decodedToken = token ? JSON.parse(atob(token.split('.')[1])) : null;
 const loggedInUserSeq = decodedToken ? decodedToken.userSeq : null;
-const loggedInUserRole = decodedToken ? decodedToken.auth  : null;
+const loggedInUserRole = decodedToken ? decodedToken.auth : null;
 
 console.log("Logged in User Role: ", loggedInUserRole);
 
@@ -151,9 +151,9 @@ const contentBlocks = computed(() => {
 
     return medicalLifeContent.blocks.map((block) => {
       if (block.type === "paragraph") {
-        return { type: "text", content: block.data.text };
+        return {type: "text", content: block.data.text};
       } else if (block.type === "image") {
-        return { type: "image", content: block.data.file.url };
+        return {type: "image", content: block.data.file.url};
       } else {
         return null;
       }
@@ -171,7 +171,10 @@ const paginatedComment = computed(() => {
 });
 
 // 댓글 추가
-const addComment = async () => {
+const currentEditingCommentSeq = ref(null); // 수정 중인 댓글 ID
+
+// 댓글 작성 또는 수정 요청
+const saveComment = async () => {
   if (!newCommentContent.value.trim()) {
     alert('댓글 내용을 입력해 주세요.');
     return;
@@ -180,68 +183,58 @@ const addComment = async () => {
   const medicalLifeSeq = route.params.id;
 
   try {
-    await axios.post(`/medical-life/${medicalLifeSeq}/comments`, {
-      commentContent: newCommentContent.value
-    }, {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    if (currentEditingCommentSeq.value) {
+      // 댓글 수정 로직
+      await axios.put(
+          `/medical-life/${medicalLifeSeq}/comment/${currentEditingCommentSeq.value}`,
+          { commentContent: newCommentContent.value },
+          { headers: { 'Content-Type': 'application/json' } }
+      );
 
-    alert('댓글 등록이 완료되었습니다.');
+      alert('댓글이 수정되었습니다.');
+    } else {
+      // 댓글 작성 로직
+      await axios.post(
+          `/medical-life/${medicalLifeSeq}/comments`,
+          { commentContent: newCommentContent.value },
+          { headers: { 'Content-Type': 'application/json' } }
+      );
+
+      alert('댓글이 등록되었습니다.');
+    }
+
+    // 상태 초기화 및 댓글 갱신
     newCommentContent.value = '';
-    fetchComment(medicalLifeSeq);
+    currentEditingCommentSeq.value = null; // 수정 모드 해제
+    fetchComment(medicalLifeSeq); // 댓글 목록 갱신
   } catch (error) {
-    console.error('Error adding comment:', error);
+    console.error('댓글 저장 중 오류 발생:', error);
+    alert('댓글 저장에 실패했습니다.');
   }
 };
 
-// 댓글 수정
-const updateComment = async (medicalLifeSeq, commentSeq, newContent) => {
-  try {
-    await axios.put(`/medical-life/${medicalLifeSeq}/comment/${commentSeq}`, {
-      commentContent: newContent,
-    });
-    alert('댓글이 성공적으로 수정되었습니다.');
-    fetchComment(medicalLifeSeq);
-  } catch (error) {
-    console.error('댓글 수정 중 오류 발생:', error);
-    alert('댓글 수정에 실패했습니다.');
-  }
+// 댓글 수정 시작
+const editComment = (commentItem) => {
+  newCommentContent.value = commentItem.commentContent; // 입력 필드에 기존 내용 설정
+  currentEditingCommentSeq.value = commentItem.commentSeq; // 수정 중인 댓글 ID 저장
 };
 
 // 댓글 삭제
-const deleteComment = async (medicalLifeSeq, commentSeq) => {
-  try {
-    await axios.delete(`/medical-life/${medicalLifeSeq}/comment/${commentSeq}`);
-    alert('댓글이 성공적으로 삭제되었습니다.');
-    fetchComment(medicalLifeSeq);
-  } catch (error) {
-    console.error('댓글 삭제 중 오류 발생:', error);
-    alert('댓글 삭제에 실패했습니다.');
-  }
-};
+const deleteComment = async (commentSeq) => {
+  const medicalLifeSeq = route.params.id;
 
-// 댓글 수정 이벤트
-const handleEditClick = (commentSeq) => {
-  const targetComment = comment.value.find(c => c.commentSeq === commentSeq);
-  if (!targetComment) {
-    console.error(`Comment with commentSeq ${commentSeq} not found`);
-    return;
-  }
-
-  const newContent = prompt('댓글 내용을 수정하세요:', targetComment.commentContent || '');
-  if (newContent !== null) {
-    const medicalLifeSeq = route.params.id;
-    updateComment(medicalLifeSeq, commentSeq, newContent);
-  }
-};
-
-// 댓글 삭제 이벤트
-const handleDeleteClick = (commentSeq) => {
   if (confirm('정말로 이 댓글을 삭제하시겠습니까?')) {
-    const medicalLifeSeq = route.params.id;
-    deleteComment(medicalLifeSeq, commentSeq);
+    try {
+      await axios.delete(`/medical-life/${medicalLifeSeq}/comment/${commentSeq}`);
+      alert('댓글이 성공적으로 삭제되었습니다.');
+      fetchComment(medicalLifeSeq); // 댓글 목록 갱신
+    } catch (error) {
+      console.error('댓글 삭제 중 오류 발생:', error);
+      alert('댓글 삭제에 실패했습니다.');
+    }
   }
 };
+
 
 // 문자 수 업데이트
 const updateCharacterCount = () => {
@@ -269,16 +262,18 @@ onMounted(() => {
           alt="Profile Picture"
       />
       <p class="author">{{ boardDetail.userName }} ({{ boardDetail.rankingName }})</p>
-      <p class="date"><LocalDateTimeFormat :data="boardDetail.createdAt" /></p>
+      <p class="date">
+        <LocalDateTimeFormat :data="boardDetail.createdAt"/>
+      </p>
       <p class="view-count">조회수: {{ boardDetail.medicalLifeViewCount }}</p>
 
       <!-- 좋아요, 북마크 버튼 -->
       <div class="actions">
         <div class="like-btn" @click="toggleLike">
-          <img :src="boardDetail.isLiked ? afterLike : beforeLike" alt="좋아요" />
+          <img :src="boardDetail.isLiked ? afterLike : beforeLike" alt="좋아요"/>
         </div>
         <div class="bookmark-btn" @click="toggleBookmark">
-          <img :src="boardDetail.isBookmark ? afterBookmark : beforeBookmark" alt="북마크" />
+          <img :src="boardDetail.isBookmark ? afterBookmark : beforeBookmark" alt="북마크"/>
         </div>
 
         <!-- 수정/삭제 버튼 -->
@@ -287,7 +282,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <LineDivider />
+    <LineDivider/>
 
     <!-- 키워드 -->
     <div v-if="boardDetail.keywords && boardDetail.keywords.length">
@@ -299,17 +294,17 @@ onMounted(() => {
       </div>
     </div>
 
-    <LineDivider />
+    <LineDivider/>
 
     <!-- 콘텐츠 표시 -->
     <div class="content">
       <div v-for="(block, index) in contentBlocks" :key="index">
         <p v-if="block.type === 'text'" class="text-block">{{ block.content }}</p>
-        <img v-if="block.type === 'image'" :src="block.content" class="image-block" alt="Content Image" />
+        <img v-if="block.type === 'image'" :src="block.content" class="image-block" alt="Content Image"/>
       </div>
     </div>
 
-    <LineDivider />
+    <LineDivider/>
 
     <!-- 댓글 섹션 -->
     <div class="comment-section">
@@ -317,16 +312,21 @@ onMounted(() => {
       <!-- 댓글 목록 -->
       <div v-for="(commentItem, index) in paginatedComment" :key="index" class="comment">
         <p class="comment-author">
-          {{ commentItem.userName }} ({{ commentItem.part }}, {{ commentItem.rankingName }})
+          {{ commentItem.userName }} ({{ commentItem.part || '파트 정보 없음' }}, {{ commentItem.rankingName || '직급 정보 없음' }})
         </p>
         <p class="comment-content">{{ commentItem.commentContent }}</p>
-        <p class="comment-date"><LocalDateTimeFormat :data="commentItem.createdAt" /></p>
-        <div class="comment-actions" v-if="isAuthorizedToModify(commentItem.userSeq)">
-          <button @click="handleEditClick(commentItem.commentSeq)" class="action-btn">수정</button>
-          <button @click="handleDeleteClick(commentItem.commentSeq)" class="action-btn">삭제</button>
+        <p class="comment-date">
+          <LocalDateTimeFormat :data="commentItem.createdAt" />
+        </p>
+        <div class="comment-actions" v-if="commentItem.userSeq === loggedInUserSeq">
+          <!-- 수정 버튼 -->
+          <button @click="editComment(commentItem)" class="action-btn">수정</button>
+          <!-- 삭제 버튼 -->
+          <button @click="deleteComment(commentItem.commentSeq)" class="action-btn">삭제</button>
         </div>
       </div>
 
+      <!-- 댓글 목록 페이지네이션 -->
       <Pagination
           :totalData="totalComment"
           :limitPage="commentItemCount"
@@ -337,17 +337,18 @@ onMounted(() => {
 
     <!-- 댓글 입력 -->
     <div class="comment-input">
-      <span class="char-count">{{ characterCount }} / 1000</span>
+      <span class="char-count">{{ newCommentContent.length }} / 1000</span>
       <textarea
           v-model="newCommentContent"
           placeholder="댓글을 입력하세요."
           maxlength="1000"
           @input="updateCharacterCount"
       ></textarea>
-      <button @click="addComment">댓글 달기</button>
+      <button @click="saveComment">
+        {{ currentEditingCommentSeq ? '수정 완료' : '댓글 달기' }}
+      </button>
     </div>
   </div>
-  <div v-else>Loading...</div>
 </template>
 
 <style scoped>
@@ -561,10 +562,12 @@ onMounted(() => {
   width: 90px;
   height: 30px;
 }
+
 .comment-actions {
   display: flex;
   gap: 10px;
 }
+
 .action-btn {
   background: none;
   border: none;
@@ -573,6 +576,7 @@ onMounted(() => {
   font-size: 14px;
   text-decoration: underline;
 }
+
 .action-btn:hover {
   color: #0056b3;
 }
