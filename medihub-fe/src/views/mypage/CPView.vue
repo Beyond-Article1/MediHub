@@ -2,42 +2,78 @@
 import { ref, computed, onMounted } from "vue";
 import axios from "axios";
 import Sidebar from "@/components/user/MyPage.vue";
+import { useRouter } from "vue-router";
 
-const cpOpinions = ref([]); // CP 의견 데이터
-const filteredOpinions = ref([]); // 필터링된 데이터
+const router = useRouter();
+// 필요한 CP 버전 및 의견 위치 시퀀스
+const cpVersionSeq = 1;
+const cpOpinionLocationSeq = 1;
+
+const cpOpinions = ref([]);
+const filteredOpinions = ref([]);
 const currentPage = ref(1);
 const itemsPerPage = 5;
-const currentFilter = ref("myPosts"); // 현재 필터 상태 ("myPosts" or "bookmarks")
+const currentFilter = ref("myPosts");
 
-// CP 의견 데이터 가져오기 (내가 쓴 게시물)
-const fetchMyPosts = async () => {
+const MAX_CONTENT_LENGTH = 50;
+
+const goToOpinionDetail = (opinionId) => {
+  router.push(`/cp/${opinionId}`);
+};
+
+// 내가 쓴 CP 의견 데이터 가져오기
+const fetchMyCpOpinions = async () => {
   try {
-    const response = await axios.get(""); // 내가 쓴 게시물 API
+    const response = await axios.get(
+        `/cp/${cpVersionSeq}/cpOpinionLocation/myOpinion`
+    );
     cpOpinions.value = response.data.data.map((opinion) => ({
-      content: opinion.cpOpinionContent, // 의견 내용
-      author: opinion.userName, // 작성자
-      part: opinion.partName, // 과명
-      updatedAt: new Date(opinion.updatedAt).toLocaleDateString(), // 수정일
+      id: opinion.cpOpinionSeq, // 의견 ID 추가
+      content: truncateText(extractText(opinion.cpOpinionContent), MAX_CONTENT_LENGTH),
+      createdAt: new Date(opinion.createdAt).toLocaleDateString(),
+      viewCount: opinion.cpOpinionViewCount,
+      positiveRatio: opinion.positiveRatio.toFixed(2),
+      negativeRatio: opinion.negativeRatio.toFixed(2),
     }));
-    filteredOpinions.value = [...cpOpinions.value]; // 필터 초기화
+    filteredOpinions.value = [...cpOpinions.value];
   } catch (error) {
-    console.error("내가 쓴 게시물 데이터 가져오기 실패:", error);
+    console.error("내가 쓴 CP 의견 데이터 가져오기 실패:", error);
   }
 };
 
-// 북마크된 게시물 가져오기
-const fetchBookmarkedPosts = async () => {
+// 북마크된 CP 의견 데이터 가져오기
+const fetchBookmarkedCpOpinions = async () => {
   try {
-    const response = await axios.get("/cp/mypage"); // 북마크된 게시물 API
-    cpOpinions.value = response.data.data.map((opinion) => ({
-      content: opinion.cpOpinionContent, // 의견 내용
-      author: opinion.userName, // 작성자
-      part: opinion.partName, // 과명
-      updatedAt: new Date(opinion.updatedAt).toLocaleDateString(), // 수정일
+    const response = await axios.get(`/cp/mypage`);
+    cpOpinions.value = response.data.data.map((cp) => ({
+      id: cp.cpVersionSeq,
+      cpName: cp.cpName,
+      cpVersion: cp.cpVersion,
+      userName: cp.userName,
+      partName: cp.partName,
+      viewCount: cp.cpViewCount,
     }));
-    filteredOpinions.value = [...cpOpinions.value]; // 필터 초기화
+    filteredOpinions.value = [...cpOpinions.value];
   } catch (error) {
-    console.error("북마크된 게시물 데이터 가져오기 실패:", error);
+    console.error("북마크된 CP 의견 데이터 가져오기 실패:", error);
+  }
+};
+
+const truncateText = (text, maxLength) => {
+  if (!text) return "내용 없음";
+  return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
+};
+
+const extractText = (content) => {
+  try {
+    const parsedContent = JSON.parse(content);
+    return parsedContent.blocks
+        .filter((block) => block.type === "paragraph") // 'paragraph' 블록만 추출
+        .map((block) => block.data.text) // 텍스트 데이터만 가져옴
+        .join(" "); // 텍스트 합치기
+  } catch (error) {
+    console.error("내용 파싱 실패:", error);
+    return "내용 없음";
   }
 };
 
@@ -62,20 +98,20 @@ const changePage = (page) => {
 // 조회 버튼 클릭
 const filterByMyPosts = async () => {
   currentFilter.value = "myPosts";
-  await fetchMyPosts(); // 내가 쓴 게시물 데이터 가져오기
+  await fetchMyCpOpinions(); // 내가 쓴 CP 의견 데이터 가져오기
   currentPage.value = 1;
 };
 
 // 북마크 버튼 클릭
 const filterByBookmarks = async () => {
   currentFilter.value = "bookmarks";
-  await fetchBookmarkedPosts(); // 북마크된 게시물 데이터 가져오기
+  console.log("북마크 보기");
+  await fetchBookmarkedCpOpinions(); // 북마크된 CP 의견 데이터 가져오기
   currentPage.value = 1;
 };
 
 // 초기 데이터 로드
-onMounted(fetchMyPosts);
-
+onMounted(fetchMyCpOpinions);
 </script>
 
 <template>
@@ -94,14 +130,14 @@ onMounted(fetchMyPosts);
             :class="{ active: currentFilter === 'myPosts' }"
             @click="filterByMyPosts"
         >
-          내가 쓴 게시물
+          내가 쓴 CP
         </button>
         <button
             class="filter-btn"
             :class="{ active: currentFilter === 'bookmarks' }"
             @click="filterByBookmarks"
         >
-          북마크된 게시물
+          북마크된 CP
         </button>
       </div>
 
@@ -109,19 +145,47 @@ onMounted(fetchMyPosts);
       <div class="table-container">
         <table class="custom-table">
           <thead>
-          <tr>
+          <tr v-if="currentFilter === 'myPosts'">
             <th>내용</th>
+            <th>작성일</th>
+            <th>조회수</th>
+            <th>찬성 비율</th>
+            <th>반대 비율</th>
+          </tr>
+          <tr v-if="currentFilter === 'bookmarks'">
+            <th>CP 이름</th>
+            <th>버전</th>
             <th>작성자</th>
             <th>과</th>
-            <th>수정일</th>
+            <th>조회수</th>
           </tr>
           </thead>
           <tbody>
-          <tr v-for="(opinion, index) in paginatedOpinions" :key="index">
-            <td>{{ opinion.content }}</td>
-            <td>{{ opinion.author }}</td>
-            <td>{{ opinion.part }}</td>
-            <td>{{ opinion.updatedAt }}</td>
+          <tr
+              v-for="(opinion, index) in paginatedOpinions"
+              :key="index"
+              v-if="currentFilter === 'myPosts'"
+              @click="goToOpinionDetail(opinion.id)"
+          style="cursor: pointer;"
+          >
+          <td>{{ opinion.content }}</td>
+          <td>{{ opinion.createdAt }}</td>
+          <td>{{ opinion.viewCount }}</td>
+          <td>{{ opinion.positiveRatio }}%</td>
+          <td>{{ opinion.negativeRatio }}%</td>
+          </tr>
+          <tr
+              v-for="(cp, index) in paginatedOpinions"
+              :key="index"
+              v-if="currentFilter === 'bookmarks'"
+              @click="goToOpinionDetail(cp.id)"
+          style="cursor: pointer;"
+          >
+          <td>{{ cp.cpName }}</td>
+          <td>{{ cp.cpVersion }}</td>
+          <td>{{ cp.userName }}</td>
+          <td>{{ cp.partName }}</td>
+          <td>{{ cp.viewCount }}</td>
           </tr>
           </tbody>
         </table>
@@ -160,6 +224,7 @@ onMounted(fetchMyPosts);
     </div>
   </div>
 </template>
+
 
 <style scoped>
 .d-flex {
@@ -217,16 +282,14 @@ onMounted(fetchMyPosts);
   text-align: left;
   font-size: 1.1rem;
 }
+
 .custom-table th,
 .custom-table td {
   padding: 15px;
   border-bottom: 1px solid #dee2e6;
-  border-left: none;
-  border-right: none;
-  max-width: 200px;
-  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  overflow: hidden;
 }
 
 .custom-table thead th {
@@ -274,13 +337,4 @@ onMounted(fetchMyPosts);
   background-color: #0056b3;
   color: white;
 }
-
-.badge {
-  background-color: #ffc107;
-  color: #212529;
-  border-radius: 3px;
-  padding: 5px 10px;
-  font-size: 1rem;
-}
-
 </style>

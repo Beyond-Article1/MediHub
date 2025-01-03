@@ -2,12 +2,26 @@
 import { ref, computed, onMounted } from "vue";
 import Sidebar from "@/components/user/MyPage.vue";
 import axios from "axios";
+import { useRouter } from "vue-router";
 
+const router = useRouter();
 const posts = ref([]);
 const filteredPosts = ref([]);
 const currentPage = ref(1);
 const itemsPerPage = 5;
 const currentFilter = ref("select");
+
+function goToDetails(journalData) {
+  if (sessionStorage.getItem('journalProcessed')){
+    sessionStorage.setItem('journalProcessed', 'false');
+  }
+  router.push({
+    name: "MediH",
+    query: {
+      journalData: JSON.stringify(journalData),
+    },
+  });
+}
 
 // API 요청: 내가 조회한 논문
 const fetchMyPosts = async () => {
@@ -16,16 +30,21 @@ const fetchMyPosts = async () => {
       params: { sortBy: "select" },
     });
 
-    // 데이터 매핑
     posts.value = response.data.data.map((post) => ({
-      date: new Date(post.createdAt).toLocaleDateString(), // 날짜
-      title: post.title || post.koreanTitle, // 논문 제목 (영문/한글 중 하나)
-      journal: post.source, // 저널명
-      authors: post.authors.join(", "), // 저자 (콤마로 구분)
-      doi: post.doi || "-", // DOI (없으면 "-")
+      journalSeq: post.journalSeq,
+      date: new Date(post.createdAt).toLocaleDateString(),
+      koreanTitle: post.koreanTitle,
+      title: post.title || post.koreanTitle,
+      source: post.source,
+      pubDate:post.pubDate,
+      size: post.size,
+      journal: post.source,
+      authors: Array.isArray(post.authors) ? post.authors : [],
+      doi: post.doi || "-",
+      pmid: post.pmid
     }));
 
-    filteredPosts.value = [...posts.value]; // 필터링 데이터 초기화
+    filteredPosts.value = [...posts.value];
   } catch (error) {
     console.error("조회 데이터 불러오기 실패:", error);
   }
@@ -38,16 +57,21 @@ const fetchBookmarkedPosts = async () => {
       params: { sortBy: "bookmark" },
     });
 
-    // 데이터 매핑
     posts.value = response.data.data.map((post) => ({
+      journalSeq: post.journalSeq,
       date: new Date(post.createdAt).toLocaleDateString(),
+      koreanTitle: post.koreanTitle,
       title: post.title || post.koreanTitle,
+      source: post.source,
+      pubDate:post.pubDate,
+      size: post.size,
       journal: post.source,
-      authors: post.authors.join(", "),
+      authors: Array.isArray(post.authors) ? post.authors : [],
       doi: post.doi || "-",
+      pmid: post.pmid
     }));
 
-    filteredPosts.value = [...posts.value]; // 필터링 데이터 초기화
+    filteredPosts.value = [...posts.value];
   } catch (error) {
     console.error("북마크 데이터 불러오기 실패:", error);
   }
@@ -127,16 +151,22 @@ onMounted(fetchMyPosts);
           </tr>
           </thead>
           <tbody>
-          <tr v-for="(post, index) in paginatedPosts" :key="index">
-            <td>{{ post.date }}</td>
-            <td>{{ post.title }}</td>
-            <td>{{ post.journal }}</td>
-            <td>{{ post.authors }}</td>
-            <td>
-              <a :href="`https://doi.org/${post.doi}`" target="_blank">{{ post.doi }}</a>
-            </td>
+          <tr
+              v-for="(post, index) in paginatedPosts"
+              :key="index"
+              @click="goToDetails(post)"
+          style="cursor: pointer;"
+          >
+          <td>{{ post.date }}</td>
+          <td>{{ post.title }}</td>
+          <td>{{ post.journal }}</td>
+            <td>{{ Array.isArray(post.authors) ? post.authors.join(", ") : "작성자 정보 없음" }}</td>
+          <td>
+            <a :href="`https://doi.org/${post.doi}`" target="_blank">{{ post.doi }}</a>
+          </td>
           </tr>
           </tbody>
+
         </table>
       </div>
 

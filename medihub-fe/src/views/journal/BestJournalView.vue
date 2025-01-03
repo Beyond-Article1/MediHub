@@ -119,6 +119,9 @@ const paginatedData = computed(() => {
 });
 
 function goToDetails(journalData) {
+ if (sessionStorage.getItem('journalProcessed')){
+   sessionStorage.setItem('journalProcessed', 'false');
+ }
   router.push({
     name: "MediH",
     query: {
