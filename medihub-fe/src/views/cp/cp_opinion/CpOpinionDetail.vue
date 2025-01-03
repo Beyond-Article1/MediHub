@@ -6,7 +6,7 @@ import {useAuthStore} from "@/store/authStore.js";
 import axios from "axios";
 
 import KeywordList from "@/components/case_sharing/case_sharing/KeywordList.vue";
-import CpOpinionContent from "@/components/cp/CpOpinionContent.vue";
+import CpOpinionDetailContent from "@/components/cp/CpOpinionDetailContent.vue"
 import ContentTable from "@/components/case_sharing/case_sharing/ContentTable.vue";
 import LocalDateTimeFormat from "@/components/common/LocalDateTimeFormat.vue";
 import SvgIconButton from "@/components/common/button/svgIconButton.vue";
@@ -106,8 +106,7 @@ async function voteInFavor() {
     );
 
     if (response.status === 200 || response.status === 201) {
-      // console.log("찬성 투표를 완료하였습니다.");
-      alert("투표하셨습니다.");
+      console.log("찬성 투표를 완료하였습니다.");
     } else {
       console.error("찬성 투표 중 에러가 발생했습니다:", response.data);
     }
@@ -130,8 +129,7 @@ async function voteAgainst() {
     );
 
     if (response.status === 200 || response.status === 201) {
-      // console.log("반대 투표를 완료하였습니다.");
-      alert("투표하셨습니다.");
+      console.log("반대 투표를 완료하였습니다."); // 메시지 수정
     } else {
       console.error("반대 투표 중 에러가 발생했습니다:", response.data); // throw 대신 console.error 사용
     }
@@ -171,7 +169,7 @@ async function voteAgainst() {
       <div class="main-content">
         <KeywordList :keywords="cpOpinion.keywordList"/>
         <hr class="divider"/>
-        <CpOpinionContent v-if="cpOpinion.cpOpinionContent" :content="jsonCpOpinion"/>
+        <CpOpinionDetailContent v-if="cpOpinion.cpOpinionContent" :content="jsonCpOpinion"/>
       </div>
       <div class="sidebar">
         <div class="sticky-container">
