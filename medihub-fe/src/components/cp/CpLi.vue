@@ -15,15 +15,28 @@ const props = defineProps({
 const emit = defineEmits('update');
 
 // 파일 다운로드 함수
-const downloadFile = (event) => {
+const downloadFile = async (event) => {
   event.stopPropagation(); // 이벤트 전파 방지
-  console.log(`다운로드할 URL: ${props.data.cpUrl}`);
-  const link = document.createElement('a');
-  link.href = props.data.cpUrl; // 데이터 파일의 URL
-  link.download = props.data.cpName; // 다운로드할 때 사용할 파일 이름
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  try {
+    const response = await axios.get(props.data.cpUrl, {
+      responseType: 'blob', // Blob 형식으로 응답을 받기 위해 설정
+    });
+
+    if (response.status !== 200) throw new Error('다운로드 실패');
+
+    const blob = response.data; // 파일 데이터를 Blob으로 변환
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = props.data.cpName + '_' + props.data.cpVersion;
+    document.body.appendChild(link); // 링크를 DOM에 추가
+    link.click(); // 다운로드 시작
+    document.body.removeChild(link); // 링크 제거
+    URL.revokeObjectURL(downloadUrl); // URL 해제
+  } catch (error) {
+    console.error('이미지 다운로드 실패:', error);
+    alert('이미지 다운로드에 실패했습니다.');
+  }
 };
 
 // 북마크 토글 처리 함수
