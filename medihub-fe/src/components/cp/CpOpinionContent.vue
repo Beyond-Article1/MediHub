@@ -1,258 +1,296 @@
-<script setup>
-import { ref } from "vue";
-import CommentModal from "@/components/case_sharing/case_sharing_comment/CommentModal.vue";
-import CommentListModal from "@/components/case_sharing/case_sharing_comment/CommentListModal.vue";
-
-// props 정의
-const props = defineProps({
-  content: {
-    type: Object,
-    required: true, // content는 필수 prop입니다.
-  },
-  isFocusMode: {
-    type: Boolean,
-    default: false, // 기본값은 false입니다.
-  },
-});
-
-// 이벤트 정의
-const emit = defineEmits(["selectBlock"]); // selectBlock 이벤트를 발생시킵니다.
-
-// 반응형 변수 선언
-const commentedBlocks = ref([]); // 댓글이 있는 블록 ID 목록
-const highlightedBlock = ref(null); // 강조된 블록 ID
-const commentList = ref([]); // 선택된 블록의 댓글 목록
-const isCommentListModalVisible = ref(false); // 댓글 목록 모달 표시 여부
-
-const selectedBlock = ref(null); // 선택된 블록
-const selectedBlockPosition = ref({}); // 블록의 위치 정보
-
-// 블록의 헤더 레벨을 반환하는 함수
-const getHeaderLevel = (level) => {
-  const validLevels = [1, 2, 3, 4, 5, 6]; // 유효한 헤더 레벨
-  return validLevels.includes(level) ? `h${level}` : "h2"; // 유효하지 않으면 기본 h2 사용
-};
-
-// 블록 클릭 핸들러
-const handleBlockClick = (block, index) => {
-  if (!props.isFocusMode) return; // 포커스 모드가 아닐 경우 함수 종료
-
-  selectedBlock.value = { ...block, index }; // 선택된 블록 정보 저장
-  console.log("선택된 블록:", selectedBlock.value);
-
-  // 블록 위치 계산
-  const blockElement = document.getElementById(`block-${index}`); // 해당 블록 요소 찾기
-  if (blockElement) {
-    const rect = blockElement.getBoundingClientRect(); // 요소의 위치 정보 가져오기
-    // 블록 아래 위치 계산
-    selectedBlockPosition.value = {
-      top: rect.bottom + window.scrollY - 250, // 블록 아래 위치 (상단 여백 고려)
-      left: rect.left + window.scrollX + 350, // 블록 왼쪽 위치 (왼쪽 여백 고려)
-    };
-    emit("selectBlock", {
-      block: selectedBlock.value, // 선택된 블록 정보
-      position: selectedBlockPosition.value, // 블록의 위치 정보
-    });
-    console.log("계산된 블록 위치:", selectedBlockPosition.value);
-  } else {
-    // 블록 요소를 찾지 못했을 때 경고 메시지
-    console.warn(`ID가 block-${index}인 요소를 찾을 수 없습니다.`);
-    console.log("현재 DOM에 렌더링된 요소들:", document.querySelectorAll("[id^='block-']")); // 현재 DOM에 렌더링된 블록 요소들 로그
-  }
-};
-
-// 댓글 모달 닫기 함수
-const closeCommentModal = () => {
-  selectedBlock.value = null; // 선택된 블록 초기화
-};
-
-// 댓글 저장 함수
-const saveComment = (commentData) => {
-  console.log("댓글 저장:", { block: selectedBlock.value, comment: commentData }); // 댓글 데이터 로그
-  closeCommentModal(); // 댓글 모달 닫기
-};
-
-// 선택된 블록 ID
-const selectedBlockId = ref(null);
-
-// 댓글 목록 모달 닫기 함수
-const closeCommentListModal = () => {
-  isCommentListModalVisible.value = false; // 댓글 목록 모달 숨기기
-  highlightedBlock.value = null; // 강조 해제
-};
-</script>
-
 <template>
-  <!-- 댓글 작성 모달 -->
-  <CommentModal
-      v-if="selectedBlock"
-      :block="selectedBlock"
-      :blockPosition="selectedBlockPosition"
-      @close="closeCommentModal"
-      @save="saveComment"
-      case-sharing-seq=""/>
-  <!-- 댓글 목록 모달 -->
-  <CommentListModal
-      v-if="isCommentListModalVisible"
-      :visible="isCommentListModalVisible"
-      :comments="commentList"
-      :blockPosition="selectedBlockPosition"
-      :blockId="selectedBlockId"
-      @close="closeCommentListModal"
-  />
-  <div class="case-content">
-    <!-- JSON 데이터 블록별 렌더링 -->
-    <div
-        v-for="(block, index) in content.blocks"
-        :key="index"
-        :id="`block-${index}`"
-        class="block"
-        :class="{ clickable: isFocusMode, highlighted: highlightedBlock === block.id }"
-        @click="handleBlockClick(block, index)"
-    >
-      <div
-          v-if="commentedBlocks.includes(block.id)"
-          class="comment-icon"
-      >
-        💬
-      </div>
-
-      <!-- 헤더 블록 -->
-      <component
-          :is="getHeaderLevel(block.data.level)"
-          v-if="block.type === 'header'"
-          :id="`header-${index}`"
-          class="header-block"
-      >
-        {{ block.data.text }}
-      </component>
-
-      <!-- 이미지 블록 -->
-      <div v-else-if="block.type === 'image'" class="image-block">
-        <img :src="block.data.file.url" :alt="block.data.caption" />
-        <p v-if="block.data.caption">{{ block.data.caption }}</p>
-      </div>
-
-      <!-- 단락 블록 -->
-      <p v-else-if="block.type === 'paragraph'" v-html="block.data.text"></p>
-
-      <!-- 리스트 블록 -->
-      <ul v-else-if="block.type === 'list' && block.data.style === 'unordered'">
-        <li v-for="(item, idx) in block.data.items" :key="idx" v-html="item"></li>
-      </ul>
-      <ol v-else-if="block.type === 'list' && block.data.style === 'ordered'">
-        <li v-for="(item, idx) in block.data.items" :key="idx" v-html="item"></li>
-      </ol>
-
-      <!-- 기타 블록 -->
-      <div v-else>
-        <p>지원되지 않는 블록 타입: {{ block.type }}</p>
-      </div>
+  <div class="case-editor">
+    <!-- 툴바 -->
+    <div class="toolbar">
+      <button @click="insertLink" title="링크"><i class="bi bi-link-45deg"></i></button>
+      <button @click="insertParagraph" title="본문"><i class="bi bi-fonts"></i></button>
+      <button @click="insertHeader(2)" title="제목 2"><i class="bi bi-type-h2"></i></button>
+      <button @click="insertHeader(3)" title="제목 3"><i class="bi bi-type-h3"></i></button>
+      <button @click="insertHeader(4)" title="제목 4"><i class="bi bi-type-h4"></i></button>
+      <button @click="insertQuote" title="인용"><i class="bi bi-quote"></i></button>
+      <button @click="insertWarning" title="경고"><i class="bi bi-exclamation-circle"></i></button>
+      <button @click="insertDelimiter" title="구분선"><i class="bi bi-dash-lg"></i></button>
+      <button @click="insertUnorderedList" title="순서 없는 리스트"><i class="bi bi-list-ul"></i></button>
+      <button @click="insertOrderedList" title="순서 있는 리스트"><i class="bi bi-list-ol"></i></button>
+      <button @click="insertChecklist" title="체크리스트"><i class="bi bi-check2-square"></i></button>
+      <button @click="insertTable" title="표"><i class="bi bi-table"></i></button>
+      <button @click="insertCode" title="코드"><i class="bi bi-code-slash"></i></button>
+      <button @click="insertInlineCode" title="인라인 코드"><i class="bi bi-code"></i></button>
+      <button @click="triggerImageUpload" title="이미지"><i class="bi bi-image"></i></button>
+      <button @click="insertEmbed" title="Embed"><i class="bi bi-camera-video"></i></button>
+      <button @click="applyInlineTool('bold')" title="굵게"><i class="bi bi-type-bold"></i></button>
+      <button @click="applyInlineTool('italic')" title="기울임"><i class="bi bi-type-italic"></i></button>
+      <button @click="applyInlineTool('underline')" title="밑줄"><i class="bi bi-type-underline"></i></button>
+      <button @click="applyInlineTool('marker')" title="마커"><i class="bi bi-highlighter"></i></button>
+      <button @click="changeTextColor" title="텍스트 색상"><i class="bi bi-palette"></i></button>
+      <button @click="setTextAlignment('left')" title="왼쪽 정렬"><i class="bi bi-text-left"></i></button>
+      <button @click="setTextAlignment('center')" title="가운데 정렬"><i class="bi bi-text-center"></i></button>
+      <button @click="setTextAlignment('right')" title="오른쪽 정렬"><i class="bi bi-text-right"></i></button>
     </div>
+
+    <!-- Editor.js 에디터 -->
+    <div id="editor"></div>
+    <input type="file" ref="imageInput" @change="handleImageUpload" style="display: none" />
   </div>
 </template>
 
+<script setup>
+import { nextTick, ref, watch } from "vue";
+import EditorJS from "@editorjs/editorjs";
+
+// 플러그인 임포트
+import Header from "@editorjs/header";
+import List from "@editorjs/list";
+import Checklist from "@editorjs/checklist";
+import Table from "@editorjs/table";
+import CodeTool from "@editorjs/code";
+import Marker from "@editorjs/marker";
+import Quote from "@editorjs/quote";
+import Embed from "@editorjs/embed";
+import InlineCode from "@editorjs/inline-code";
+import Delimiter from "@editorjs/delimiter";
+import Paragraph from "@editorjs/paragraph";
+import ImageTool from "@editorjs/image";
+import Underline from "@editorjs/underline";
+import ColorPlugin from "editorjs-text-color-plugin";
+
+const props = defineProps({
+  initialData: { type: Object, default: () => ({ blocks: [] }) }, // 초기 데이터
+});
+
+let editorInstance = null;
+const images = ref([]); // 이미지 파일 저장
+const imageInput = ref(null);
+
+let checkOnce = true;
+
+const initializeEditor = async (data) => {
+  console.log("initializeEditor 호출됨");
+
+  console.log("전달된 데이터:", data);
+  if (editorInstance && typeof editorInstance.destroy === "function") {
+    editorInstance.destroy(); // 안전하게 destroy 호출
+    editorInstance = null;
+  }
+  const editorData = data && data.blocks && data.blocks.length > 0 ? data : { blocks: [] };
+
+  console.log("검사 후 에디터 데이터:", editorData);
+  console.log("블록 길이:", editorData.blocks.length);
+  await nextTick();
+
+  editorInstance = new EditorJS({
+    holder: "editor",
+    placeholder: editorData.blocks.length > 0 ? "" : "내용을 입력하세요...", // 데이터가 있으면 placeholder 제거
+    data: data || { blocks: [] },
+    tools: {
+      header: {class: Header, config: {levels: [2, 3, 4], defaultLevel: 2}},
+      paragraph: {class: Paragraph, inlineToolbar: true},
+      list: {class: List, inlineToolbar: true},
+      checklist: {class: Checklist, inlineToolbar: true},
+      table: Table,
+      code: CodeTool,
+      quote: Quote,
+      embed: Embed,
+      inlineCode: InlineCode,
+      delimiter: Delimiter,
+      underline: Underline,
+      marker: Marker,
+      textColor: {
+        class: ColorPlugin,
+        config: {
+          colorCollections: ["#FF5733", "#33FF57", "#3357FF", "#000000"],
+          defaultColor: "#FF5733",
+          customPicker: true,
+        },
+      },
+      image: {
+        class: ImageTool,
+        config: {
+          uploader: {
+            uploadByFile: async (file) => {
+              const blobUrl = URL.createObjectURL(file);
+              images.value.push(file);
+              monitorImageLoad(blobUrl);
+              return {success: 1, file: {url: blobUrl}};
+            },
+          },
+        },
+      },
+    },
+  });
+  checkOnce = false;
+};
+watch(
+    () => props.initialData,
+
+    (newData) => {
+      if (newData) initializeEditor(newData);
+    },
+    { immediate: true,  deep: true }
+);
+
+// 툴바 기능 메서드
+const insertHeader = (level) => editorInstance.blocks.insert("header", { level });
+const insertParagraph = () => editorInstance.blocks.insert("paragraph", {});
+const insertQuote = () => editorInstance.blocks.insert("quote", {});
+const insertWarning = () => editorInstance.blocks.insert("warning", { title: "주의", message: "경고 내용" });
+const insertDelimiter = () => editorInstance.blocks.insert("delimiter");
+const insertUnorderedList = () => editorInstance.blocks.insert("list", { style: "unordered" });
+const insertOrderedList = () => editorInstance.blocks.insert("list", { style: "ordered" });
+const insertChecklist = () => editorInstance.blocks.insert("checklist", {});
+const insertTable = () => editorInstance.blocks.insert("table", { content: [[""]] });
+const insertCode = () => editorInstance.blocks.insert("code", { code: "" });
+const insertInlineCode = () => editorInstance.inlineToolbar.activate("inlineCode");
+const insertEmbed = () => editorInstance.blocks.insert("embed", {});
+
+// 이미지 업로드 버튼 클릭
+const triggerImageUpload = () => imageInput.value.click();
+
+const handleImageUpload = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => insertImage(e.target.result);
+  reader.readAsDataURL(file);
+};
+
+const insertImage = (url) => editorInstance.blocks.insert("image", { file: { url } });
+
+// 텍스트 정렬 및 색상
+const setTextAlignment = (alignment) => editorInstance.blocks.update(editorInstance.blocks.getCurrentBlockIndex(), { alignment });
+const changeTextColor = () => editorInstance.inlineToolbar.activate("textColor");
+
+// 인라인 서식 툴
+const applyInlineTool = (tool) => editorInstance.inlineToolbar.activate(tool);
+
+const monitorImageLoad = (url) => {
+  const img = new Image();
+  img.src = url;
+
+  // 이미지 로드 성공
+  img.onload = () => {
+    console.log("이미지 로드 성공:", url);
+  };
+
+  // 이미지 로드 실패
+  img.onerror = () => {
+    console.error("이미지 로드 실패:", url);
+    alert("이미지 로드에 실패하였습니다. 해당 블록이 삭제됩니다.");
+    removeImageBlock(url); // 실패한 이미지 블록 삭제
+  };
+
+  // DOM에 추가하지 않고 로드 상태만 확인
+};
+
+// 실패한 이미지 블록 삭제
+const removeImageBlock = (url) => {
+  const blocksCount = editorInstance.blocks.getBlocksCount();
+  for (let i = 0; i < blocksCount; i++) {
+    const block = editorInstance.blocks.getBlockByIndex(i);
+    if (block && block.type === "image" && block.data.file.url === url) {
+      editorInstance.blocks.delete(i); // 이미지 블록 삭제
+      console.log("삭제된 이미지 블록:", url);
+      break;
+    }
+  }
+};
+
+// getEditorData 메서드 추가
+const getEditorData = async () => {
+  if (!editorInstance) {
+    console.warn("Editor instance is not initialized.");
+    return { content: { blocks: [] }, images: [] };
+  }
+  try {
+    const savedData = await editorInstance.save();
+    return { content: savedData, images: images.value };
+  } catch (error) {
+    console.error("Error saving editor data:", error);
+    return { content: { blocks: [] }, images: [] };
+  }
+};
+
+defineExpose({
+  getEditorData, // 부모 컴포넌트에서 호출할 수 있도록 노출
+  initializeEditor
+});
+</script>
+
 <style scoped>
-.case-content {
-  line-height: 1.6;
-  color: #333;
-  position: relative;
+@import "bootstrap-icons/font/bootstrap-icons.css";
+:deep(.ce-toolbar__actions) {
+  left: 0 !important; /* 왼쪽에 고정 */
+  right: auto !important; /* 오른쪽 위치 초기화 */
+  transform: none !important; /* 이동 보정 */
+  position: absolute !important; /* 위치 제어 */
+  margin-left: -70px; /* 좌측 여백 보정 */
 }
 
-.block {
-  border: 1px solid transparent;
-  position: relative; /* 댓글 아이콘 위치를 위한 기준 */
-  transition: border 0.3s;
+:deep(.ce-toolbar__plus) {
+  left: -70px !important; /* + 버튼 왼쪽으로 이동 */
+  right: auto !important;
+  transform: none !important;
+}
+:deep(.ce-block__content) {
+  max-width: 1000px !important; /* 최대 폭을 1000px로 고정 */
+  margin: 0 auto; /* 내용 중앙 정렬 */
 }
 
-.block.clickable:hover {
-  border: 1px solid #AAAAAA;
-  background-color: #dddddd;
-  cursor: pointer;
+:deep(.ce-toolbar__content){
+  max-width: 1000px !important; /* 최대 폭을 1000px로 고정 */
 }
 
-/* 블록 강조 스타일 */
-.block.highlighted {
-  background-color: #eeeeee; /* 연한 파란색 배경 */
-  border: 2px solid lightgrey; /* 강조된 파란색 테두리 */
+/* redactor 요소 스타일 제거 */
+:deep(.codex-editor__redactor) {
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
-.header-block {
-  margin-top: 10px;
-  font-weight: bold;
-}
-
-h1 {
-  font-size: 2em;
-}
-
-h2 {
-  font-size: 1.8em;
-}
-
-h3 {
-  font-size: 1.6em;
-}
-
-h4 {
-  font-size: 1.4em;
-}
-
-h5 {
-  font-size: 1.2em;
-}
-
-h6 {
-  font-size: 1em;
-}
-
-p {
-  margin: 10px 0;
-}
-
-.image-block {
-  text-align: center;
-  margin: 20px 0;
-}
-
-.image-block img {
-  max-width: 100%;
-  height: auto;
+.case-editor {
+  width: 100%; /* 전체 폭을 차지하도록 설정 */
+  max-width: 1400px; /* 원하는 최대 너비 설정 */
+  margin: 0 auto; /* 가운데 정렬 */
+  padding: 20px;
+  box-sizing: border-box;
+  background-color: #fff;
+  border: 1px solid #ddd;
   border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.comment-icon {
-  position: absolute;
-  top: 80%;
-  right: 10px;
-  transform: translateY(-50%);
-  font-size: 15px;
-  color: #fff; /* 텍스트 색상 흰색 */
-  background-color: #DDDDDD; /* 배경색 검정 */
-  border-radius: 50%; /* 동그라미 모양 */
-  width: 30px; /* 아이콘의 너비 */
-  height: 27px; /* 아이콘의 높이 */
-  display: flex; /* 가운데 정렬 */
-  align-items: center; /* 수직 가운데 정렬 */
-  justify-content: center; /* 수평 가운데 정렬 */
-  border: 1px solid #fff; /* 흰색 테두리 추가 */
+#editor {
+  width: 100%;
+  height: 650px; /* 최대 높이 설정 */
+  overflow-y: auto; /* 세로 스크롤 추가 */
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #ddd;
+}
+
+.toolbar button {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: transform 0.2s, color 0.3s, background-color 0.3s; /* 애니메이션 추가 */
 }
 
-.comment-icon:hover {
-  background-color: #333; /* hover 시 더 밝은 검정 */
-  transform: scale(1.2); /* hover 시 확대 */
+.toolbar button:hover {
+  background-color: #f0f0f0;
 }
 
-
-.image-caption {
-  font-size: 12px;
-  color: #666;
+.toolbar button i {
+  font-size: 14px;
 }
 
-.unsupported-block {
-  color: #dc3545;
-  font-style: italic;
-}
 </style>
