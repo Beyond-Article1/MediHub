@@ -125,7 +125,6 @@ const fetchUserInfo = async () => {
       profileImage: userData.profileImage || null,
     });
 
-    console.log("사용자 정보 저장 완료:", authStore.userInfo);
   } catch (error) {
     console.error("사용자 정보 불러오기 실패:", error.response?.data || error.message);
   }
