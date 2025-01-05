@@ -171,7 +171,6 @@ export const useAuthStore = defineStore('auth', () => {
             userPhone: data.userPhone,
             profileImage: data.profileImage || null,
         };
-        console.log("[AuthStore] 사용자 정보 저장:", userInfo.value);
     }
 
     // 로그아웃 처리

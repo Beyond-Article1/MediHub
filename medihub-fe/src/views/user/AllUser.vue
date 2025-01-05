@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import {ref, computed, onMounted, watch} from "vue";
 import LineDivider from "@/components/common/LineDivider.vue";
 import BookmarkButton from "@/components/common/button/BookmarkButton.vue";
 import axios from "axios";
@@ -16,6 +16,8 @@ const selectedDeptName = ref("");
 const selectedPartName = ref("");
 const selectedPartSeq = ref(null);
 const openDept = ref(null);
+const searchQuery = ref("");
+const isSearchActive = ref(false);
 
 // 데이터 로드
 const fetchDepartmentsAndParts = async () => {
@@ -114,15 +116,25 @@ const filteredParts = computed(() => {
   return parts.value.filter((part) => part.deptSeq === openDept.value);
 });
 
+const executeSearch = () => {
+  isSearchActive.value = true;
+  currentPage.value = 1;
+};
+
 // 필터링된 사용자
 const filteredUsers = computed(() => {
   return users.value.filter((user) => {
     const matchesDept = !selectedDeptName.value || user.deptName === selectedDeptName.value;
     const matchesPart = !selectedPartSeq.value || user.partName === selectedPartName.value;
+    const matchesSearch =
+        !isSearchActive.value ||
+        user.userName.includes(searchQuery.value) || // 이름 검색
+        user.partName.includes(searchQuery.value) || // 과 검색
+        user.deptName.includes(searchQuery.value) || // 부서 검색
+        user.userPhone.includes(searchQuery.value);  // 전화번호 검색
     const isActive = user.userStatus !== "DELETE";
-    return matchesDept && matchesPart && isActive;
-  })
-      .sort((a, b) => a.rankingNum - b.rankingNum);
+    return matchesDept && matchesPart && matchesSearch && isActive;
+  }).sort((a, b) => a.rankingNum - b.rankingNum);
 });
 
 // 페이지네이션 데이터
@@ -135,6 +147,7 @@ const paginatedUsers = computed(() => {
 const changePage = (page) => {
   currentPage.value = page;
 };
+
 
 // 초기 데이터 로드
 onMounted(fetchDepartmentsAndParts);
@@ -182,6 +195,17 @@ onMounted(fetchDepartmentsAndParts);
           {{ selectedDeptName || "전체 부서" }}
           {{ selectedPartName ? " > " + selectedPartName : "" }}
         </h3>
+      </div>
+
+      <!-- 검색 상자 -->
+      <div class="search-bar">
+        <input
+            type="text"
+            v-model="searchQuery"
+            class="search-input"
+            placeholder="검색어를 입력하세요 (이름, 과, 부서, 전화번호)"
+        />
+        <button class="search-button" @click="executeSearch">🔍</button>
       </div>
 
       <LineDivider />
@@ -303,5 +327,34 @@ onMounted(fetchDepartmentsAndParts);
 .user-info p {
   font-size: 1.1rem;
   color: #555;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #ffbf00;
+  border-radius: 5px;
+}
+
+.search-button {
+  margin-left: 10px;
+  padding: 10px;
+  font-size: 16px;
+  background-color: #ffc653;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.search-button:hover {
+  background-color: #0056b3;
 }
 </style>
