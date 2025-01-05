@@ -34,7 +34,7 @@
     "event-source-polyfill": "^1.0.31",
     "html2canvas": "^1.4.1",
     "lottie-web": "^5.12.2",
-    "pdfjs-dist": "^4.9.155",
+    "pdfjs-dist": "2.4.456",
     "pinia": "^2.3.0",
     "sockjs-client": "^1.6.1",
     "vue": "^3.5.13",

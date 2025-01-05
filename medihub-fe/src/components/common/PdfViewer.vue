@@ -3,11 +3,11 @@ import {onMounted, ref, watch, defineProps} from 'vue';
 import {useRoute, useRouter} from "vue-router";
 import axios from "axios";
 import * as pdfjsLib from 'pdfjs-dist';
-import workerUrl from 'pdfjs-dist/build/pdf.worker.mjs?url';
+import workerUrl from 'pdfjs-dist/build/pdf.worker.js?url';
 
 import Button from "@/components/common/button/Button.vue";
 import IconButton from "@/components/common/button/IconButton.vue";
-import DropBox from "@/components/common/SingleSelectDropBox.vue";
+import DropBox from "@/components/common/SingleSelectDropBox.vue" ;
 import CpModal from "@/components/cp/CpModal.vue";
 
 // pdfjs-dist 모듈 경로 설정
@@ -452,7 +452,7 @@ const downloadFile = async () => {
       method: 'GET',
     });
 
-    if (!response.ok) throw new Error('다운로드 실패');
+    if (!response.ok) return new Error('다운로드 실패');
 
     const blob = await response.blob(); // 파일 데이터를 Blob으로 변환
     const downloadUrl = URL.createObjectURL(blob);
