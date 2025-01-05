@@ -18,10 +18,12 @@
       신규 등록
     </button>
 
-    <select class="sort-select">
-      <option>최신순</option>
-      <option>인기순</option>
+    <select class="sort-select" @change="updateSortOption">
+      <option value="latest">최신순</option>
+      <option value="views">조회순</option>
     </select>
+
+
   </div>
 </template>
 
@@ -34,7 +36,9 @@ import axios from 'axios';
 const searchQuery = ref('');
 const isDoctor = ref(false); // 의사 여부를 저장할 변수
 const store = useAuthStore();
+const sortOption = ref("latest"); // 기본 정렬 옵션
 
+const emit = defineEmits(["sort-changed"]);
 // 검색 버튼 기능
 const search = () => {
   console.log(`Searching for: ${searchQuery.value}`);
@@ -65,6 +69,16 @@ const fetchIsDoctor = async () => {
     console.error('Error fetching isDoctor status:', error);
   }
 };
+
+const updateSortOption = (event) => {
+  // 이벤트 객체에서 값 추출
+  const selectedOption = event.target.value; // 선택된 옵션 값
+  console.log("Sort option selected:", selectedOption); // 로그 추가
+
+  // 부모 컴포넌트로 정렬 옵션 전달
+  emit("sort-changed", selectedOption);
+};
+
 
 // 컴포넌트 로드 시 isDoctor 값 가져오기
 onMounted(() => {

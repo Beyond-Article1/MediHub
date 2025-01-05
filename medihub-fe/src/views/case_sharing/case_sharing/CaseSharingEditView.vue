@@ -2,7 +2,7 @@
   <div class="case-sharing-create">
     <!-- 페이지 제목 및 저장 버튼 -->
     <div class="case-header">
-      <div class="case-title">케이스 공유글 수정 - 외과</div>
+      <div class="case-title">케이스 공유글 수정 - {{authStore.userInfo.partName}}</div>
       <div class="template-selector" @click="openTemplateModal">
         + 입력한 내용을 템플릿에 저장
       </div>
@@ -150,6 +150,8 @@ const saveChanges = async () => {
   try {
     // 1. Editor.js에서 데이터 가져오기
     const { content } = await caseEditor.value.getEditorData();
+    // const editorData = await caseEditor.value.getEditorData();
+    // const { content, images } = editorData;
 
     // 2. 새로운 데이터 객체 준비
     const requestDTO = {

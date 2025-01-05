@@ -4,13 +4,14 @@
     <div class="top-items">
       <div v-for="(user, index) in topUsers" :key="index" class="user-item">
         <div class="profile-wrapper">
-          <img :src="user.profileImage" alt="User profile" />
+          <img :src="user.profileUrl || defaultProfileImage" alt="User profile" />
         </div>
         <div class="info">
-          <p class="name">{{ user.name }}</p>
-          <p class="department">{{ user.department }}</p>
-          <p class="likes">좋아요 {{ user.likes }}개</p>
-          <p class="cases">케이스 공유 {{ user.cases }}개</p>
+          <!-- 이름과 랭킹 이름 함께 표시 -->
+          <p class="name">{{ user.userName }} {{ user.rankingName }}</p>
+          <p class="department">{{ user.partName }}</p>
+          <p class="likes">좋아요 {{ user.likeNum }}개</p>
+          <p class="cases">북마크 {{ user.bookmarkNum }}개</p>
         </div>
       </div>
     </div>
@@ -18,29 +19,30 @@
 </template>
 
 <script setup>
-const topUsers = [
-  {
-    name: "임서연 전문의",
-    department: "정형외과",
-    likes: 29,
-    cases: 4,
-    profileImage: new URL("@/assets/images/doctor.png", import.meta.url).href,
-  },
-  {
-    name: "임채륜 교수",
-    department: "정형외과",
-    likes: 69,
-    cases: 5,
-    profileImage: new URL("@/assets/images/doctor.png", import.meta.url).href,
-  },
-  {
-    name: "임광택 전공의",
-    department: "정형외과",
-    likes: 20,
-    cases: 3,
-    profileImage: new URL("@/assets/images/doctor.png", import.meta.url).href,
-  },
-];
+import { ref, onMounted } from "vue";
+import axios from "axios";
+
+// 기본 프로필 이미지
+const defaultProfileImage = new URL("@/assets/images/doctor.png", import.meta.url).href;
+
+// API를 통해 가져올 유저 데이터
+const topUsers = ref([]);
+
+// 컴포넌트가 마운트될 때 API 호출
+onMounted(async () => {
+  try {
+    const response = await axios.get("/api/v1/users/top3"); // API 호출
+
+    // API 응답 구조를 확인하고 데이터 반영
+    if (response.data && response.data.success && response.data.data) {
+      topUsers.value = response.data.data;
+    } else {
+      console.error("Unexpected API response:", response.data);
+    }
+  } catch (error) {
+    console.error("Failed to fetch top users:", error);
+  }
+});
 </script>
 
 <style scoped>
@@ -67,7 +69,7 @@ const topUsers = [
   border-radius: 12px;
   border: 1px solid #ddd;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: 150px; /* 고정된 넓이 */
+  width: 180px; /* 고정된 넓이 */
 }
 
 .profile-wrapper {
@@ -100,14 +102,14 @@ const topUsers = [
 }
 
 .department {
-  font-size: 0.9em;
+  font-size: 1em;
   color: #666;
   margin-bottom: 10px;
 }
 
 .likes,
 .cases {
-  font-size: 0.8em;
+  font-size: 0.9em;
   color: #444;
   margin-bottom: 0px;
 }

@@ -3,9 +3,11 @@ import check from '@/assets/images/check.png';
 import x from '@/assets/images/x.png';
 
 import {useAuthStore} from "@/store/authStore.js";
+import { useRouter } from 'vue-router';
 import axios from "axios";
 
 const authStore = useAuthStore();
+const router = useRouter();
 
 const props = defineProps({
   events: Array,
@@ -85,8 +87,9 @@ async function allDeleteNoti() {
 
 // notiurl로 이동
 const moveTo = (event) => {
+  console.log("moveTo 함수 호출, event:", event);
   readNoti(event);
-  route.push(event.url);
+  router.push(event.url);
 }
 </script>
 
@@ -178,6 +181,10 @@ button {
 
 .part-name {
   font-size: 10px;
+}
+
+.noti-info{
+  cursor: pointer;
 }
 
 .noti-info .sender {

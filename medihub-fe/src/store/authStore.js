@@ -62,6 +62,10 @@ export const useAuthStore = defineStore('auth', () => {
                 await logout();
             }
         }
+
+        if (access) {
+            await fetchUserInfo(); // API를 통해 사용자 정보 불러오기
+        }
     });
 
     onUnmounted(() => {
@@ -81,7 +85,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     // 로그인 처리
-    function login(token, refresh) {
+    async function login(token, refresh) {
         console.log("[AuthStore] 로그인 처리 시작");
         console.log("[AuthStore] AccessToken:", token);
         console.log("[AuthStore] RefreshToken:", refresh);
@@ -98,8 +102,30 @@ export const useAuthStore = defineStore('auth', () => {
         if (payload) {
             userRole.value = payload.auth;
             userSeq.value = payload.userSeq;
-            console.log("[AuthStore] userRole:" , userRole.value);
-            console.log("[AuthStore] userSeq:" , userSeq.value);
+            console.log("[AuthStore] userRole:", userRole.value);
+            console.log("[AuthStore] userSeq:", userSeq.value);
+        }
+
+        // 로그인 시 사용자 정보 API 호출
+        await fetchUserInfo();
+    }
+
+    // 사용자 정보 API 호출
+    async function fetchUserInfo() {
+        try {
+            const response = await axios.get("/api/v1/users", {
+                headers: {
+                    Authorization: `Bearer ${accessToken.value}`,
+                },
+            });
+
+            if (response.data && response.data.success) {
+                setUserInfo(response.data.data);
+            } else {
+                console.error("[AuthStore] 사용자 정보 가져오기 실패:", response.data.error);
+            }
+        } catch (error) {
+            console.error("[AuthStore] 사용자 정보 API 호출 실패:", error.response || error.message);
         }
 
         localStorage.setItem('userRole', userRole.value);
@@ -145,7 +171,6 @@ export const useAuthStore = defineStore('auth', () => {
             userPhone: data.userPhone,
             profileImage: data.profileImage || null,
         };
-        console.log("[AuthStore] 사용자 정보 저장:", userInfo.value);
     }
 
     // 로그아웃 처리
@@ -196,5 +221,6 @@ export const useAuthStore = defineStore('auth', () => {
         isLogined,
         userInfo,
         setUserInfo,
+        fetchUserInfo,
     };
-})
+});

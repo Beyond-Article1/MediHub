@@ -2,7 +2,7 @@
   <div class="case-sharing-create">
     <!-- 페이지 제목 및 저장 버튼 -->
     <div class="case-header">
-      <div class="case-title">케이스 공유글 작성 - 외과</div>
+      <div class="case-title">케이스 공유글 작성 - {{authStore.userInfo.partName}}</div>
       <div class="template-selector" @click="openTemplateModal">
         + 입력한 내용을 템플릿에 저장
       </div>
@@ -192,8 +192,7 @@ const handleSave = async () => {
 
     // FormData에 데이터 추가
     formData.append("data", JSON.stringify(data));
-
-    // 이미지 파일 추가
+    
     images.forEach((file, index) => {
       formData.append("images", file, `img-${index + 1}`);
     });
@@ -341,13 +340,12 @@ const handleTemplateSave = async ({ title: templateTitle, openScope }) => {
     });
 
     // 서버로 전송
-    const response = await axios.post("/template", formData, {
+    await axios.post("/template", formData, {
       headers: {
         Authorization: `Bearer ${accessToken}`, // 사용자 인증 토큰
         "Content-Type": "multipart/form-data", // FormData 전송
       },
     });
-
     alert("템플릿이 성공적으로 저장되었습니다.");
     closeTemplateModal();
   } catch (error) {

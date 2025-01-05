@@ -18,7 +18,7 @@
               class="edit-textarea"
           ></textarea>
           <p class="comment-date">{{ formatDate(comment.createdAt) }}</p>
-          <div v-if="comment.userId === currentUserId" class="comment-actions">
+          <div v-if="comment.userId === authStore.userInfo.userId || authStore.userRole ===`ADMIN`" class="comment-actions">
             <span
                 v-if="editingCommentId !== comment.commentSeq"
                 class="action-text"
@@ -67,7 +67,6 @@ const props = defineProps({
 
 const emit = defineEmits(["close"]);
 const authStore = useAuthStore();
-const currentUserId = authStore.userInfo.userId; // 현재 로그인한 유저 seq
 
 const editingCommentId = ref(null); // 수정 중인 댓글 ID
 const editingContent = ref("");

@@ -26,6 +26,20 @@ const filteredFiles = computed (() =>
         || file.createdAt.includes(searchTerm.value)
     )
 );
+
+// 동영상 확장자 목록
+const videoExtensions = ['mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv', 'webm'];
+const getFileCategory = (file) => {   // 파일 구분
+  if (file.type === 'image') {
+    return '사진';
+  } else {
+    const extension = file.attachment.originName.split('.').pop().toLowerCase();
+    if (videoExtensions.includes(extension)) {
+      return '영상';
+    }
+    return '문서';
+  }
+};
 </script>
 
 <template>
@@ -60,7 +74,7 @@ const filteredFiles = computed (() =>
         </thead>
         <tbody>
           <tr v-for="file in filteredFiles" :key="file.messageSeq">
-            <td>{{ file.type === 'image' ? '사진' : '문서' }}</td>
+            <td>{{ getFileCategory(file) }}</td>
             <td>
               <a :href="file.attachment.url" target="_blank" rel="noopener noreferrer">
                 {{ file.attachment.originName }}
