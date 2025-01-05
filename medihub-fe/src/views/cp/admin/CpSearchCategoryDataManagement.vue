@@ -112,7 +112,8 @@ async function updateCpSearchCategoryData(newName) {
 
       if (response.status === 200) {
         console.log("CP 검색 카테고리 수정 성공");
-        await fetchCpSearchCategoryDataData(selectedOption.value); // 데이터 갱신
+        alert("수정에 성공하였습니다.");
+        await fetchCpSearchCategoryDataData(selectedData.value.cpSearchCategoryDataSeq); // 데이터 갱신
       } else {
         console.error("CP 검색 카테고리 수정 실패", response.status);
       }
@@ -132,8 +133,8 @@ async function deleteCpSearchCategoryData() {
 
     if (response.status === 200) {
       console.log("삭제 성공");
-      const cpSearchCategorySeq = findSelectedCategory(selectedOption.value).cpSearchCategorySeq;
-      await fetchCpSearchCategoryDataData(cpSearchCategorySeq); // 데이터 갱신
+      alert("삭제에 성공하였습니다.");
+      await fetchCpSearchCategoryDataData(selectedData.value.cpSearchCategoryDataSeq); // 데이터 갱신
     } else {
       console.error("삭제 실패", response.status);
     }

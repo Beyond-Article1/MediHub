@@ -82,6 +82,7 @@ async function updateCpSearchCategory(newName) {
 
       if (response.status === 200) {
         console.log("CP 검색 카테고리 수정 성공");
+        alert("수정에 성공하였습니다.");
         await fetchCpSearchCategory();
       } else {
         console.error("CP 검색 카테고리 수정 실패", response.status);
@@ -100,6 +101,7 @@ async function deleteCpSearchCategory(seq) {
     // 응답이 성공적으로 오면
     if (response.status === 200) {
       console.log("삭제 성공");
+      alert("삭제에 성공하였습니다.");
       await fetchCpSearchCategory(); // 카테고리 목록 갱신
     }
   } catch (error) {
