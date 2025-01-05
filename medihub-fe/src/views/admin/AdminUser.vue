@@ -130,9 +130,9 @@ const isSearchActive = ref(false);
 const fetchDepartmentsAndParts = async () => {
   try {
     const [deptRes, partRes, userRes] = await Promise.all([
-      axios.get("/api/v1/dept"),
-      axios.get("/api/v1/part"),
-      axios.get("/api/v1/admin/users", {
+      axios.get("/v1/dept"),
+      axios.get("/v1/part"),
+      axios.get("/v1/admin/users", {
         headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
       }),
     ]);

@@ -20,9 +20,9 @@ const getUserData = async () => {
   console.log('조직도 API 호출 시작');
   try {
     const [deptRes, partRes, userRes] = await Promise.all([
-      axios.get("/api/v1/dept"),
-      axios.get("/api/v1/part"),
-      axios.get("/api/v1/users/allUser"),
+      axios.get("/v1/dept"),
+      axios.get("/v1/part"),
+      axios.get("/v1/users/allUser"),
     ]);
 
     // 부서 및 과 데이터 저장

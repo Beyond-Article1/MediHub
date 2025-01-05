@@ -16,7 +16,7 @@ const currentFilter = ref("journal");
 // 전체 사용자 데이터 가져오기
 const fetchAllUsers = async () => {
   try {
-    const response = await axios.get("/api/v1/admin/users", {
+    const response = await axios.get("/v1/admin/users", {
       headers: {Authorization: `Bearer ${localStorage.getItem("accessToken")}`},
     });
     allUsers.value = response.data.data.map((user) => ({

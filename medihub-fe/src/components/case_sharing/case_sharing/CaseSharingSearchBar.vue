@@ -52,7 +52,7 @@ const goToTemplateListView = () => {
 // isDoctor 값 가져오기
 const fetchIsDoctor = async () => {
   try {
-    const response = await axios.get('/api/v1/users/isDoctor', {
+    const response = await axios.get('/v1/users/isDoctor', {
       headers: {
         Authorization: `Bearer ${store.accessToken}`, // 인증 토큰 추가
       },

@@ -114,7 +114,7 @@ const editPartSeq = ref(null);
 // 부서 데이터 가져오기
 const fetchDepartments = async () => {
   try {
-    const response = await axios.get("/api/v1/dept");
+    const response = await axios.get("/v1/dept");
     departments.value = response.data.data;
   } catch (error) {
     console.error("부서 데이터 가져오기 실패", error);
@@ -125,7 +125,7 @@ const fetchPartsByDept = async () => {
   if (!selectedDeptSeq.value) return;
 
   try {
-    const response = await axios.get(`/api/v1/part?deptSeq=${selectedDeptSeq.value}`);
+    const response = await axios.get(`/v1/part?deptSeq=${selectedDeptSeq.value}`);
     parts.value = response.data.data;
   } catch (error) {
     console.error("파트 데이터 가져오기 실패", error);
@@ -165,7 +165,7 @@ const createPart = async () => {
   }
 
   try {
-    await axios.post("/api/v1/part", {
+    await axios.post("/v1/part", {
       deptSeq: newPartDeptSeq.value,
       partName: newPartName.value,
     });
@@ -179,7 +179,7 @@ const createPart = async () => {
 // 파트 수정
 const updatePart = async () => {
   try {
-    await axios.put(`/api/v1/part/${editPartSeq.value}`, {
+    await axios.put(`/v1/part/${editPartSeq.value}`, {
       partSeq: editPartSeq.value,
       deptSeq: editPartDeptSeq.value,
       partName: editPartName.value,
@@ -194,7 +194,7 @@ const updatePart = async () => {
 // 파트 삭제
 const deletePart = async (partSeq) => {
   try {
-    await axios.delete(`/api/v1/part/${partSeq}`);
+    await axios.delete(`/v1/part/${partSeq}`);
     parts.value = parts.value.filter((p) => p.partSeq !== partSeq);
   } catch (error) {
     console.error("삭제 실패", error);

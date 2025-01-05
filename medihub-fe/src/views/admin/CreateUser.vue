@@ -118,9 +118,9 @@ const handleImageUpload = (event) => {
 const fetchMetadata = async () => {
   try {
     const [deptRes, partRes, rankRes] = await Promise.all([
-      axios.get("/api/v1/dept"),
-      axios.get("/api/v1/part"),
-      axios.get("/api/v1/ranking"),
+      axios.get("/v1/dept"),
+      axios.get("/v1/part"),
+      axios.get("/v1/ranking"),
     ]);
     depts.value = deptRes.data.data;
     parts.value = partRes.data.data;
@@ -151,7 +151,7 @@ const submitForm = async () => {
       formData.append("profileImage", profileImage.value);
     }
 
-    await axios.post("/api/v1/admin/users", formData, {
+    await axios.post("/v1/admin/users", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     alert("등록 성공!");

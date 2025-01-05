@@ -87,7 +87,7 @@ watch(currentPage, async () => {
 watch(selectedCpVersion, async () => {
   console.log("버전 변화 감지");
   try {
-    const response = await axios.get(`cp/${route.params.cpVersionSeq}?cpVersion=${selectedCpVersion.value}`)
+    const response = await axios.get(`/cp/${route.params.cpVersionSeq}?cpVersion=${selectedCpVersion.value}`)
 
     if (response.status === 200) {
       console.log(response.data.data);
@@ -198,7 +198,7 @@ async function checkCpOpinionExistsByLocationSeq(cpOpinionLocationSeq) {
   try {
     const cpVersionSeq = Number.parseFloat(props.data.cpVersionSeq);
     // console.log(`cpVersionSeq = ${cpVersionSeq}`);
-    const response = await axios.get(`cp/${cpVersionSeq}/cpOpinionLocation/${cpOpinionLocationSeq}`);
+    const response = await axios.get(`/cp/${cpVersionSeq}/cpOpinionLocation/${cpOpinionLocationSeq}`);
 
     if (response.status === 200) {
       console.log("해당 위치 정보 조회 성공");
@@ -218,7 +218,7 @@ async function checkCpOpinionExistsByLocationSeq(cpOpinionLocationSeq) {
 // CP 의견 위치 삭제 요청 함수
 async function deleteCpOpinionLocation(cpOpinionLocationSeq) {
   try {
-    const response = await axios.delete(`cp/${route.params.cpVersionSeq}/cpOpinionLocation/${cpOpinionLocationSeq}`);
+    const response = await axios.delete(`/cp/${route.params.cpVersionSeq}/cpOpinionLocation/${cpOpinionLocationSeq}`);
 
     if (response.status === 200) {
       console.log("의견이 없는 위치 삭제 처리");
@@ -245,7 +245,7 @@ async function updateBookmark() {
 async function sendTogglingBookmark() {
   try {
     const cpVersionSeq = Number.parseFloat(props.data.cpVersionSeq);
-    const response = await axios.post(`cp/bookmark/${cpVersionSeq}`);
+    const response = await axios.post(`/cp/bookmark/${cpVersionSeq}`);
 
     if (response.status === 200) {
       console.log("북마크 토글링 성공");
@@ -426,7 +426,7 @@ async function fetchCpOpinionLocationData(cpVersionSeq) {
 // 버전 정보 호출 함수
 async function fetchCpVersion() {
   try {
-    const response = await axios.get(`cp/${route.params.cpVersionSeq}/cpVersion`);
+    const response = await axios.get(`/cp/${route.params.cpVersionSeq}/cpVersion`);
 
     if (response.status === 200) {
       objectCpVersionList.value = response.data.data;
