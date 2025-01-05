@@ -46,7 +46,7 @@ async function fetchData() {
 // 데이터 저장(수정 완료) 함수
 async function saveChanges() {
   try {
-    const { content } = await caseEditor.value.getEditorData();
+    const {content} = await caseEditor.value.getEditorData();
 
     if (!content || content.blocks.length === 0) {
       alert("본문 내용을 입력해주세요.");
@@ -69,6 +69,7 @@ async function saveChanges() {
 
     if (response.status === 200) {
       alert("CP 의견 수정이 완료되었습니다.");
+      moveToDetailPage();
     } else {
       alert("CP 의견 수정 중 문제가 발생했습니다.");
     }
@@ -77,6 +78,12 @@ async function saveChanges() {
     console.error(error);
     alert("저장 중 오류가 발생했습니다.");
   }
+}
+
+function moveToDetailPage() {
+  router.push({
+    name: 'CpOpinionPage'
+  })
 }
 
 // 수정 취소 함수

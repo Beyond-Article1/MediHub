@@ -470,6 +470,14 @@ const downloadFile = async () => {
     alert('이미지 다운로드에 실패했습니다.');
   }
 };
+
+// CP 목록으로 이동 함수
+function moveToListPage() {
+  console.log("CP 목록으로 이동합니다.");
+  router.push({
+    name:'CpListPage'
+  })
+}
 </script>
 
 <template>
@@ -507,6 +515,7 @@ const downloadFile = async () => {
       <div class="navigation-buttons">
         <Button @click="goToPreviousPage" :isDisabled="currentPage <= 1">이전 페이지</Button>
         <Button @click="goToNextPage" :isDisabled="currentPage >= totalPages">다음 페이지</Button>
+        <Button @click="moveToListPage">목록</Button>
       </div>
     </div>
 
