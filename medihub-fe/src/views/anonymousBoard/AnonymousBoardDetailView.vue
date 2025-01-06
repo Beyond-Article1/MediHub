@@ -20,6 +20,7 @@ const route = useRoute();
 
 const boardData = ref({
 
+  userSeq: 0,
   userName: "",
   anonymousBoardTitle: "",
   anonymousBoardContent: "",
@@ -57,6 +58,7 @@ const fetchBoardDetail = async () => {
 
       boardData.value = {
 
+        userSeq: data.userSeq,
         userName: data.userName,
         anonymousBoardTitle: data.anonymousBoardTitle,
         anonymousBoardContent: data.anonymousBoardContent ? JSON.parse(data.anonymousBoardContent) : { blocks: [] },
@@ -463,7 +465,7 @@ onBeforeUnmount(() => {
 
       <p class="view-count">조회수&nbsp : &nbsp{{ boardData.anonymousBoardViewCount }}</p>
 
-      <div class="button-group">
+      <div class="button-group" v-if="boardData.userSeq===userSeq">
         <button class="action-button" @click="goToEditPage">수정</button>
 
         <button class="action-button" @click="deleteBoard">삭제</button>
