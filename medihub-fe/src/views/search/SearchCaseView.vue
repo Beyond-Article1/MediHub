@@ -146,7 +146,7 @@ const fetchSearchResultList = async () => {
 
 const sortedResultList = computed(() => {
 
-  return resultList.value.sort((a, b) => new Date(b.regDate) - new Date(a.regDate)).slice(0, 5);
+  return resultList.value.slice(0, 5);
 });
 
 const goToList = () => {
