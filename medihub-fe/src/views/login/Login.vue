@@ -45,9 +45,9 @@
 <script setup>
 import {reactive, ref} from "vue";
 import axios from "axios";
-import {useAuthStore} from "@/store/authStore";
+import {useAuthStore} from "@/stores/authStore";
 import {useRouter} from "vue-router";
-import {useWebSocketStore} from "@/store/webSocket.js";
+import {useWebSocketStore} from "@/stores/webSocket.js";
 
 const authStore = useAuthStore();
 const router = useRouter();

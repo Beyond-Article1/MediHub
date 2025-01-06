@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useAuthStore} from "@/store/authStore.js";
+import { useAuthStore} from "@/stores/authStore.js";
 import axios from "axios";
 
 const users = ref([]);  // 사용자 목록

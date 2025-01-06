@@ -1,15 +1,15 @@
 import {createRouter, createWebHistory} from "vue-router";
 
-import journalRouter from "@/router/journalRouter.js";
-import cpRouter from "@/router/cpRouter.js";
-import caseSharingRouter from "@/router/caseSharingRouter.js";
-import medicalLifeRouter from "@/router/medicalLifeRouter.js";
-import userRouter from "@/router/userRouter.js";
-import anonymousBoardRouter from "@/router/anonymousBoardRouter.js";
-import loginRouter from "@/router/loginRouter.js";
-import mainRouter from "@/router/mainRouter.js";
-import adminRouter from "@/router/adminRouter.js";
-import mypagedetailRouter from "@/router/mypagedetailRouter.js";
+import journalRouter from "@/routers/journalRouter.js";
+import cpRouter from "@/routers/cpRouter.js";
+import caseSharingRouter from "@/routers/caseSharingRouter.js";
+import medicalLifeRouter from "@/routers/medicalLifeRouter.js";
+import userRouter from "@/routers/userRouter.js";
+import anonymousBoardRouter from "@/routers/anonymousBoardRouter.js";
+import loginRouter from "@/routers/loginRouter.js";
+import mainRouter from "@/routers/mainRouter.js";
+import adminRouter from "@/routers/adminRouter.js";
+import mypagedetailRouter from "@/routers/mypagedetailRouter.js";
 
 const routes = [
 

@@ -15,7 +15,7 @@
 
 <script setup>
 import {ref, computed} from "vue";
-import {useAuthStore} from "@/store/authStore.js";
+import {useAuthStore} from "@/stores/authStore.js";
 import axios from "axios";
 import {useRoute, useRouter} from "vue-router"; // authStore import
 

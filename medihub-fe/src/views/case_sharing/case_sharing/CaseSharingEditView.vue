@@ -59,7 +59,7 @@ import CaseActionButtons from "@/components/case_sharing/case_sharing/CaseSharin
 import CaseTagInput from "@/components/case_sharing/case_sharing/CaseTagInput.vue";
 import DraftModal from "@/components/case_sharing/case_sharing/DraftModal.vue";
 import TemplateCreateModal from "@/components/case_sharing/template/TemplateCreateModal.vue";
-import {useAuthStore} from "@/store/authStore.js";
+import {useAuthStore} from "@/stores/authStore.js";
 import html2canvas from "html2canvas";
 
 const route = useRoute();

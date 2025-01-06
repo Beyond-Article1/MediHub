@@ -1,9 +1,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
-import { useAuthStore } from '@/store/authStore.js';
-import { useWebSocketStore } from "@/store/webSocket.js";
-import { useChatStore } from "@/store/chatStore.js";
+import { useAuthStore } from '@/stores/authStore.js';
+import { useWebSocketStore } from "@/stores/webSocket.js";
+import { useChatStore } from "@/stores/chatStore.js";
 import SelectUserModal from './SelectUserModal.vue';
 
 const emit = defineEmits(['open-chatroom']); // 이벤트 정의 (부모에게 이벤트 전달)

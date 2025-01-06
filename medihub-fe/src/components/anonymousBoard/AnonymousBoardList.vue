@@ -2,7 +2,7 @@
 import { defineProps, ref, computed, watch, onMounted } from 'vue';
 import axios from 'axios';
 
-import router from "@/router/index.js";
+import router from "@/routers/index.js";
 import LocalDateTimeFormat from '@/components/common/LocalDateTimeFormat.vue';
 import Pagination from '@/components/common/Pagination.vue';
 import beforeLike from '@/assets/images/like/before-like.png';

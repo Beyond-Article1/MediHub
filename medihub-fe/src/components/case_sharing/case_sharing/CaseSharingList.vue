@@ -34,7 +34,7 @@
 <script setup>
 import {ref, onMounted, computed, watch} from "vue";
 import axios from "axios";
-import router from "@/router/index.js";
+import router from "@/routers/index.js";
 import PaginationComponent from "@/components/common/Pagination.vue";
 
 // Props로 선택된 카테고리 ID 전달받기

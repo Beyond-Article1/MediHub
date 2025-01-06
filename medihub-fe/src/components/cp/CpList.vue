@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref, watch, computed } from "vue";
 import { useRouter } from "vue-router";
-import { useCpCategoryStore } from "@/store/cpCategoryStore.js";
+import { useCpCategoryStore } from "@/stores/cpCategoryStore.js";
 import axios from "axios";
 import CpLi from "@/components/cp/CpLi.vue";
 import CpLiInfo from "@/components/cp/CpLiInfo.vue";

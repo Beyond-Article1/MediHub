@@ -1,8 +1,8 @@
 <script setup>
 import { onMounted, ref, computed } from 'vue';
 import axios from 'axios';
-import { useWebSocketStore } from "@/store/webSocket.js";
-import { useChatStore } from "@/store/chatStore.js";
+import { useWebSocketStore } from "@/stores/webSocket.js";
+import { useChatStore } from "@/stores/chatStore.js";
 
 const webSocketStore = useWebSocketStore();
 const chatStore = useChatStore();

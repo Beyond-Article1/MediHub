@@ -2,7 +2,7 @@
 import {computed, ref, watch} from 'vue';
 import Header from "@/components/common/Header.vue";
 import { useRoute } from 'vue-router';
-import { useChatStore } from "@/store/chatStore";
+import { useChatStore } from "@/stores/chatStore";
 import ChatButton from "@/components/chat/ChatButton.vue";
 import ChatWindow from "@/views/chat/ChatWindow.vue";
 import ChatroomWindow from "@/views/chat/ChatroomWindow.vue"

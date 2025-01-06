@@ -99,7 +99,7 @@ import KeywordList from "@/components/case_sharing/case_sharing/KeywordList.vue"
 import CaseContent from "@/components/case_sharing/case_sharing/CaseSharingContent.vue";
 import ContentTable from "@/components/case_sharing/case_sharing/ContentTable.vue";
 import CaseSharingVersion from "@/components/case_sharing/case_sharing/CaseSharingVersion.vue";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "@/stores/authStore";
 
 import afterBookmark from "@/assets/images/bookmark/after-bookmark.png";
 import beforeBookmark from "@/assets/images/bookmark/before-bookmark.png";

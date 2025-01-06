@@ -2,7 +2,7 @@
 import axios from "axios";
 import {computed, onMounted, ref, watch} from "vue";
 import {useRouter} from "vue-router";
-import {useCpCategoryStore} from "@/store/cpCategoryStore.js";
+import {useCpCategoryStore} from "@/stores/cpCategoryStore.js";
 import DropBox from "@/components/common/MultiSelectDropBox.vue";
 
 // vue 설정 변수

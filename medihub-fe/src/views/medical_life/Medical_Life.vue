@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from "vue";
 import axios from "axios";
 
-import router from "@/router/index.js";
+import router from "@/routers/index.js";
 import LineDivider from "@/components/common/LineDivider.vue";
 import Pagination from "@/components/common/Pagination.vue";
 import SearchBox from "@/components/medicallife/MedicalLifeSearchBox.vue";

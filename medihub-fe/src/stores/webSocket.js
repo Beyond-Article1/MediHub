@@ -2,8 +2,8 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { useAuthStore } from '@/store/authStore';
-import { useChatStore } from '@/store/chatStore';
+import { useAuthStore } from '@/stores/authStore';
+import { useChatStore } from '@/stores/chatStore';
 import axios from "axios";
 
 export const useWebSocketStore = defineStore('webSocket', ws => {

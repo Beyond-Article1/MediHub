@@ -7,7 +7,7 @@ import CpOpinionUpdate from "@/views/cp/cp_opinion/CpOpinionUpdate.vue";
 import CpSearchCategoryDataManagement from "@/views/cp/admin/CpSearchCategoryDataManagement.vue";
 import CpSearchCategoryManagement from "@/views/cp/admin/CpSearchCategoryManagement.vue";
 
-import { useAuthStore } from "@/store/authStore.js";
+import { useAuthStore } from "@/stores/authStore.js";
 
 const cpUserGuard= (to, from, next) => {
     const authStore = useAuthStore();
