@@ -6,24 +6,19 @@ import deptManage from "@/views/admin/DeptManage.vue";
 import RankManage from "@/views/admin/RankManage.vue";
 import {useAuthStore} from "@/store/authStore.js";
 
-const adminGuard = (to, from, next) => {
-    const authStore = useAuthStore();
-    if (authStore.userRole === "ADMIN") {
-        next();
-    } else {
-        alert("관리자만 접근할 수 있는 페이지입니다.");
-        next("/main");
-    }
-};
-
-const loginGuard= (to, from, next) => {
+const adminLoginGuard = (to, from, next) => {
     const authStore = useAuthStore();
 
-    if (authStore.isLogined) {
-        next();
-    } else {
-        alert("관리자로 로그인 하세요.");
+    if (!authStore.isLogined) {
+        // 로그인이 안 된 경우
+        alert("관리자 이이디로 로그인 후 접근하세요.");
         next("/login");
+    } else if (authStore.userRole !== "ADMIN") {
+        // 관리자가 아닌 경우
+        alert("관리자 권한이 없습니다.");
+        next("/main");
+    } else {
+        next();
     }
 };
 
@@ -32,36 +27,36 @@ export default [
         path: "/admin/user",
         name: "AdminUser",
         component: AdminUser,
-        beforeEnter: adminGuard,loginGuard
+        beforeEnter: adminLoginGuard,
     },
     {
         path: "/admin/users/:userSeq",
         name: "AdminUserDetail",
         component: AdminUserDetail,
-        beforeEnter: adminGuard,loginGuard
+        beforeEnter: adminLoginGuard,
     },
     {
         path: "/create/user",
         name: "createUser",
         component: createUser,
-        beforeEnter: adminGuard,loginGuard
+        beforeEnter: adminLoginGuard,
     },
     {
         path: "/deptManage",
         name: "deptManage",
         component: deptManage,
-        beforeEnter: adminGuard,loginGuard
+        beforeEnter: adminLoginGuard,
     },
     {
         path: "/partManage",
         name: "partManage",
         component: PartManage,
-        beforeEnter: adminGuard,loginGuard
+        beforeEnter: adminLoginGuard,
     },
     {
         path: "/rankManage",
         name: "rankManage",
         component: RankManage,
-        beforeEnter: adminGuard,loginGuard
+        beforeEnter: adminLoginGuard,
     },
 ];
