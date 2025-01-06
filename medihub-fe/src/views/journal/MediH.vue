@@ -22,7 +22,7 @@ const journalData = ref([]);
 const chatWindow = ref(null);
 
 onMounted(() => {
-  if (route.query.journalData && sessionStorage.getItem('journalProcessed') === 'false') {
+  if (route.query.journalData && (sessionStorage.getItem('journalProcessed') === 'false' || sessionStorage.getItem('journalProcessed') === null) ) {
     journalData.value = JSON.parse(route.query.journalData);
 
     userInput.value = `${journalData.value.koreanTitle}에 대해 요약해줘`;
