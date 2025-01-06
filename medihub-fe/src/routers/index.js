@@ -31,9 +31,9 @@ const routes = [
     ...anonymousBoardRouter,
     ...loginRouter,
     ...mainRouter,
+    ...searchRouter,
     ...adminRouter,
-    ...mypagedetailRouter,
-
+    ...mypagedetailRouter
 ]
 
 const router = createRouter({

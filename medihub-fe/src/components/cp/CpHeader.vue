@@ -36,7 +36,7 @@ async function fetchData() {
       if (response.status === 200) {
         console.log("CP 명 성공");
         cp.value = response.data.data;
-        console.log(cp.value);
+        // console.log(cp.value);
       } else {
         console.log("CP 명 실패");
       }

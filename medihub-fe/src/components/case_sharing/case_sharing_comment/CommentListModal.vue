@@ -99,10 +99,8 @@ const formatDate = (dateString) => {
 };
 
 const startEditing = (commentSeq) => {
-  console.log("로그인한 유저 id" +  authStore.userInfo.userId);
   const selectedComment = props.comments.find((comment) => comment.commentSeq === commentSeq);
 
-  console.log("댓글작성 유저 id" + selectedComment.userId);
   if (!selectedComment) {
     console.error("startEditing: Comment not found for commentSeq:", commentSeq);
     return;
@@ -111,13 +109,11 @@ const startEditing = (commentSeq) => {
   editingCommentId.value = selectedComment.commentSeq;
   editingContent.value = selectedComment.content;
 
-  console.log("startEditing: Editing comment =", selectedComment);
 };
 
 const saveEdit = async () => {
   try {
     if (!editingCommentId.value) {
-      console.error("saveEdit: No commentSeq specified for editing.");
       return;
     }
 
@@ -128,7 +124,6 @@ const saveEdit = async () => {
     });
 
     if (response.status === 200) {
-      console.log("saveEdit: Comment updated successfully:", response.data);
 
       // 수정한 내용을 comments에 반영
       const comment = props.comments.find((c) => c.commentSeq === editingCommentId.value);
@@ -143,7 +138,7 @@ const saveEdit = async () => {
       editingContent.value = "";
     }
   } catch (error) {
-    console.error("saveEdit: Failed to update comment:", error);
+    console.error(error);
   }
   window.location.reload();
 };
@@ -153,13 +148,11 @@ const deleteComment = async (commentSeq) => {
     // 사용자에게 확인 알림 표시
     const userConfirmed = window.confirm("정말로 이 댓글을 삭제하시겠습니까?");
     if (!userConfirmed) {
-      console.log("deleteComment: 사용자가 삭제를 취소했습니다.");
       return; // 사용자가 취소한 경우 삭제 로직 중단
     }
 
     // 삭제 API 호출
     const response = await axios.delete(`/case_sharing_comment/${commentSeq}`);
-    console.log("deleteComment: Comment deleted successfully:", response.data);
 
     // 삭제 성공 메시지 알림
     alert("댓글이 삭제되었습니다.");
@@ -170,7 +163,6 @@ const deleteComment = async (commentSeq) => {
       props.comments.splice(index, 1);
     }
   } catch (error) {
-    console.error("deleteComment: Failed to delete comment:", error);
     alert("댓글 삭제 중 오류가 발생했습니다. 다시 시도해주세요."); // 삭제 실패 시 알림
   }
   window.location.reload();

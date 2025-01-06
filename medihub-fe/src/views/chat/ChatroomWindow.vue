@@ -222,16 +222,16 @@ const openNameModal = () => {
 }
 
 const inviteUsers = async (users) => {
-  console.log('대화상대 초대 버튼 클릭');
+  //console.log('대화상대 초대 버튼 클릭');
   try {
     const response = await axios.post(`/chatroom/${props.room.chatroomSeq}`, {users});
-    console.log('대화상대 초대 성공: ', response.data);
+    // console.log('대화상대 초대 성공: ', response.data);
     alert('대화 상대가 성공적으로 초대되었습니다.');
 
     const chatroomResponse = await axios.get(`/chatroom/${response.data.data}`);
     console.log(`채팅방 ${response.data.data} 정보 불러오기 성공:`, chatroomResponse.data);
 
-    console.log(chatStore.updateChatroomUsers);
+    //console.log(chatStore.updateChatroomUsers);
     chatStore.updateChatroomUsers(chatroomResponse.data.data);
   } catch(error) {
     console.error('대화상대 초대 실패: ', error);
@@ -239,7 +239,7 @@ const inviteUsers = async (users) => {
   }
 };
 const updateChatroomName = async (newName) => {
-  console.log('새 채팅방 이름 설정:', newName);
+  //console.log('새 채팅방 이름 설정:', newName);
   try {
     const response = await axios.put(`/chatroom/${props.room.chatroomSeq}`, { chatroomCustomName: newName });
     console.log('채팅방 이름 변경 성공: ', response.data);
@@ -270,7 +270,7 @@ const leaveChatroom = async () => {
 
     // 4. Pinia ChatStore에서 해당 채팅방 삭제
     chatStore.removeChatroom(props.room.chatroomSeq);
-    console.log(`채팅방 목록 업데이트 완료`);
+    //console.log(`채팅방 목록 업데이트 완료`);
   } catch (error) {
     console.error(`채팅방 ${props.room.chatroomSeq}에서 나가는 중 오류 발생: `, error);
     alert('채팅방에서 나가는 중 문제가 발생했습니다. 다시 시도해주세요');
@@ -564,7 +564,7 @@ const stopDrag = () => {
 .options-dropdown li {
   padding: 5px;
   text-align: center;
-  font-size: 13px;
+  font-size: 12px;
   font-family: 'Arial', sans-serif;
   color: #f0f0f0;
   cursor: pointer;

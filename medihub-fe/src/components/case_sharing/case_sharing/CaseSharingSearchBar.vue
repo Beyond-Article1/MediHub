@@ -61,19 +61,17 @@ const fetchIsDoctor = async () => {
 
     if (success) {
       isDoctor.value = data; // true/false 값 저장
-      console.log('isDoctor:', isDoctor.value);
     } else {
-      console.error('Failed to fetch isDoctor status');
+      console.error('doctor 여부 fetch 실패');
     }
   } catch (error) {
-    console.error('Error fetching isDoctor status:', error);
+    console.error('doctor 여부 fetch 실패:', error);
   }
 };
 
 const updateSortOption = (event) => {
   // 이벤트 객체에서 값 추출
   const selectedOption = event.target.value; // 선택된 옵션 값
-  console.log("Sort option selected:", selectedOption); // 로그 추가
 
   // 부모 컴포넌트로 정렬 옵션 전달
   emit("sort-changed", selectedOption);

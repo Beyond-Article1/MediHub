@@ -261,9 +261,9 @@ const connectSSE = () => {
   }, {withCredentials: true});
 
   eventSource.value.addEventListener("sse", (event) => {
-    console.log("New event: ", event.data);
+    // console.log("New event: ", event.data);
     const parsedData = JSON.parse(event.data);
-    console.log("seq: ", parsedData.notiSeq);
+    // console.log("seq: ", parsedData.notiSeq);
 
 
     // parsedData가 String이거나 undefined인 경우 처리 중단
@@ -277,7 +277,7 @@ const connectSSE = () => {
   });
 
   eventSource.value.addEventListener("newChat", (event) => {
-    console.log("New Chat: ", event.data);
+    // console.log("New Chat: ", event.data);
     webSocketStore.getUserChatrooms();
   })
 
@@ -309,7 +309,7 @@ const disconnectSSE = () => {
 const getNotify = async () => {
   await axios.get('/notify')
       .then(res => {
-        console.log('전체 알림 불러오기: ', res.data.data);
+        // console.log('전체 알림 불러오기: ', res.data.data);
 
         if (res.data.data.length > 0){
           res.data.data.forEach(noti => {

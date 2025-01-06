@@ -30,7 +30,7 @@ async function fetchData() {
     if (response.status === 200) {
       console.log("CP 조회 성공");
       cp.value = response.data.data; // API 응답에서 CP 정보를 가져옴
-      console.log(cp.value);
+      // console.log(cp.value);
     } else {
       console.log("CP 조회 실패");
     }

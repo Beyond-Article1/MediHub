@@ -190,7 +190,7 @@ const updateUserInfo = async () => {
 
     if (updatedProfileImageUrl) {
       const timestampedUrl = `${updatedProfileImageUrl}?timestamp=${new Date().getTime()}`;
-      console.log("프로필 이미지 업데이트 URL:", timestampedUrl);
+      // console.log("프로필 이미지 업데이트 URL:", timestampedUrl);
       user.value.profileImage = timestampedUrl;
     } else {
       console.error("profileImageUrl이 백엔드 응답에 없습니다.");

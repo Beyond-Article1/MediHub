@@ -36,9 +36,6 @@ const imageInput = ref(null);
 
 const initializeEditor = async (data) => {
 
-  console.log("initializeEditor 호출됨.");
-  console.log("전달된 데이터: ", data);
-
   if(editorInstance && typeof editorInstance.destroy === "function") {
 
     // 안전하게 destroy 호출
@@ -48,9 +45,6 @@ const initializeEditor = async (data) => {
   }
 
   const editorData = data && data.blocks && data.blocks.length > 0 ? data : { blocks: [] };
-
-  console.log("검사 후, Editor 데이터:", editorData);
-  console.log("블록 길이:", editorData.blocks.length);
 
   await nextTick();
 
@@ -191,8 +185,6 @@ const removeImageBlock = (url) => {
       // 이미지 블록 삭제
       editorInstance.blocks.delete(i);
 
-      console.log("삭제된 이미지 블록:", url);
-
       break;
     }
   }
@@ -200,12 +192,7 @@ const removeImageBlock = (url) => {
 
 const getEditorData = async () => {
 
-  if(!editorInstance) {
-
-    console.warn("Editor instance is not initialized.");
-
-    return { anonymousBoardContent: { blocks: [] }, images: [] };
-  }
+  if(!editorInstance) return { anonymousBoardContent: { blocks: [] }, images: [] };
 
   try {
 
@@ -213,8 +200,6 @@ const getEditorData = async () => {
 
     return { anonymousBoardContent: savedData, images: images.value };
   } catch(error) {
-
-    console.error("Error saving editor data:", error);
 
     return { anonymousBoardContent: { blocks: [] }, images: [] };
   }

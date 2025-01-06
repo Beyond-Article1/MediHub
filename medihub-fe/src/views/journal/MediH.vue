@@ -47,9 +47,7 @@ watch(isLoading, async () => {
 
 // 스크롤 위치 체크
 const checkScrollPosition = () => {
-  console.log("scrollTop: ", chatWindow.value.scrollTop);
-  console.log("scrollHeight: ", chatWindow.value.scrollHeight);
-  console.log("clientHeight: ", chatWindow.value.clientHeight);
+
   if (chatWindow.value) {
     const isAtBottom = chatWindow.value.scrollHeight - chatWindow.value.scrollTop - 1 < chatWindow.value.clientHeight;
     showScrollArrow.value = !isAtBottom; // 최하단이 아니면 화살표 표시
@@ -83,7 +81,8 @@ const sendMessage = async () => {
         params: { prompt: inputText },
       });
       if (response.status === 200) {
-        console.log(response.data.data);
+
+
         articles.value = response.data.data.data;
       } else {
         console.error('예상한 값이 아님: ', response.status);
@@ -192,7 +191,6 @@ async function journalInfo(journal, move) {
       })
           .then(res => {
             if (res.status === 200) {
-              console.log(res.data.data);
               articles.value = res.data.data;
             } else {
               console.log('예상한 값이 아님: ', res.status);

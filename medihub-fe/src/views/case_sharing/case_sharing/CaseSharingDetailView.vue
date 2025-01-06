@@ -130,12 +130,10 @@ const isAuthorOrAdmin = computed(() => {
 
 const toggleFocusMode = () => {
   isFocusMode.value = !isFocusMode.value;
-  console.log("isFocusMode 상태:", isFocusMode.value);
 };
 
 const handleSelectBlock = ({ block, position }) => {
   selectedBlock.value = { block, position };
-  console.log("selected 상태:", isFocusMode.value);
 };
 
 // API 호출
