@@ -79,7 +79,6 @@ watch(currentPage, async () => {
     await loadPage(props.pdfUrl);
     await setMarkerOnPDF();
     // console.log("존재하는 마커");
-    // console.log(existingMarkers.value);
   }
 });
 
