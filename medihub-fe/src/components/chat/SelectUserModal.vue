@@ -19,7 +19,7 @@ const getUsers = async () => {
   try {
     const response = await axios('/v1/users/allUser');
     users.value = response.data.data;
-    console.log('사용자 목록을 불러오는 데 성공했습니다. ', users.value);
+    // console.log('사용자 목록을 불러오는 데 성공했습니다. ', users.value);
   } catch(error) {
     console.error('사용자 목록을 불러오는 중 오류가 발생했습니다.', error);
   }

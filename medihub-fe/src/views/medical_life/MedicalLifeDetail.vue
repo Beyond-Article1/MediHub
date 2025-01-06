@@ -27,7 +27,7 @@ const decodedToken = token ? JSON.parse(atob(token.split('.')[1])) : null;
 const loggedInUserSeq = decodedToken ? decodedToken.userSeq : null;
 const loggedInUserRole = decodedToken ? decodedToken.auth : null;
 
-console.log("Logged in User Role: ", loggedInUserRole);
+// console.log("Logged in User Role: ", loggedInUserRole);
 
 const isAuthorizedToModify = (commentUserSeq) => {
 

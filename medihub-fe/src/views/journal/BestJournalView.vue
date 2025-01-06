@@ -37,7 +37,6 @@ async function check(sortValue){
       .then(res => {
         if (res.status === 200){
           journalData.value = res.data.data;
-          console.log(journalData.value);
         } else {
           console.log('예상한 값이 아님: ', res.status);
         }
