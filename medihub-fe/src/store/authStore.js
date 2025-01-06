@@ -113,7 +113,7 @@ export const useAuthStore = defineStore('auth', () => {
     // 사용자 정보 API 호출
     async function fetchUserInfo() {
         try {
-            const response = await axios.get("/api/v1/users", {
+            const response = await axios.get("/v1/users", {
                 headers: {
                     Authorization: `Bearer ${accessToken.value}`,
                 },
@@ -140,7 +140,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     async function reissueTokens(refresh) {
         try {
-            const response = await axios.post("/api/v1/token/reissue", null, {
+            const response = await axios.post("/v1/token/reissue", null, {
                 headers: { "Refresh-Token": refresh },
             });
 

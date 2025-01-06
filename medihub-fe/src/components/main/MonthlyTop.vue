@@ -31,7 +31,7 @@ const topUsers = ref([]);
 // 컴포넌트가 마운트될 때 API 호출
 onMounted(async () => {
   try {
-    const response = await axios.get("/api/v1/users/top3"); // API 호출
+    const response = await axios.get("/v1/users/top3"); // API 호출
 
     // API 응답 구조를 확인하고 데이터 반영
     if (response.data && response.data.success && response.data.data) {
