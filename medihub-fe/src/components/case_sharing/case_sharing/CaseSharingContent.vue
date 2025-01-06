@@ -72,7 +72,6 @@
       </div>
 
 
-
       <!-- 코드 블록 -->
       <pre v-else-if="block.type === 'code'" class="code-block">
         <code>{{ block.data.code }}</code>
