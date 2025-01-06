@@ -13,6 +13,7 @@ import afterBookmark from "@/assets/images/bookmark/after-bookmark.png";
 import LineDivider from "@/components/anonymousBoard/AnonymousBoardLineDivider.vue";
 import AnonymousBoardKeywordList from "@/components/anonymousBoard/AnonymousBoardKeywordList.vue";
 import Pagination from '@/components/common/Pagination.vue';
+import AnonymousBoardContent from "@/components/anonymousBoard/AnonymousBoardContent.vue";
 
 const authStore = useAuthStore();
 const route = useRoute();
@@ -491,7 +492,7 @@ onBeforeUnmount(() => {
       <LineDivider/>
 
       <!-- 텍스트와 이미지 URL을 분리하여 표시 -->
-      <p class="content" v-html="data"></p>
+      <AnonymousBoardContent v-if="boardData.anonymousBoardContent" :content="boardData.anonymousBoardContent" />
     </div>
 
     <div class="comment-section">
@@ -648,11 +649,10 @@ onBeforeUnmount(() => {
   border-radius: 8px;
   border: 1px solid black; /* 테두리 추가 */
   padding: 20px; /* 패딩 추가 */
-  font-size: 25px;
   margin-top: 30px;
   margin-bottom: 30px;
-  font-weight: bold;
 }
+
 
 .keyword-detail img {
   max-width: 100%; /* 부모 요소의 너비를 넘지 않도록 설정 */

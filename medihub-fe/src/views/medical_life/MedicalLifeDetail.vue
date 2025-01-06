@@ -10,6 +10,7 @@ import beforeBookmark from "@/assets/images/bookmark/before-bookmark.png";
 import afterBookmark from "@/assets/images/bookmark/after-bookmark.png";
 import LineDivider from "@/components/medicallife/MedicalLifeLineDivider.vue";
 import Pagination from '@/components/common/Pagination.vue';
+import MedicalLifeContent from '@/components/medicallife/MedicalLifeContent.vue'
 
 const boardDetail = ref({});
 const comment = ref([]);
@@ -74,6 +75,16 @@ const fetchComment = async (medicalLifeSeq) => {
     console.error('Error fetching comments:', error);
   }
 };
+
+// 게시글 내용 파싱
+const parsedContent = computed(() => {
+  try {
+    return JSON.parse(boardDetail.value.medicalLifeContent || "{}");
+  } catch (error) {
+    console.error("Error parsing board content:", error);
+    return null;
+  }
+});
 
 
 // 좋아요 토글
@@ -298,10 +309,7 @@ onMounted(() => {
 
     <!-- 콘텐츠 표시 -->
     <div class="content">
-      <div v-for="(block, index) in contentBlocks" :key="index">
-        <p v-if="block.type === 'text'" class="text-block">{{ block.content }}</p>
-        <img v-if="block.type === 'image'" :src="block.content" class="image-block" alt="Content Image"/>
-      </div>
+      <MedicalLifeContent v-if="parsedContent" :content="parsedContent" />
     </div>
 
     <LineDivider/>
