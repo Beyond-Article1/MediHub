@@ -2,6 +2,7 @@ name: CI/CD
  
 on:
   pull_request:
+    types: [opened, synchronize, closed]
     branches: [ "master", "develop" ]
     paths:
       - medihub-fe/**
