@@ -123,7 +123,6 @@ const handleBlockClick = (block, index) => {
   if (!props.isFocusMode) return;
 
   selectedBlock.value = { ...block, index };
-  console.log("선택된 블록:", selectedBlock.value);
 
   // 블록 위치 계산
   const blockElement = document.getElementById(`block-${index}`);
@@ -137,9 +136,7 @@ const handleBlockClick = (block, index) => {
       block: selectedBlock.value,
       position: selectedBlockPosition.value,
     });
-    console.log("계산된 블록 위치:", selectedBlockPosition.value);
   } else {
-    console.warn(`ID가 block-${index}인 요소를 찾을 수 없습니다.`);
     console.log("현재 DOM에 렌더링된 요소들:", document.querySelectorAll("[id^='block-']"));
   }
 };

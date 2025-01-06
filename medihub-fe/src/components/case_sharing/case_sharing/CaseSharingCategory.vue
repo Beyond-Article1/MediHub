@@ -29,24 +29,19 @@ const emit = defineEmits(["category-selected"]);
 // API 호출로 카테고리 목록 가져오기
 const fetchCategories = async () => {
   try {
-    console.log("Fetching categories from API...");
     const response = await axios.get("/v1/part/1");
-    console.log("API Response:", response);
 
     const { success, data } = response.data;
 
     if (success && Array.isArray(data)) {
-      console.log("Fetched categories data:", data);
       categories.value = data.map((item) => ({
         id: item.partSeq, // partId 매핑 (필드 이름 확인)
         name: item.partName, // partName 매핑
       }));
     } else {
-      console.error("Unexpected response structure or unsuccessful request");
       categories.value = ["불러오기 실패"];
     }
   } catch (error) {
-    console.error("Error fetching categories:", error);
     categories.value = ["불러오기 실패"];
   }
 };
@@ -57,7 +52,7 @@ const selectCategory = (categoryId) => {
   if (selectedCategory) {
     emit("category-selected", selectedCategory); // 카테고리 전체 객체 전달
   } else {
-    console.error("Category not found for ID:", categoryId);
+    console.error("Category 찾기 실패, ID:", categoryId);
   }
 };
 

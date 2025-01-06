@@ -69,7 +69,6 @@ import router from "@/router/index.js";
 const authStore = useAuthStore();
 const accessToken = authStore.accessToken; // accessToken 가져오기
 const route = useRoute();
-console.log("라우트 정보:", route.params);
 
 const title = ref(""); // 제목 상태
 const keywords = ref([]); // 키워드 상태
@@ -115,7 +114,6 @@ const fetchTemplateData = async () => {
     });
 
     const result = response.data;
-    console.log("결과:", result);
 
     if (result.success) {
       const data = result.data;
@@ -146,7 +144,6 @@ const fetchTemplateData = async () => {
 // 임시 저장된 글 로드
 const loadDraft = async (draftData) => {
   try {
-    console.log("임시 저장 데이터 로드:", draftData);
 
     // 제목 및 에디터 데이터 설정
     formData.value.title = draftData.caseSharingTitle || "제목 없음";
@@ -161,7 +158,6 @@ const loadDraft = async (draftData) => {
     alert("임시 저장 글이 로드되었습니다.");
     closeDraftModal();
   } catch (error) {
-    console.error("Error loading draft:", error);
     alert("임시 저장 글 로드 중 오류가 발생했습니다.");
   }
 };
@@ -181,7 +177,6 @@ const handleSave = async () => {
       alert("본문 내용을 입력해주세요.");
       return;
     }
-    console.log("템플릿번호"+templateSeq);
     // 데이터 직렬화 (content를 JSON 문자열로 변환)
     const data = {
       templateSeq: templateSeq, // 템플릿 선택값
@@ -197,7 +192,6 @@ const handleSave = async () => {
       formData.append("images", file, `img-${index + 1}`);
     });
 
-    console.log("FormData 전송:", data, images);
 
     // API 호출
     const response = await axios.post("/case_sharing", formData, {
@@ -207,11 +201,8 @@ const handleSave = async () => {
       },
     });
 
-    // 성공 확인
-    console.log("저장 완료:", response.data.data);
     alert("저장이 완료되었습니다.");
     const createdCaseId = response.data.data
-    console.log("정보" + createdCaseId);
     // 상세 조회 페이지로 라우팅
     await router.push({name: "CaseSharingDetailView", params: {id: createdCaseId}});
 
@@ -254,8 +245,6 @@ const handleTempSave = async () => {
       formData.append("images", file, `img-${index + 1}`);
     });
 
-    console.log("FormData 전송:", requestDTO, images);
-
     // API 호출
     const response = await axios.post("case_sharing/draft", formData, {
       headers: {
@@ -264,14 +253,9 @@ const handleTempSave = async () => {
       },
     });
 
-    // 성공 확인
-    console.log("임시 저장 완료:", response.data.data);
     alert("임시 저장이 완료되었습니다.");
-    const createdCaseId = response.data.data
-    console.log("정보" + createdCaseId);
 
   } catch (error) {
-    console.error("Error saving data:", error);
     alert("임시 저장 중 오류가 발생했습니다.");
   }
 };
@@ -280,7 +264,6 @@ const handleTemplateSave = async ({ title: templateTitle, openScope }) => {
   try {
     const editorData = await caseEditor.value.getEditorData();
     const { content, images } = editorData;
-    console.log(content)
 
     if (!templateTitle.trim()) {
       alert("템플릿 제목을 입력해주세요.");
