@@ -58,16 +58,21 @@ const fetchBookmarkedPosts = async () => {
 // 텍스트만 추출하는 함수
 const extractText = (content) => {
   try {
-    const parsedContent = JSON.parse(content);
+    const parsedContent = JSON.parse(content); // JSON 파싱
     return parsedContent.blocks
-        .filter((block) => block.type === "paragraph") // 'paragraph' 블록만 추출
-        .map((block) => block.data.text) // 텍스트 데이터만 가져옴
-        .join(" "); // 텍스트 합치기
+        .filter((block) => block.type === "paragraph") // 'paragraph' 타입만 추출
+        .map((block) => {
+          const tempDiv = document.createElement("div"); // 임시 DOM 요소 생성
+          tempDiv.innerHTML = block.data.text; // HTML 삽입
+          return tempDiv.textContent || tempDiv.innerText || ""; // 순수 텍스트 반환
+        })
+        .join(" "); // 텍스트를 합쳐서 반환
   } catch (error) {
     console.error("내용 파싱 실패:", error);
-    return "내용 없음";
+    return "내용 없음"; // 파싱 실패 시 기본값
   }
 };
+
 
 // 페이지네이션 데이터
 const paginatedPosts = computed(() => {

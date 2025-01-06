@@ -145,17 +145,20 @@ axios.interceptors.request.use(
 axios.interceptors.response.use(
     (response) => response,
     async (error) => {
-      if (error.response?.status === 401) {
-        // Access Token 만료 시 Refresh Token을 사용해 재발급 요청
-        if (authStore.refreshToken) {
-          try {
-            const reissueResponse = await axios.post(
-                "/v1/token/reissue",
-                null,
-                {
-                  headers: {"Refresh-Token": authStore.refreshToken},
-                }
-            );
+
+      const isAuthError = error.response.status === 401;
+      const isLoginRequest = error.config.url.includes("/login");
+      const isReissueRequest = error.config.url.includes("/v1/token/reissue");
+
+      // Refresh Token 갱신 로직
+      if (isAuthError && authStore.refreshToken && !isLoginRequest && !isReissueRequest) {
+        if (error.config._retry) return Promise.reject(error);
+        error.config._retry = true;
+
+        try {
+          const reissueResponse = await axios.post("/v1/token/reissue", null, {
+            headers: {"Refresh-Token": authStore.refreshToken},
+          });
 
             const newAccessToken = reissueResponse.headers["access-token"];
             const newRefreshToken = reissueResponse.headers["refresh-token"];
@@ -175,12 +178,14 @@ axios.interceptors.response.use(
             authStore.logout();
             router.push("/login");
           }
-        } else {
-          console.error("Refresh Token이 없습니다. 다시 로그인하세요.");
-          authStore.logout();
-          router.push("/login");
         }
+
+      if (isAuthError && !authStore.refreshToken) {
+        console.error("Refresh Token이 없습니다. 다시 로그인하세요.");
+        authStore.logout();
+        router.push("/login");
       }
+
       return Promise.reject(error);
     }
 );

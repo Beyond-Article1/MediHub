@@ -6,6 +6,7 @@ import router from "@/routers/index.js";
 import LineDivider from "@/components/common/LineDivider.vue";
 import Pagination from "@/components/common/Pagination.vue";
 import SearchBox from "@/components/medicallife/MedicalLifeSearchBox.vue";
+import LocalDateTimeFormat from "@/components/common/LocalDateTimeFormat.vue";
 
 // 상태 변수
 const searchResult = ref([]);
@@ -36,7 +37,7 @@ const search = async (query) => {
       userSeq: item.userSeq,
       deptName: item.deptName,
       partName: item.partName,
-      date: new Date(item.createdAt).toLocaleDateString(),
+      createdAt: item.createdAt,
       views: item.medicalLifeViewCount
     }));
   } catch(error) {
@@ -75,7 +76,7 @@ const fetchPosts = async () => {
       userSeq: item.userSeq,
       deptName: item.deptName,
       partName: item.partName,
-      date: new Date(item.createdAt).toLocaleDateString(),
+      createdAt: item.createdAt,
       views: item.medicalLifeViewCount
     }));
   } catch(error) {
@@ -107,7 +108,7 @@ const sortedPosts = computed(() => {
     case "views":
       return [...filteredPosts.value].sort((a, b) => b.views - a.views);
     case "latest":
-      return [...filteredPosts.value].sort((a, b) => new Date(b.date) - new Date(a.date));
+      return [...filteredPosts.value].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     case "createdAt":
     default:
       return [...filteredPosts.value];
@@ -266,7 +267,7 @@ onMounted(() => {
                 </span>
             </td>
             <td>{{ post.author }}</td>
-            <td>{{ post.date }}</td>
+            <td><LocalDateTimeFormat :data="post.createdAt" /></td>
             <td>{{ post.views }}</td>
           </tr>
           </tbody>

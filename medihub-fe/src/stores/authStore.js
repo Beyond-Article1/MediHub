@@ -20,6 +20,37 @@ export const useAuthStore = defineStore('auth', () => {
         }
     );
 
+    let isRefreshing = false;
+    let pendingRequests = [];
+
+    axios.interceptors.request.use(async (config) => {
+        // Access Token이 만료되었는지 확인
+        if (accessToken.value && decodeToken(accessToken.value)?.exp * 1000 < Date.now()) {
+            // 현재 갱신 중이 아닌 경우
+            if (!isRefreshing) {
+                isRefreshing = true;
+                try {
+                    // Refresh Token을 사용해 Access Token 갱신
+                    await reissueTokens(refreshToken.value);
+                } finally {
+                    isRefreshing = false;
+                    pendingRequests.forEach((cb) => cb());
+                    pendingRequests = [];
+                }
+            } else {
+                // 갱신 중인 경우, 새 Promise를 만들어 대기
+                await new Promise((resolve) => {
+                    pendingRequests.push(resolve);
+                });
+            }
+        }
+        // Access Token이 유효하면 Authorization 헤더에 추가
+        if (accessToken.value) {
+            config.headers['Authorization'] = `Bearer ${accessToken.value}`;
+        }
+        return config;
+    });
+
     onMounted(async () => {
 
         const access = localStorage.getItem('accessToken');
