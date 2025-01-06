@@ -312,7 +312,7 @@ const handleFileUpload = async (event) => {
     });
     console.log('파일 업로드 성공:', response.data);
     // 메시지 목록에 추가
-    messages.value.push(response.data);
+    // messages.value.push(response.data);
 
     nextTick(() => scrollToBottom());
   } catch (error) {
