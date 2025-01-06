@@ -71,8 +71,6 @@ export const useAuthStore = defineStore('auth', () => {
     // 로그인 처리
     async function login(token, refresh) {
         console.log("[AuthStore] 로그인 처리 시작");
-        console.log("[AuthStore] AccessToken:", token);
-        console.log("[AuthStore] RefreshToken:", refresh);
 
         isLogined.value = true;
         accessToken.value = token;
@@ -87,8 +85,7 @@ export const useAuthStore = defineStore('auth', () => {
         if (payload) {
             userRole.value = payload.auth;
             userSeq.value = payload.userSeq;
-            console.log("[AuthStore] userRole:", userRole.value);
-            console.log("[AuthStore] userSeq:", userSeq.value);
+
             localStorage.setItem('userRole', userRole.value);
             localStorage.setItem('userSeq', userSeq.value);
         }
@@ -109,10 +106,8 @@ export const useAuthStore = defineStore('auth', () => {
             if (response.data && response.data.success) {
                 setUserInfo(response.data.data);
             } else {
-                console.error("[AuthStore] 사용자 정보 가져오기 실패:", response.data.error);
             }
         } catch (error) {
-            console.error("[AuthStore] 사용자 정보 API 호출 실패:", error.response || error.message);
         }
 
         localStorage.setItem('userRole', userRole.value);
@@ -133,7 +128,6 @@ export const useAuthStore = defineStore('auth', () => {
 
     function refreshTokenExpired() {
         const expirationTime = localStorage.getItem('refreshTokenExpiration');
-        console.log("[AuthStore] Refresh Token 만료 시간:", expirationTime);
         return expirationTime && Date.now() > Number(expirationTime);
     }
 
@@ -171,7 +165,6 @@ export const useAuthStore = defineStore('auth', () => {
                         Authorization: `Bearer ${accessToken.value}`,
                     },
                 });
-                console.log("[AuthStore] 로그아웃 API 호출 성공");
             }
         } catch (error) {
             console.error("[AuthStore] 로그아웃 API 호출 실패:", error.response || error.message);
