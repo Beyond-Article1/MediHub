@@ -20,9 +20,9 @@ const getUserData = async () => {
   console.log('조직도 API 호출 시작');
   try {
     const [deptRes, partRes, userRes] = await Promise.all([
-      axios.get("/api/v1/dept"),
-      axios.get("/api/v1/part"),
-      axios.get("/api/v1/users/allUser"),
+      axios.get("/v1/dept"),
+      axios.get("/v1/part"),
+      axios.get("/v1/users/allUser"),
     ]);
 
     // 부서 및 과 데이터 저장
@@ -122,7 +122,7 @@ const filteredUsersBySearchQuery = computed(() => {
 // 1:1 채팅방 생성
 const createChatroom = async (userSeq) => {
   try {
-    console.log('1:1 채팅방 생성 버튼 클릭됨, 선택된 사용자: ', userSeq)
+    //console.log('1:1 채팅방 생성 버튼 클릭됨, 선택된 사용자: ', userSeq)
     const response = await axios.post('/chatroom', { users : [userSeq] });
     const chatroomSeq = response.data.data;
     console.log('생성된 1:1 채팅방 Seq 확인: ', chatroomSeq);

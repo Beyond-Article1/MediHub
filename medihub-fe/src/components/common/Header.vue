@@ -131,7 +131,7 @@ const eventSource = ref(null); // EventSource 객체
 const events = ref([]);        // 수신된 이벤트 저장
 const connected = ref(false);  // 연결 상태
 const hasNewNotification = ref(false);  // 새로운 알림 유무
-const baseUrl = "http://localhost:8088";
+const baseUrl = "https://api.medihub.info/api";
 
 // 자식 컴포넌트에서 알림 업데이트 이벤트 처리
 const updateHasNewNotification = (value) => {

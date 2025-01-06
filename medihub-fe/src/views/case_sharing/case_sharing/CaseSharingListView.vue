@@ -36,17 +36,14 @@ const sortOption = ref("latest"); // 기본 정렬 옵션
 
 // 카테고리 선택 시 데이터 필터링
 const handleCategorySelected = (category) => {
-  console.log("Selected Category:", category); // 객체 전체 출력
   selectedCategory.value = category; // 객체 저장
 };
 
 const updateSortOption = (newSortOption) => {
-  console.log("Selected option:", newSortOption);
   sortOption.value = newSortOption;
 };
 
 watch([selectedCategory, sortOption], () => {
-  console.log("Category or Sort Option Changed");
 });
 </script>
 

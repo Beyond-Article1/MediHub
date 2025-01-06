@@ -54,13 +54,11 @@ const fetchCaseList = async (categoryId) => {
         ? `/case_sharing/part/${categoryId}`
         : `/case_sharing`;
 
-    console.log("API Request URL:", url);
 
     const response = await axios.get(url);
     const { success, data } = response.data;
 
     if (success && Array.isArray(data)) {
-      console.log("Fetched data:", data);
 
       // 데이터를 map으로 변환
       caseList.value = data.map((item) => ({
@@ -109,7 +107,6 @@ watch(
         fetchCaseList(newCategory.id);
         selectedCategoryName.value = newCategory.name;
       } else {
-        console.log("Selected Category ID:", newCategory);
         fetchCaseList(newCategory);
         selectedCategoryName.value = "전체";
       }
@@ -125,9 +122,6 @@ watch(
     },
     { immediate: true }
 );
-
-
-
 
 // 페이지당 데이터 계산
 const paginatedCaseList = computed(() => {

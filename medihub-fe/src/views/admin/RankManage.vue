@@ -98,8 +98,8 @@ const editRankingSeq = ref(null);
 const fetchDepartmentsAndRankings = async () => {
   try {
     const [deptRes, rankingRes] = await Promise.all([
-      axios.get("/api/v1/dept"),
-      axios.get("/api/v1/ranking"),
+      axios.get("/v1/dept"),
+      axios.get("/v1/ranking"),
     ]);
     departments.value = deptRes.data.data;
     rankings.value = rankingRes.data.data;
@@ -138,7 +138,7 @@ const createRanking = async () => {
   }
 
   try {
-    await axios.post("/api/v1/ranking", {
+    await axios.post("/v1/ranking", {
       deptSeq: selectedDeptSeq.value,
       rankingName: newRankingName.value,
     });
@@ -157,7 +157,7 @@ const updateRanking = async () => {
   }
 
   try {
-    await axios.put(`/api/v1/ranking/${editRankingSeq.value}`, {
+    await axios.put(`/v1/ranking/${editRankingSeq.value}`, {
       deptSeq: editDeptSeq.value,
       rankingName: editRankingName.value,
     });
@@ -172,7 +172,7 @@ const updateRanking = async () => {
 // 직급 삭제
 const deleteRanking = async (rankingSeq) => {
   try {
-    await axios.delete(`/api/v1/ranking/${rankingSeq}`);
+    await axios.delete(`/v1/ranking/${rankingSeq}`);
     rankings.value = rankings.value.filter((r) => r.rankingSeq !== rankingSeq);
   } catch (error) {
     console.error("직급 삭제 실패", error);

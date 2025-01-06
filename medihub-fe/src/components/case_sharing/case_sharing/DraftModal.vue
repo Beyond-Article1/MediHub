@@ -84,13 +84,11 @@ const loadDraft = async (id) => {
       },
     });
     const draftData = response.data.data;
-    console.log('임시 저장 글 불러오기 성공:', draftData);
 
     // 부모 컴포넌트로 불러온 데이터를 전달
     emit('loadDraft', draftData);
     closeModal();
   } catch (error) {
-    console.error('임시 저장 글 불러오기 오류:', error);
     alert('임시 저장 글을 불러오는데 실패했습니다.');
   }
 };

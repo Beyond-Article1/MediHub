@@ -40,16 +40,14 @@ const fetchBoardData = async () => {
 
       keywordList.value = data.keywordList.map((keyword) => keyword.keywordName);
 
-      console.log("Fetched Keyword List:", keywordList.value);
-
       if(boardEditor.value) {
 
         await boardEditor.value.initializeEditor(anonymousBoardContent);
       }
-    } else console.error("데이터 불러오기 실패:", result.error);
+    } else alert("데이터 불러오기 중 문제가 발생했습니다.");
   } catch(error) {
 
-    console.error("Error fetching data:", error);
+    alert("데이터 불러오기 중 문제가 발생했습니다.");
   }
 };
 
@@ -74,8 +72,6 @@ const saveChanges = async () => {
       anonymousBoardContent: JSON.stringify(anonymousBoardContent),
       keywordList: keywordList.value.length > 0 ? keywordList.value : []
     };
-
-    console.log("Anonymous Board Update Request DTO:", anonymousBoardUpdateRequestDTO);
 
     // 3. FormData 생성 (이미지 포함)
     const formDataToSend = new FormData();
@@ -108,13 +104,9 @@ const saveChanges = async () => {
       await router.push({ name: "AnonymousBoardDetail", params: { id:updatedBoardId } });
     } else {
 
-      console.error("수정 실패:", response.data.error);
-
       alert("수정 중 문제가 발생했습니다.");
     }
   } catch (error) {
-
-    console.error("Error saving changes:", error);
 
     alert("저장 중 오류가 발생했습니다.");
   }

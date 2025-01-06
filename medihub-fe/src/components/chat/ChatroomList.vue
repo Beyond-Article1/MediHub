@@ -90,11 +90,11 @@ const createChatroom = async (users) => {
   }
 
   try {
-    console.log('채팅방 생성 버튼 클릭됨, 선택된 사용자: ', users);
+    //console.log('채팅방 생성 버튼 클릭됨, 선택된 사용자: ', users);
     const response = await axios.post(`/chatroom`, { users });
     console.log('채팅방 생성 성공: ', response.data);
     const chatroomSeq = response.data.data;
-    console.log('생성된 1:1 채팅방 Seq 확인: ', chatroomSeq);
+    //console.log('생성된 1:1 채팅방 Seq 확인: ', chatroomSeq);
 
     // 채팅방 구독 요청
     webSocketStore.subscribeChatroom(chatroomSeq);

@@ -23,13 +23,9 @@ const searchQuery = ref("");
 
 const search = async (query) => {
 
-  console.log(`Searching for: ${query}`);
-
   try {
 
     const response = await axios.get(`/find/medicalLife/${query}`);
-
-    console.log('Search response:', response);
 
     searchResult.value = response.data.data.map((item) => ({
 
@@ -45,8 +41,6 @@ const search = async (query) => {
     }));
   } catch(error) {
 
-    console.error('Error searching:', error);
-
     searchResult.value = [];
   }
 };
@@ -55,13 +49,14 @@ const fetchDepartmentsAndParts = async () => {
 
   try {
 
-    const [deptRes, partRes] = await Promise.all([axios.get("/api/v1/dept"), axios.get("/api/v1/part")]);
+    const [deptRes, partRes] = await Promise.all([axios.get("/v1/dept"), axios.get("/v1/part")]);
 
     departments.value = deptRes.data.data;
     parts.value = partRes.data.data;
   } catch(error) {
 
-    console.error("부서/과 데이터 가져오기 실패:", error);
+    departments.value = [];
+    parts.value = [];
   }
 };
 
@@ -85,7 +80,7 @@ const fetchPosts = async () => {
     }));
   } catch(error) {
 
-    console.error("게시글 데이터 가져오기 실패:", error);
+    posts.value = {};
   }
 };
 

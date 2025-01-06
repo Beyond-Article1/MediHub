@@ -3,11 +3,11 @@ import {onMounted, ref, watch, defineProps} from 'vue';
 import {useRoute, useRouter} from "vue-router";
 import axios from "axios";
 import * as pdfjsLib from 'pdfjs-dist';
-import workerUrl from 'pdfjs-dist/build/pdf.worker.mjs?url';
+import workerUrl from 'pdfjs-dist/build/pdf.worker.js?url';
 
 import Button from "@/components/common/button/Button.vue";
 import IconButton from "@/components/common/button/IconButton.vue";
-import DropBox from "@/components/common/SingleSelectDropBox.vue";
+import DropBox from "@/components/common/SingleSelectDropBox.vue" ;
 import CpModal from "@/components/cp/CpModal.vue";
 
 // pdfjs-dist 모듈 경로 설정
@@ -87,7 +87,7 @@ watch(currentPage, async () => {
 watch(selectedCpVersion, async () => {
   console.log("버전 변화 감지");
   try {
-    const response = await axios.get(`cp/${route.params.cpVersionSeq}?cpVersion=${selectedCpVersion.value}`)
+    const response = await axios.get(`/cp/${route.params.cpVersionSeq}?cpVersion=${selectedCpVersion.value}`)
 
     if (response.status === 200) {
       console.log(response.data.data);
@@ -198,7 +198,7 @@ async function checkCpOpinionExistsByLocationSeq(cpOpinionLocationSeq) {
   try {
     const cpVersionSeq = Number.parseFloat(props.data.cpVersionSeq);
     // console.log(`cpVersionSeq = ${cpVersionSeq}`);
-    const response = await axios.get(`cp/${cpVersionSeq}/cpOpinionLocation/${cpOpinionLocationSeq}`);
+    const response = await axios.get(`/cp/${cpVersionSeq}/cpOpinionLocation/${cpOpinionLocationSeq}`);
 
     if (response.status === 200) {
       console.log("해당 위치 정보 조회 성공");
@@ -218,7 +218,7 @@ async function checkCpOpinionExistsByLocationSeq(cpOpinionLocationSeq) {
 // CP 의견 위치 삭제 요청 함수
 async function deleteCpOpinionLocation(cpOpinionLocationSeq) {
   try {
-    const response = await axios.delete(`cp/${route.params.cpVersionSeq}/cpOpinionLocation/${cpOpinionLocationSeq}`);
+    const response = await axios.delete(`/cp/${route.params.cpVersionSeq}/cpOpinionLocation/${cpOpinionLocationSeq}`);
 
     if (response.status === 200) {
       console.log("의견이 없는 위치 삭제 처리");
@@ -245,7 +245,7 @@ async function updateBookmark() {
 async function sendTogglingBookmark() {
   try {
     const cpVersionSeq = Number.parseFloat(props.data.cpVersionSeq);
-    const response = await axios.post(`cp/bookmark/${cpVersionSeq}`);
+    const response = await axios.post(`/cp/bookmark/${cpVersionSeq}`);
 
     if (response.status === 200) {
       console.log("북마크 토글링 성공");
@@ -426,7 +426,7 @@ async function fetchCpOpinionLocationData(cpVersionSeq) {
 // 버전 정보 호출 함수
 async function fetchCpVersion() {
   try {
-    const response = await axios.get(`cp/${route.params.cpVersionSeq}/cpVersion`);
+    const response = await axios.get(`/cp/${route.params.cpVersionSeq}/cpVersion`);
 
     if (response.status === 200) {
       objectCpVersionList.value = response.data.data;
@@ -452,7 +452,7 @@ const downloadFile = async () => {
       method: 'GET',
     });
 
-    if (!response.ok) throw new Error('다운로드 실패');
+    if (!response.ok) return new Error('다운로드 실패');
 
     const blob = await response.blob(); // 파일 데이터를 Blob으로 변환
     const downloadUrl = URL.createObjectURL(blob);
@@ -470,6 +470,14 @@ const downloadFile = async () => {
     alert('이미지 다운로드에 실패했습니다.');
   }
 };
+
+// CP 목록으로 이동 함수
+function moveToListPage() {
+  console.log("CP 목록으로 이동합니다.");
+  router.push({
+    name:'CpListPage'
+  })
+}
 </script>
 
 <template>
@@ -507,6 +515,7 @@ const downloadFile = async () => {
       <div class="navigation-buttons">
         <Button @click="goToPreviousPage" :isDisabled="currentPage <= 1">이전 페이지</Button>
         <Button @click="goToNextPage" :isDisabled="currentPage >= totalPages">다음 페이지</Button>
+        <Button @click="moveToListPage">목록</Button>
       </div>
     </div>
 

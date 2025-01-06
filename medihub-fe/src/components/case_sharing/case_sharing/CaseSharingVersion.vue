@@ -39,10 +39,10 @@ const fetchVersionHistory = async () => {
     if (response.data.success) {
       versionHistory.value = response.data.data;
     } else {
-      console.error("버전 내역 불러오기 실패:", response.data.error);
+      console.error(response.data.error);
     }
   } catch (error) {
-    console.error("Error fetching version history:", error);
+    console.error(error);
   }
 };
 
