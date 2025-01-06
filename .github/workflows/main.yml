@@ -12,6 +12,7 @@ env:
 jobs:
   # 빌드 테스트
   ci:
+    if: github.event.action == 'opened' || github.event.action == 'synchronize'
     runs-on: ubuntu-latest
 
     # steps에 대한 기본 작업 디렉토리 설정
@@ -46,11 +47,42 @@ jobs:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       if: always()
 
-  # CD - 배포
-  deploy:
+  checked:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-    needs: ci
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+    steps:
+      - name: set env
+        id: set-env
+        run: |
+          echo ${{ github.base_ref }}
+          echo "environment=develop" >> $GITHUB_OUTPUT
+          
+          if [[ ${{ github.base_ref }} == "master" ]]; then
+            echo "environment=prod" >> $GITHUB_OUTPUT
+          fi
+      - name: check env
+        run: echo ${{ steps.set-env.outputs.environment }}
+
+  image-build:
+    runs-on: ubuntu-latest
+    needs: [checked]
+    permissions:
+      id-token: write
+      contents: read
+    strategy:
+      matrix:
+        environment: [ "${{ needs.set-environment.outputs.environment }}" ]
+    environment: ${{ matrix.environment }}
+    steps:
+      - name: checkout the code
+        uses: actions/checkout@v4
+
+  # CD - 배포
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [checked, image-build]
 #    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop'  # master 또는 develop 브랜치에서만 실행
 
     defaults:
