@@ -14,8 +14,6 @@ const itemCount = ref(10);
 
 const search = async (query) => {
 
-  console.log(`Searching for: ${query}`);
-
   try {
 
     const response = await axios.get(`/find/anonymousBoard/${query}`);
@@ -23,15 +21,11 @@ const search = async (query) => {
     searchResult.value = response.data.data;
   } catch(error) {
 
-    console.error('Error searching:', error);
-
     searchResult.value = [];
   }
 };
 
 const createBoard = () => {
-
-  console.log("Create new board button clicked");
 
   router.push('/anonymous-board/create');
 };

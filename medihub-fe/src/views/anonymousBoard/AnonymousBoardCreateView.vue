@@ -57,13 +57,9 @@ const handleSave = async () => {
       formData.append("images", file, `img-${index + 1}`);
     });
 
-    console.log("FormData 전송:", data, images);
-
     const response = await axios.post("/anonymous-board", formData, {
       headers: { "Content-Type": "multipart/form-data" } // FormData 사용 시 필요
     });
-
-    console.log("저장 완료:", response.data);
 
     alert("저장이 완료되었습니다.");
 
@@ -72,8 +68,6 @@ const handleSave = async () => {
     // 상세 조회 페이지로 라우팅
     await router.push({ name: "AnonymousBoardDetail", params: { id: createdBoardId } });
   } catch(error) {
-
-    console.error("Error saving data:", error);
 
     alert("저장 중 오류가 발생했습니다.");
   }

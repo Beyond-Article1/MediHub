@@ -55,16 +55,14 @@ const fetchBoardList = async () => {
     }));
   } catch(error) {
 
-    console.error('Error fetching board list:', error);
-
     boardList.value = [];
   }
 };
 
 const sortedBoardList = computed(() => {
 
-  const boards = Array.isArray(props.searchResult) &&
-      props.searchResult.length > 0 ?
+  // searchResult가 정의되지 않았거나 비어 있으면 boardList를 사용
+  const boards = (Array.isArray(props.searchResult) && props.searchResult.length > 0) ?
       props.searchResult :
       boardList.value;
 
@@ -87,9 +85,8 @@ const sortedBoardList = computed(() => {
 
 const totalBoards = computed(() => {
 
-  // searchResult가 있을 경우 그 길이를, 없으면 boardList의 길이를 반환
-  return Array.isArray(props.searchResult) &&
-      props.searchResult.length > 0 ?
+  // searchResult가 정의되지 않았거나 비어 있으면 boardList의 길이를 반환
+  return (Array.isArray(props.searchResult) && props.searchResult.length > 0) ?
       props.searchResult.length :
       boardList.value.length;
 });
@@ -127,8 +124,6 @@ const toggleLike = async (boardItem) => {
     alert(boardItem.isLiked ? '좋아요가 등록되었습니다.' : '좋아요가 취소되었습니다.');
   } catch(error) {
 
-    console.error('좋아요 처리 중 오류 발생:', error);
-
     alert('좋아요 처리에 실패했습니다.');
   }
 };
@@ -145,8 +140,6 @@ const toggleBookmark = async (boardItem) => {
 
     alert(boardItem.isBookmark ? '북마크가 등록되었습니다.' : '북마크가 해제되었습니다.');
   } catch(error) {
-
-    console.error('북마크 처리 중 오류 발생:', error);
 
     alert('북마크 처리에 실패했습니다.');
   }
@@ -165,12 +158,8 @@ const updateLikeStatus = async (boardItem) => {
     // 404 에러가 발생할 경우, 기본 값 false 설정
     if(error.response && error.response.status === 404) {
 
-      console.warn(`익명 게시글 ${boardItem.anonymousBoardSeq}번에 대한 좋아요 상태가 없습니다.`);
-
       boardItem.isLiked = false;
     } else {
-
-      console.error('좋아요 상태 확인 중 오류 발생:', error);
 
       boardItem.isLiked = false;
     }
@@ -190,12 +179,8 @@ const updateBookmarkStatus = async (boardItem) => {
     // 404 에러가 발생할 경우, 기본 값 false 설정
     if(error.response && error.response.status === 404) {
 
-      console.warn(`익명 게시글 ${boardItem.anonymousBoardSeq}번에 대한 북마크 상태가 없습니다.`);
-
       boardItem.isBookmark = false;
     } else {
-
-      console.error('북마크 상태 확인 중 오류 발생:', error);
 
       boardItem.isBookmark = false;
     }
@@ -247,13 +232,18 @@ onMounted(() => {
 
           <td>
             <div class="keywordList">
-              <span class="keyword" v-for="(keyword, index) in boardItem.keywordList.slice(0, 2)" :key="index">
-                # {{ keyword.keywordName.length > 10 ? keyword.keywordName.slice(0, 10) + '...' : keyword.keywordName }}
+              <span class="keyword"
+                    v-for="(keyword, index) in (boardItem.keywordList && boardItem.keywordList.length > 0 ?
+                    boardItem.keywordList.slice(0, 2) : []
+                    )"
+                    :key="index"
+              >
+                # {{ keyword.keywordName && keyword.keywordName.length > 10 ? keyword.keywordName.slice(0, 10) + '...' : keyword.keywordName }}
               </span>
             </div>
           </td>
 
-  <!--        <td>{{ boardItem.userName }}</td>-->
+          <!--        <td>{{ boardItem.userName }}</td>-->
           <td>익명</td>
 
           <td><LocalDateTimeFormat :data="boardItem.createdAt" /></td>
@@ -299,17 +289,12 @@ table {
 
 tr {
   border-bottom: 1px solid #ddd;
-  cursor: pointer; /* 클릭 가능한 마우스 커서 추가 */
   transition: background-color 0.3s ease;
-}
-
-tr:hover {
-  background-color: #f9f9f9; /* 호버 시 배경 색상 변경 */
 }
 
 th, td {
   padding: 8px;
-  text-align: left; /* 텍스트 정렬 */
+  text-align: center; /* 텍스트 정렬 */
 }
 
 .keywordList {
@@ -325,13 +310,16 @@ th, td {
 
 .actions {
   display: flex; /* 플렉스 박스를 사용하여 버튼을 가로로 배치 */
-  align-items: center; /* 수직 정렬 */
+  justify-content: space-between; /* 버튼 간 간격을 균등하게 배치 */
+  width: 100%; /* 전체 너비를 사용하여 버튼 간 간격을 조정 */
 }
 
 .like-btn,
 .bookmark-btn {
   cursor: pointer;
-  margin-left: 10px; /* 버튼 간 간격 추가 */
+  margin: 0 5px; /* 버튼 간 간격 추가 */
+  flex: 1; /* 버튼들이 균등하게 공간을 차지하도록 설정 */
+  text-align: center; /* 버튼 안의 이미지 중앙 정렬 */
 }
 
 .like-btn img,

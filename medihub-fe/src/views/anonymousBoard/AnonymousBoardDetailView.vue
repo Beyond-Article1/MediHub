@@ -68,12 +68,12 @@ const fetchBoardDetail = async () => {
       boardData.value.isBookmark = false;
 
       await Promise.all([updateLikeStatus(anonymousBoardSeq), updateBookmarkStatus(anonymousBoardSeq)]);
-    } else console.error("API 응답 오류:", result.error);
+    } else boardData.value = {};
 
     await fetchComment(anonymousBoardSeq);
   } catch(error) {
 
-    console.error('Error fetching board detail:', error);
+    boardData.value = {};
   }
 };
 
@@ -104,8 +104,6 @@ const data = computed(() => {
     }).join('');
   } catch(error) {
 
-    console.error('Error parsing board content:', error);
-
     return '';
   }
 });
@@ -122,8 +120,6 @@ const toggleLike = async () => {
 
     alert(boardData.value.isLiked ? '좋아요가 등록되었습니다.' : '좋아요가 취소되었습니다.');
   } catch(error) {
-
-    console.error('좋아요 처리 중 오류 발생:', error);
 
     alert('좋아요 처리에 실패했습니다.');
   }
@@ -142,8 +138,6 @@ const toggleBookmark = async () => {
     alert(boardData.value.isBookmark ? '북마크가 등록되었습니다.' : '북마크가 해제되었습니다.');
   } catch(error) {
 
-    console.error('북마크 처리 중 오류 발생:', error);
-
     alert('북마크 처리에 실패했습니다.');
   }
 };
@@ -158,8 +152,6 @@ const updateLikeStatus = async (anonymousBoardSeq) => {
     boardData.value.isLiked = response.data.data;
   } catch(error) {
 
-    console.error('좋아요 상태 확인 중 오류 발생:', error);
-
     boardData.value.isLiked = false;
   }
 };
@@ -173,8 +165,6 @@ const updateBookmarkStatus = async (anonymousBoardSeq) => {
     // 서버에서 반환된 북마크 상태
     boardData.value.isBookmark = response.data.data;
   } catch(error) {
-
-    console.error('북마크 상태 확인 중 오류 발생:', error);
 
     boardData.value.isBookmark = false;
   }
@@ -206,15 +196,8 @@ const deleteBoard = async () => {
 
       // 목록 페이지로 이동
       await router.push({name: "AnonymousBoardList"});
-    } else {
-
-      console.error("삭제 실패:", response.data.error || "알 수 없는 오류");
-
-      alert("삭제에 실패했습니다. 다시 시도해주세요.");
-    }
+    } else alert("삭제에 실패했습니다. 다시 시도해주세요.");
   } catch(error) {
-
-    console.error("Error deleting case:", error);
 
     alert("삭제 중 오류가 발생했습니다.");
   }
@@ -226,11 +209,7 @@ const fetchComment = async (anonymousBoardSeq) => {
 
     const commentResponse = await axios.get(`/anonymous-board/${anonymousBoardSeq}/comment`);
 
-    console.log("댓글 응답 데이터:", commentResponse.data);
-
     comment.value = commentResponse.data.data || [];
-
-    console.log("현재 사용자 ID:", userSeq);
 
     commentCount.value = comment.value.length;
     totalComment.value = commentCount.value;
@@ -243,7 +222,7 @@ const fetchComment = async (anonymousBoardSeq) => {
     }));
   } catch(error) {
 
-    console.error('Error fetching comments:', error);
+    comment.value = [];
   }
 };
 
@@ -340,7 +319,7 @@ const addComment = async () => {
     alert('댓글 등록이 완료되었습니다.');
   } catch(error) {
 
-    console.error('Error adding comment:', error);
+    alert("댓글 등록 중 오류가 발생했습니다.");
   }
 };
 
@@ -412,16 +391,12 @@ const updateComment = async () => {
     currentEditingCommentSeq.value = null;
   } catch(error) {
 
-    console.error('Error updating comment:', error);
-
     alert("댓글 수정 중 오류가 발생했습니다.");
   }
 };
 
 // 댓글 삭제 함수
 const deleteComment = async (commentSeq) => {
-
-  console.log("삭제할 댓글 ID:", commentSeq);
 
   if(!commentSeq) {
 
@@ -449,8 +424,6 @@ const deleteComment = async (commentSeq) => {
 
       alert("댓글이 삭제되었습니다.");
     } catch(error) {
-
-      console.error('Error deleting comment:', error);
 
       alert("댓글 삭제 중 오류가 발생했습니다.");
     }
