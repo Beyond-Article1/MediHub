@@ -89,7 +89,6 @@ watch(selectedCpVersion, async () => {
     const response = await axios.get(`/cp/${route.params.cpVersionSeq}?cpVersion=${selectedCpVersion.value}`)
 
     if (response.status === 200) {
-      // console.log(response.data.data);
       currentPage.value = 1;
       const newUrl = response.data.data.cpUrl;
       await fetchCpOpinionLocationData(response.data.data.cpVersionSeq);
