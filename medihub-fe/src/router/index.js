@@ -8,6 +8,7 @@ import userRouter from "@/router/userRouter.js";
 import anonymousBoardRouter from "@/router/anonymousBoardRouter.js";
 import loginRouter from "@/router/loginRouter.js";
 import mainRouter from "@/router/mainRouter.js";
+import searchRouter from "@/router/searchRouter.js";
 import adminRouter from "@/router/adminRouter.js";
 import mypagedetailRouter from "@/router/mypagedetailRouter.js";
 
@@ -31,9 +32,9 @@ const routes = [
     ...anonymousBoardRouter,
     ...loginRouter,
     ...mainRouter,
+    ...searchRouter,
     ...adminRouter,
-    ...mypagedetailRouter,
-
+    ...mypagedetailRouter
 ]
 
 const router = createRouter({
