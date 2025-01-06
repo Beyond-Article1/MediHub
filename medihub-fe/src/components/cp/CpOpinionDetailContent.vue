@@ -1,9 +1,6 @@
 <script setup>
 import { ref } from "vue";
 
-import CommentModal from "@/components/case_sharing/case_sharing_comment/CommentModal.vue";
-import CommentListModal from "@/components/case_sharing/case_sharing_comment/CommentListModal.vue"
-
 const props = defineProps({
   content: {
     type: Object,
@@ -14,6 +11,11 @@ const props = defineProps({
     default: false,
   },
 });
+
+const getHeaderLevel = (level) => {
+  const validLevels = [1, 2, 3, 4, 5, 6];
+  return validLevels.includes(level) ? `h${level}` : "h2"; // 유효하지 않으면 기본 h2 사용
+};
 
 </script>
 
