@@ -201,22 +201,20 @@ const fetchSearchResultBoardList = async () => {
   }
 };
 
-// 작성일 기준 내림차순으로 정렬된 최대 5개의 결과를 반환하는 계산된 속성
+// 최대 5개의 결과를 반환하는 계산된 속성
 const sortedResultCaseList = computed(() => {
 
-  return resultCaseList.value.sort((a, b) => new Date(b.regDate) - new Date(a.regDate)).slice(0, 5);
+  return resultCaseList.value.slice(0, 5);
 });
-
 
 const sortedResultLifeList = computed(() => {
 
-  return resultLifeList.value.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
+  return resultLifeList.value.slice(0, 5);
 });
-
 
 const sortedResultBoardList = computed(() => {
 
-  return resultBoardList.value.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
+  return resultBoardList.value.slice(0, 5);
 });
 
 const goToCaseList = () => {
