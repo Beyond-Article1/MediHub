@@ -1,5 +1,5 @@
 import {defineStore} from "pinia";
-import {onMounted, onUnmounted, ref} from "vue";
+import {onMounted, ref} from "vue";
 import axios from "axios";
 
 export const useAuthStore = defineStore('auth', () => {
@@ -8,42 +8,27 @@ export const useAuthStore = defineStore('auth', () => {
     const userSeq = ref(null);
     const userRole = ref(null);
     const isLogined = ref(false);
-    const userInfo = ref({
-        userId: null,
-        userName: null,
-        rankingName: null,
-        partName: null,
-        userEmail: null,
-        userPhone: null,
-        profileImage: null,
-    });
-
-    const clearStorageOnUnload = () => {
-        window.addEventListener("beforeunload", () => {
-
-            if (!sessionStorage.getItem("isRefreshed")) {
-                console.log("[AuthStore] 브라우저 닫힘 이벤트 발생");
-                localStorage.clear();
-                console.log("[AuthStore] localStorage 초기화 완료");
-            }
-        });
-
-        window.addEventListener("load", () => {
-            sessionStorage.setItem("isRefreshed", true);
-        });
-    };
-
-    const removeUnloadListener = () => {
-        window.removeEventListener("beforeunload", clearStorageOnUnload);
-    };
+    const userInfo = ref(
+        JSON.parse(localStorage.getItem('userInfo')) || {
+            userId: null,
+            userName: null,
+            rankingName: null,
+            partName: null,
+            userEmail: null,
+            userPhone: null,
+            profileImage: null,
+        }
+    );
 
     onMounted(async () => {
-        clearStorageOnUnload();
 
         const access = localStorage.getItem('accessToken');
         const refresh = localStorage.getItem('refreshToken');
 
-        if (access) accessToken.value = access;
+        if (access) {
+            accessToken.value = access;
+            isLogined.value = true;
+        }
         if (refresh) {
             refreshToken.value = refresh;
 
@@ -68,9 +53,6 @@ export const useAuthStore = defineStore('auth', () => {
         }
     });
 
-    onUnmounted(() => {
-        removeUnloadListener();
-    });
 
     // JWT 토큰 디코딩 유틸리티 함수
     function decodeToken(token) {
@@ -83,6 +65,8 @@ export const useAuthStore = defineStore('auth', () => {
             return null;
         }
     }
+
+
 
     // 로그인 처리
     async function login(token, refresh) {
@@ -97,6 +81,7 @@ export const useAuthStore = defineStore('auth', () => {
         // 로컬 스토리지에 저장
         localStorage.setItem('accessToken', token);
         localStorage.setItem('refreshToken', refresh);
+        localStorage.setItem("isLogined", "true");
 
         const payload = decodeToken(token);
         if (payload) {
@@ -104,6 +89,8 @@ export const useAuthStore = defineStore('auth', () => {
             userSeq.value = payload.userSeq;
             console.log("[AuthStore] userRole:", userRole.value);
             console.log("[AuthStore] userSeq:", userSeq.value);
+            localStorage.setItem('userRole', userRole.value);
+            localStorage.setItem('userSeq', userSeq.value);
         }
 
         // 로그인 시 사용자 정보 API 호출
@@ -130,6 +117,18 @@ export const useAuthStore = defineStore('auth', () => {
 
         localStorage.setItem('userRole', userRole.value);
         localStorage.setItem('userSeq', userSeq.value);
+    }
+
+    function setUserInfo(data) {
+        userInfo.value = {
+            userId: data.userId,
+            userName: data.userName,
+            rankingName: data.rankingName,
+            partName: data.partName,
+            userEmail: data.userEmail,
+            userPhone: data.userPhone,
+            profileImage: data.profileImage || null,
+        };
     }
 
     function refreshTokenExpired() {
@@ -160,19 +159,6 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
-
-    function setUserInfo(data) {
-        userInfo.value = {
-            userId: data.userId,
-            userName: data.userName,
-            rankingName: data.rankingName,
-            partName: data.partName,
-            userEmail: data.userEmail,
-            userPhone: data.userPhone,
-            profileImage: data.profileImage || null,
-        };
-    }
-
     // 로그아웃 처리
     async function logout() {
         console.log("[AuthStore] Logout 시작");
@@ -198,8 +184,6 @@ export const useAuthStore = defineStore('auth', () => {
         userRole.value = null;
         userInfo.value = { userId: null, userName: null, rankingName: null, partName: null, userEmail: null, userPhone: null, profileImage: null };
 
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
         localStorage.clear();
     }
 
@@ -222,5 +206,8 @@ export const useAuthStore = defineStore('auth', () => {
         userInfo,
         setUserInfo,
         fetchUserInfo,
+        refreshTokenExpired,
+        reissueTokens,
+
     };
 });
