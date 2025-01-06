@@ -26,8 +26,7 @@ const cpAdminGuard= (to, from, next) => {
     if (authStore.userRole === "ADMIN") {
         next(); // 관리자 권한만 접근 허용
     } else {
-        alert("로그인 후 접근할 수 있습니다."); // 경고 메시지
-        next("/login"); // 로그인 페이지로 리다이렉트
+        alert("관리자에게 문의하세요."); // 경고 메시지
     }
 };
 
