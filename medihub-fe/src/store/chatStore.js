@@ -38,14 +38,14 @@ export const useChatStore = defineStore('chat', () => {
         const chatIndex = chatrooms.value.findIndex((room) => room.chatroomSeq === updatedRoom.chatroomSeq);
         if(chatIndex !== -1) {
             chatrooms.value[chatIndex] = {...chatrooms.value[chatIndex], ...updatedRoom};
-            console.log(`채팅방 ${updatedRoom.chatroomSeq}이 chatrooms에서 업데이트되었습니다:`, chatrooms.value[chatIndex]);
+            //console.log(`채팅방 ${updatedRoom.chatroomSeq}이 chatrooms에서 업데이트되었습니다:`, chatrooms.value[chatIndex]);
         }
 
         // 열린 채팅방 목록에서 업데이트
         const openedIndex = openedChatrooms.value.findIndex((room) => room.chatroomSeq === updatedRoom.chatroomSeq);
         if (openedIndex !== -1) {
             openedChatrooms.value[openedIndex] = { ...openedChatrooms.value[openedIndex], ...updatedRoom };
-            console.log(`채팅방 ${updatedRoom.chatroomSeq}이 openedChatrooms에서 업데이트되었습니다:`, openedChatrooms.value[openedIndex]);
+            //console.log(`채팅방 ${updatedRoom.chatroomSeq}이 openedChatrooms에서 업데이트되었습니다:`, openedChatrooms.value[openedIndex]);
         }
     };
 
@@ -64,11 +64,11 @@ export const useChatStore = defineStore('chat', () => {
 
             // 열린 채팅방에 포함되지 않은 경우에만 안 읽은 메시지 수 증가
             const isChatroomOpened = openedChatrooms.value.some((room) => room.chatroomSeq === chatroomSeq);
-            console.log(`Is chatroom ${chatroomSeq} opened?`, isChatroomOpened);
+            //console.log(`Is chatroom ${chatroomSeq} opened?`, isChatroomOpened);
 
             if (!isChatroomOpened) {
                 chatroom.unreadMessageCount = (chatroom.unreadMessageCount ?? 0) + 1;
-                console.log(`Updated unread message count for chatroom ${chatroomSeq}:`, chatroom.unreadMessageCount);
+                //console.log(`Updated unread message count for chatroom ${chatroomSeq}:`, chatroom.unreadMessageCount);
             }
 
             // 채팅방 목록 정렬
@@ -90,13 +90,13 @@ export const useChatStore = defineStore('chat', () => {
         // lastVisitedAt 업데이트
         try {
             await axios.put(`/chatroom/${room.chatroomSeq}/visit`);
-            console.log(`채팅방 ${room.chatroomSeq}의 lastVisitedAt 업데이트 완료`);
+            //console.log(`채팅방 ${room.chatroomSeq}의 lastVisitedAt 업데이트 완료`);
 
             // 안 읽은 메시지 수를 0으로 갱신
             const chatroom = chatrooms.value.find((r) => r.chatroomSeq === room.chatroomSeq);
             if (chatroom) {
                 chatroom.unreadMessageCount = 0; // 로컬 상태 업데이트
-                console.log(`채팅방 ${room.chatroomSeq}의 안 읽은 메시지 수를 0으로 갱신`);
+                //console.log(`채팅방 ${room.chatroomSeq}의 안 읽은 메시지 수를 0으로 갱신`);
             }
         } catch (error) {
             console.error(`채팅방 ${room.chatroomSeq}의 lastVisitedAt 업데이트 중 오류 발생: `, error);
@@ -110,7 +110,7 @@ export const useChatStore = defineStore('chat', () => {
         // lastVisitedAt 업데이트
         try {
             await axios.put(`/chatroom/${chatroomSeq}/visit`);
-            console.log(`채팅방 ${chatroomSeq}의 lastVisitedAt 업데이트 완료`);
+            //console.log(`채팅방 ${chatroomSeq}의 lastVisitedAt 업데이트 완료`);
         } catch (error) {
             console.error(`채팅방 ${chatroomSeq}의 lastVisitedAt 업데이트 중 오류 발생: `, error);
         }
