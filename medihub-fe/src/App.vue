@@ -10,7 +10,7 @@ import ChatbotButton from "@/components/chatbot/ChatbotButton.vue";
 import ChatbotWindow from "@/views/chatbot/ChatbotWindow.vue";
 
 const route = useRoute(); // 현재 경로 정보 가져오기
-const isLoginPage = computed(() => route.path === '/login');  // 로그인 페이지인지 확인하는 변수
+const isLoginPage = computed(() => route.path.toLowerCase() === '/login');  // 로그인 페이지인지 확인하는 변수 // 로그인 페이지인지 확인하는 변수
 
 const isChatOpen = ref(false);    // 채팅창(ChatWindow) 열기/닫기 상태 관리
 const toggleChatWindow = () => {  // ChatWindow 열기/닫기
