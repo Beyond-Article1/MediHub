@@ -48,6 +48,7 @@ jobs:
 
   # CD - 배포
   deploy:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     needs: ci
 #    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop'  # master 또는 develop 브랜치에서만 실행
