@@ -72,7 +72,7 @@ const followUser = async (user) => {
     const response = await axios.post(`/follow?toUserSeq=${user.userSeq}`, {}, {
       headers: { Authorization: `Bearer ${localStorage.getItem("accessToken")}` },
     });
-    console.log("Follow response:", response.data); // 디버깅용 로그
+    // console.log("Follow response:", response.data); // 디버깅용 로그
     user.isFollowing = true; // 팔로우 상태 업데이트
   } catch (error) {
     console.error("팔로우 실패:", error); // 에러 로그 출력

@@ -77,7 +77,7 @@ async function createNewLocation() {
 
     if (response.status === 200 || response.status === 201) {
       console.log("새로운 CP 의견 위치 생성에 성공하였습니다.");
-      console.log(response.data.data.cpOpinionLocationSeq);
+      // console.log(response.data.data.cpOpinionLocationSeq);
       cpOpinionLocationSeq = response.data.data.cpOpinionLocationSeq;
 
       return cpOpinionLocationSeq;
@@ -126,7 +126,7 @@ async function sendData(formData) {
       redirectPage();
     } else {
       console.log("새로운 CP 의견 생성에 실패하였습니다.");
-      console.log(response.status);
+      // console.log(response.status);
       console.log("CP 의견 위치를 삭제합니다.");
       await deleteLocation();
       throw new Error("Failed to register opinion.");

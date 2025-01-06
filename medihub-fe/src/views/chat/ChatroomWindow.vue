@@ -225,7 +225,7 @@ const inviteUsers = async (users) => {
   //console.log('대화상대 초대 버튼 클릭');
   try {
     const response = await axios.post(`/chatroom/${props.room.chatroomSeq}`, {users});
-    console.log('대화상대 초대 성공: ', response.data);
+    // console.log('대화상대 초대 성공: ', response.data);
     alert('대화 상대가 성공적으로 초대되었습니다.');
 
     const chatroomResponse = await axios.get(`/chatroom/${response.data.data}`);

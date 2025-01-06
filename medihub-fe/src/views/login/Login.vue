@@ -65,14 +65,14 @@ const handleLogin = async () => {
   loading.value = true;
 
   try {
-    console.log("로그인 요청:", formData);
+    // console.log("로그인 요청:", formData);
 
     const response = await axios.post("/login", {
       userId: formData.userId,
       userPassword: formData.userPassword,
     });
 
-    console.log("응답 전체:", response);
+    // console.log("응답 전체:", response);
 
     // 헤더에서 Access Token과 Refresh Token 추출
     const accessToken = response.headers["access-token"];
