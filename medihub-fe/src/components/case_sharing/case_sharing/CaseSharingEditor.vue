@@ -65,17 +65,13 @@ const imageInput = ref(null);
 let checkOnce = true;
 
 const initializeEditor = async (data) => {
-  console.log("initializeEditor 호출됨");
 
-  console.log("전달된 데이터:", data);
   if (editorInstance && typeof editorInstance.destroy === "function") {
     editorInstance.destroy(); // 안전하게 destroy 호출
     editorInstance = null;
   }
   const editorData = data && data.blocks && data.blocks.length > 0 ? data : { blocks: [] };
 
-  console.log("검사 후 에디터 데이터:", editorData);
-  console.log("블록 길이:", editorData.blocks.length);
   await nextTick();
 
   editorInstance = new EditorJS({
@@ -163,8 +159,6 @@ const changeTextColor = () => editorInstance.inlineToolbar.activate("textColor")
 // 인라인 서식 툴
 const applyInlineTool = (tool) => editorInstance.inlineToolbar.activate(tool);
 
-
-
 const monitorImageLoad = (url) => {
   const img = new Image();
   img.src = url;
@@ -180,8 +174,6 @@ const monitorImageLoad = (url) => {
     alert("이미지 로드에 실패하였습니다. 해당 블록이 삭제됩니다.");
     removeImageBlock(url); // 실패한 이미지 블록 삭제
   };
-
-  // DOM에 추가하지 않고 로드 상태만 확인
 };
 
 // 실패한 이미지 블록 삭제
