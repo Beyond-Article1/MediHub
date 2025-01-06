@@ -34,7 +34,7 @@ const getFileIcon = (filename) => {
 const hovered = ref(false); // 마우스 오버 상태 관리
 const deleteMessage = async (messageSeq) => {
   try {
-    console.log("messageSeq: ", messageSeq);
+    //console.log("messageSeq: ", messageSeq);
     await axios.delete(`/chat/${messageSeq}`);
     console.log('메시지 삭제 요청 전송 성공');
   } catch (error) {
