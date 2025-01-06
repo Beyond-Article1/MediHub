@@ -343,11 +343,13 @@ const markAsReadAll = () => {
   events.value.forEach((noti) => {
     noti.read = true;
   });
+  hasNewNotification.value = false;
 };
 
 // 알림 전체 삭제 처리
 const deleteNotificationAll = () => {
   events.value = [];
+  hasNewNotification.value = false;
 };
 
 // 새 알림 여부 체크
