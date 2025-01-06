@@ -3,7 +3,7 @@ import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import axios from "axios";
 
-import router from "@/router/index.js";
+import router from "@/routers/index.js";
 import BoardEditor from "@/components/anonymousBoard/AnonymousBoardEditor.vue";
 import BoardActionButton from "@/components/anonymousBoard/AnonymousBoardSaveButton.vue";
 import BoardKeywordInput from "@/components/anonymousBoard/BoardKeywordInput.vue";

@@ -2,7 +2,7 @@
 import { ref, onMounted } from "vue";
 import axios from "axios";
 
-import router from "@/router/index.js";
+import router from "@/routers/index.js";
 import HotContents from "@/components/main/HotContents.vue";
 import MonthlyTop from "@/components/main/MonthlyTop.vue";
 import NewsSection from "@/components/main/NewsSection.vue";

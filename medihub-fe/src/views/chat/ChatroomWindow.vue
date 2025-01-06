@@ -1,8 +1,8 @@
 <script setup>
 import { ref, watch, onMounted, nextTick, defineProps, defineEmits } from 'vue';
-import { useAuthStore} from '@/store/authStore';
-import { useWebSocketStore} from '@/store/webSocket';
-import { useChatStore } from '@/store/chatStore.js';
+import { useAuthStore} from '@/stores/authStore';
+import { useWebSocketStore} from '@/stores/webSocket';
+import { useChatStore } from '@/stores/chatStore.js';
 import axios from 'axios';
 import SelectUserModal from '@/components/chat/SelectUserModal.vue';
 import ChatroomNameModal from '@/components/chat/ChatroomNameModal.vue';

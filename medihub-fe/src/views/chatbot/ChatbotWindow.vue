@@ -162,7 +162,7 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from "vue";
 import axios from "axios";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "@/stores/authStore";
 
 const isOpen = ref(true); // 챗봇 창 열림 상태
 const isNewChat = ref(false); // 새 채팅 여부 상태

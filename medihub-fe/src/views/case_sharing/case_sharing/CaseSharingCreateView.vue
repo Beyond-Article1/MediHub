@@ -60,11 +60,11 @@ import CaseActionButtons from "@/components/case_sharing/case_sharing/CaseSharin
 import TemplateCreateModal from "@/components/case_sharing/template/TemplateCreateModal.vue";
 import DraftModal from "@/components/case_sharing/case_sharing/DraftModal.vue";
 
-import { useAuthStore } from '@/store/authStore'; // Pinia 스토어 가져오기
+import { useAuthStore } from '@/stores/authStore'; // Pinia 스토어 가져오기
 import html2canvas from "html2canvas";
 import axios from "axios";
 import { useRoute } from "vue-router";
-import router from "@/router/index.js";
+import router from "@/routers/index.js";
 
 const authStore = useAuthStore();
 const accessToken = authStore.accessToken; // accessToken 가져오기

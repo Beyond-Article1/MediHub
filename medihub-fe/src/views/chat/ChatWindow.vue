@@ -1,7 +1,7 @@
 <script setup>
 import {onMounted, ref} from 'vue';
-import { useAuthStore } from "@/store/authStore.js";
-import { useWebSocketStore } from "@/store/webSocket.js";
+import { useAuthStore } from "@/stores/authStore.js";
+import { useWebSocketStore } from "@/stores/webSocket.js";
 import Organization from "@/components/chat/Organization.vue";
 import ChatroomList from "@/components/chat/ChatroomList.vue";
 import FileBox from "@/components/chat/FileBox.vue";

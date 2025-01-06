@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import axios from "axios";
 
-import router from "@/router/index.js";
+import router from "@/routers/index.js";
 import SearchBox from '@/components/anonymousBoard/AnonymousBoardSearchBox.vue';
 import BoardList from '@/components/anonymousBoard/AnonymousBoardList.vue';
 import LineDivider from "@/components/anonymousBoard/AnonymousBoardLineDivider.vue";

@@ -29,8 +29,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useAuthStore } from '@/store/authStore';
-import router from "@/router/index.js";
+import { useAuthStore } from '@/stores/authStore';
+import router from "@/routers/index.js";
 import axios from 'axios';
 
 const searchQuery = ref('');

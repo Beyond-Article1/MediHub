@@ -2,7 +2,7 @@
 import axios from "axios";
 
 import { ref } from "vue";
-import { useAuthStore } from '@/store/authStore.js';
+import { useAuthStore } from '@/stores/authStore.js';
 import { useRoute, useRouter } from "vue-router";
 
 import Button from "@/components/common/button/Button.vue";

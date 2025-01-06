@@ -1,6 +1,6 @@
 import BestJournalView from "@/views/journal/BestJournalView.vue";
 import MediH from "@/views/journal/MediH.vue";
-import {useAuthStore} from "@/store/authStore.js";
+import {useAuthStore} from "@/stores/authStore.js";
 
 const loginGuard= (to, from, next) => {
     const authStore = useAuthStore();

@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref, watch, computed } from "vue";
 import { useRouter } from "vue-router";
-import { useCpCategoryStore } from "@/store/cpCategoryStore.js";
+import { useCpCategoryStore } from "@/stores/cpCategoryStore.js";
 import axios from "axios";
 import CpLi from "@/components/cp/CpLi.vue";
 import CpLiInfo from "@/components/cp/CpLiInfo.vue";
@@ -43,7 +43,7 @@ async function fetchData() {
 
     if (response.status === 200) {
       console.log("CP 리스트 조회 성공");
-      console.log("응답 데이터:", response.data.data); // 응답 데이터 확인
+      // console.log("응답 데이터:", response.data.data); // 응답 데이터 확인
 
       // bookmarked가 true인 항목을 먼저 보여주기 위해 정렬
       cpList.value = response.data.data.sort((a, b) => {

@@ -2,7 +2,7 @@
 import check from '@/assets/images/check.png';
 import x from '@/assets/images/x.png';
 
-import {useAuthStore} from "@/store/authStore.js";
+import {useAuthStore} from "@/stores/authStore.js";
 import { useRouter } from 'vue-router';
 import axios from "axios";
 

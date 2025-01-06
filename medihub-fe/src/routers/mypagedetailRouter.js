@@ -4,7 +4,7 @@ import AnonymousBoardView from "@/views/mypage/AnonymousBoardView.vue";
 import CPView from "@/views/mypage/CPView.vue";
 import FollowMemberView from "@/views/mypage/FollowMemberView.vue";
 import MyCaseSharingView from "@/views/mypage/MyCaseSharingView.vue";
-import {useAuthStore} from "@/store/authStore.js";
+import {useAuthStore} from "@/stores/authStore.js";
 
 const loginGuard= (to, from, next) => {
     const authStore = useAuthStore();

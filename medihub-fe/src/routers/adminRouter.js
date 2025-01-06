@@ -4,7 +4,7 @@ import createUser from "@/views/admin/CreateUser.vue";
 import PartManage from "@/views/admin/PartManage.vue";
 import deptManage from "@/views/admin/DeptManage.vue";
 import RankManage from "@/views/admin/RankManage.vue";
-import {useAuthStore} from "@/store/authStore.js";
+import {useAuthStore} from "@/stores/authStore.js";
 
 const adminLoginGuard = (to, from, next) => {
     const authStore = useAuthStore();

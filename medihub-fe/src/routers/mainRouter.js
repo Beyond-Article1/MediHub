@@ -1,5 +1,5 @@
 import Main from "@/views/main/Main.vue";
-import {useAuthStore} from "@/store/authStore.js";
+import {useAuthStore} from "@/stores/authStore.js";
 
 const loginGuard= (to, from, next) => {
     const authStore = useAuthStore();

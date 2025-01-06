@@ -106,9 +106,9 @@
 
 <script setup>
 import {ref, nextTick, onMounted, onBeforeUnmount, computed} from 'vue';
-import router from '@/router/index.js';
-import { useAuthStore } from '@/store/authStore.js';
-import { useWebSocketStore } from "@/store/webSocket.js";
+import router from '@/routers/index.js';
+import { useAuthStore } from '@/stores/authStore.js';
+import { useWebSocketStore } from "@/stores/webSocket.js";
 import { EventSourcePolyfill } from "event-source-polyfill";
 import NotificationModal from "@/components/NotificationModal.vue";
 
