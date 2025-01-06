@@ -34,8 +34,6 @@ const fetchSuggestions = async (query) => {
       isSuggestionsVisible.value = true; // 제안 목록 표시
     } catch(error) {
 
-      console.error('Error fetching suggestions:', error);
-
       suggestions.value = [];
     }
   } else {
