@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
 
-import router from "@/router/index.js";
+import router from "@/routers/index.js";
 import LocalDateTimeFormat from '@/components/common/LocalDateTimeFormat.vue';
 import beforeBookmark from "@/assets/images/bookmark/before-bookmark.png";
 import afterBookmark from "@/assets/images/bookmark/after-bookmark.png";

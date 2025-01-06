@@ -3,7 +3,7 @@ import CaseSharingTemplate from "@/views/case_sharing/template/TemplateListView.
 import CaseSharingDetailView from "@/views/case_sharing/case_sharing/CaseSharingDetailView.vue";
 import CaseSharingEditView from "@/views/case_sharing/case_sharing/CaseSharingEditView.vue";
 import CaseSharingCreate from "@/views/case_sharing/case_sharing/CaseSharingCreateView.vue";
-import {useAuthStore} from "@/store/authStore.js";
+import {useAuthStore} from "@/stores/authStore.js";
 
 const loginGuard= (to, from, next) => {
     const authStore = useAuthStore();

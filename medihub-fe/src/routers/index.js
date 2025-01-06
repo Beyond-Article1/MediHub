@@ -10,6 +10,7 @@ import loginRouter from "@/routers/loginRouter.js";
 import mainRouter from "@/routers/mainRouter.js";
 import adminRouter from "@/routers/adminRouter.js";
 import mypagedetailRouter from "@/routers/mypagedetailRouter.js";
+import searchRouter from "@/routers/searchRouter.js";
 
 const routes = [
 
