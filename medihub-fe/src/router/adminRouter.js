@@ -16,41 +16,52 @@ const adminGuard = (to, from, next) => {
     }
 };
 
+const loginGuard= (to, from, next) => {
+    const authStore = useAuthStore();
+
+    if (authStore.isLogined) {
+        next();
+    } else {
+        alert("관리자로 로그인 하세요.");
+        next("/login");
+    }
+};
+
 export default [
     {
         path: "/admin/user",
         name: "AdminUser",
         component: AdminUser,
-        beforeEnter: adminGuard,
+        beforeEnter: adminGuard,loginGuard
     },
     {
         path: "/admin/users/:userSeq",
         name: "AdminUserDetail",
         component: AdminUserDetail,
-        beforeEnter: adminGuard,
+        beforeEnter: adminGuard,loginGuard
     },
     {
         path: "/create/user",
         name: "createUser",
         component: createUser,
-        beforeEnter: adminGuard,
+        beforeEnter: adminGuard,loginGuard
     },
     {
         path: "/deptManage",
         name: "deptManage",
         component: deptManage,
-        beforeEnter: adminGuard,
+        beforeEnter: adminGuard,loginGuard
     },
     {
         path: "/partManage",
         name: "partManage",
         component: PartManage,
-        beforeEnter: adminGuard,
+        beforeEnter: adminGuard,loginGuard
     },
     {
         path: "/rankManage",
         name: "rankManage",
         component: RankManage,
-        beforeEnter: adminGuard,
+        beforeEnter: adminGuard,loginGuard
     },
 ];
