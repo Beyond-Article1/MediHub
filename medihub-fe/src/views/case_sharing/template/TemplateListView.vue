@@ -164,14 +164,6 @@ onMounted(fetchTemplates);
         :page="currentPage"
         @updatePage="updatePage"
     />
-
-    <!-- 템플릿 생성 링크 -->
-    <div class="template-create">
-      원하는 템플릿이 없나요?
-      <a href="#" class="create-link" @click.prevent="navigateToCreateTemplate">
-        템플릿 생성
-      </a>
-    </div>
   </div>
 </template>
 
