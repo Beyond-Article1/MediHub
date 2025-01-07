@@ -16,7 +16,7 @@ const limitPage = ref(10); // 한 페이지에 보여줄 데이터 개수
 
 // 데이터 호출 함수
 async function fetchData() {
-  console.log("데이터 호출 함수 실행");
+  // console.log("데이터 호출 함수 실행");
   try {
     const selectedCategories = cpCategoryStore.selectedDataList.filter(item => item.categorySeq !== null);
 
@@ -26,7 +26,7 @@ async function fetchData() {
 
     let url;
 
-    console.log("피니아 저장 길이: ", selectedCategories.length);
+    // console.log("피니아 저장 길이: ", selectedCategories.length);
     // 저장된 값이 없을 경우 기본 cp 요청
     if (selectedCategories.length === 0) {
       url = "cp"; // 전체 데이터 요청
@@ -36,7 +36,7 @@ async function fetchData() {
       url = "cp"; // 기본 요청
     }
 
-    console.log("요청 url: ", url);
+    // console.log("요청 url: ", url);
 
     // API 호출
     const response = await axios.get(url);
@@ -70,7 +70,7 @@ const moveCpVersionPage = (cpVersionSeq) => {
 
 // Pinia 스토어의 selectedDataList 변경 감시 및 API 호출
 watch(() => cpCategoryStore.selectedDataList, (newValue) => {
-  console.log("Pinia의 selectedDataList가 변경되었습니다:", newValue);
+  // console.log("Pinia의 selectedDataList가 변경되었습니다:", newValue);
   fetchData(); // API 호출
 }, {deep: true}); // deep: true를 사용하여 중첩 배열의 변경도 감지
 
