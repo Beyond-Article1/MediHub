@@ -19,19 +19,20 @@ export const useAuthStore = defineStore('auth', () => {
             profileImage: null,
         }
     );
-    
-    onMounted(async () => {
 
-        const access = localStorage.getItem('accessToken');
-        const refresh = localStorage.getItem('refreshToken');
+    onMounted(async () => {
+        const access = localStorage.getItem("accessToken");
+        const refresh = localStorage.getItem("refreshToken");
 
         if (access) {
             accessToken.value = access;
             isLogined.value = true;
         }
+
         if (refresh) {
             refreshToken.value = refresh;
 
+            // Refresh Token 만료 확인
             if (refreshTokenExpired()) {
                 console.warn("Refresh Token 만료. 로그아웃 처리.");
                 await logout();
@@ -39,20 +40,11 @@ export const useAuthStore = defineStore('auth', () => {
             }
         }
 
-        if (access && decodeToken(access)?.exp * 1000 < Date.now()) {
-            try {
-                await reissueTokens(refresh);
-            } catch (error) {
-                console.error("토큰 재발급 실패:", error);
-                await logout();
-            }
-        }
-
+        // 사용자 정보 초기화
         if (access) {
-            await fetchUserInfo(); // API를 통해 사용자 정보 불러오기
+            await fetchUserInfo();
         }
     });
-
 
     // JWT 토큰 디코딩 유틸리티 함수
     function decodeToken(token) {
@@ -185,6 +177,61 @@ export const useAuthStore = defineStore('auth', () => {
         if (!userRole.value) return false;
         return userRole.value === requiredRole;
     }
+
+    // 동시 요청 x
+    let isRefreshing = false;
+    let refreshSubscribers = [];
+
+    // 새로운 토큰이 발급된 후, 대기 중인 요청들에게 이를 전달
+    function subscribeTokenRefresh(callback) {
+        refreshSubscribers.push(callback); // 요청을 배열에 추가
+    }
+
+    // 새로운 토큰으로 모든 대기 중인 요청들을 처리
+    function onRefreshed(newToken) {
+        refreshSubscribers.forEach((callback) => callback(newToken)); // 대기 중인 모든 요청에 새 토큰 제공
+        refreshSubscribers = [];
+    }
+
+    // Axios 요청 인터셉터 설정
+    axios.interceptors.request.use(async (config) => {
+        const token = accessToken.value;
+
+        // Access Token 만료 여부 확인
+        if (token && decodeToken(token)?.exp * 1000 < Date.now()) {
+            if (!isRefreshing) { // 현재 토큰 갱신 중이 아닌 경우
+                isRefreshing = true;
+
+                try {
+                    // Refresh Token을 사용해 Access Token 갱신
+                    await reissueTokens(refreshToken.value);
+
+                    onRefreshed(accessToken.value);
+                } catch (error) {
+                    // 갱신 실패 시 로그아웃 처리
+                    console.error("토큰 갱신 실패, 로그아웃 처리");
+                    await logout();
+                    throw error;
+                } finally {
+                    isRefreshing = false;
+                }
+            } else {
+                return new Promise((resolve) => {
+                    subscribeTokenRefresh((newToken) => {
+                        config.headers["Authorization"] = `Bearer ${newToken}`;
+                        resolve(config);
+                    });
+                });
+            }
+        }
+
+        // 유효한 Access Token이 있으면 헤더에 추가
+        if (accessToken.value) {
+            config.headers["Authorization"] = `Bearer ${accessToken.value}`;
+        }
+        return config;
+    }, (error) => Promise.reject(error));
+
 
     return {
         accessToken,
