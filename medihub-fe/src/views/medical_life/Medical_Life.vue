@@ -336,6 +336,10 @@ onMounted(() => {
 .table td {
   vertical-align: middle;
   padding: 12px 8px;
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
 }
 
 .table-responsive {
