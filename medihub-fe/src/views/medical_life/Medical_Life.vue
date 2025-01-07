@@ -261,7 +261,7 @@ onMounted(() => {
                 <span
                     v-for="(tag, tIndex) in post.tags"
                     :key="tIndex"
-                    class="badge bg-warning text-dark me-1"
+                    class="keyword-badge"
                 >
                   # {{ tag }}
                 </span>
@@ -336,7 +336,7 @@ onMounted(() => {
 .table td {
   vertical-align: middle;
   padding: 12px 8px;
-  white-space: nowrap; 
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 150px;
@@ -353,6 +353,18 @@ onMounted(() => {
 
 .selected-info .badge {
   font-size: 0.85rem;
+}
+
+.keyword-badge{
+  background-color: #fff0d3;
+  padding: 8px 12px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
 }
 
 </style>
