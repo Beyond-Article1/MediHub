@@ -249,22 +249,27 @@ onMounted(() => {
           </tr>
           </thead>
           <tbody>
-          <tr v-for="(post, index) in paginatedPosts" :key="index">
+          <tr
+              v-for="(post, index) in paginatedPosts"
+              :key="index"
+              @click="goToDetail(post.id)"
+              class="clickable-row"
+          >
             <td>{{ post.id }}</td>
-            <!-- 제목 클릭 시 상세 조회 이동 -->
             <td class="text-start">
-              <a @click.prevent="goToDetail(post.id)" class="text-decoration-none cursor-pointer">
+              <a @click.stop.prevent="goToDetail(post.id)"
+                 class="title-link">
                 {{ post.title }}
               </a>
             </td>
             <td>
-                <span
-                    v-for="(tag, tIndex) in post.tags"
-                    :key="tIndex"
-                    class="keyword-badge"
-                >
-                  # {{ tag }}
-                </span>
+      <span
+          v-for="(tag, tIndex) in post.tags"
+          :key="tIndex"
+          class="keyword-badge"
+      >
+        # {{ tag }}
+      </span>
             </td>
             <td>{{ post.author }}</td>
             <td><LocalDateTimeFormat :data="post.createdAt" /></td>
@@ -365,6 +370,20 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   vertical-align: middle;
+}
+
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.clickable-row:hover {
+  background-color: #f9f9f9;
+}
+
+.title-link {
+  color: black;
+  text-decoration: none;
 }
 
 </style>
