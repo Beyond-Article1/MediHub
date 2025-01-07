@@ -74,7 +74,7 @@ onMounted(fetchVersionHistory);
 
 .version-name {
   font-size: 0.9rem;
-  max-width: 160px; /* 제목의 최대 너비 설정 */
+  max-width: 145px; /* 제목의 최대 너비 설정 */
   white-space: nowrap; /* 줄바꿈 방지 */
   overflow: hidden; /* 넘치는 내용 숨김 */
   text-overflow: ellipsis; /* 넘치는 텍스트를 '...'으로 표시 */
