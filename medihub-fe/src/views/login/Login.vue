@@ -130,65 +130,6 @@ const fetchUserInfo = async () => {
   }
 };
 
-
-axios.interceptors.request.use(
-    (config) => {
-      const accessToken = authStore.accessToken;
-      if (accessToken) {
-        config.headers["Authorization"] = `Bearer ${accessToken}`;
-      }
-      return config;
-    },
-    (error) => Promise.reject(error)
-);
-
-axios.interceptors.response.use(
-    (response) => response,
-    async (error) => {
-
-      const isAuthError = error.response.status === 401;
-      const isLoginRequest = error.config.url.includes("/login");
-      const isReissueRequest = error.config.url.includes("/v1/token/reissue");
-
-      // Refresh Token 갱신 로직
-      if (isAuthError && authStore.refreshToken && !isLoginRequest && !isReissueRequest) {
-        if (error.config._retry) return Promise.reject(error);
-        error.config._retry = true;
-
-        try {
-          const reissueResponse = await axios.post("/v1/token/reissue", null, {
-            headers: {"Refresh-Token": authStore.refreshToken},
-          });
-
-            const newAccessToken = reissueResponse.headers["access-token"];
-            const newRefreshToken = reissueResponse.headers["refresh-token"];
-
-            if (newAccessToken && newRefreshToken) {
-              authStore.login(newAccessToken, newRefreshToken);
-
-              localStorage.setItem("accessToken", newAccessToken);
-              localStorage.setItem("refreshToken", newRefreshToken);
-
-              // 원래 요청 재시도
-              error.config.headers["Authorization"] = `Bearer ${newAccessToken}`;
-              return axios.request(error.config);
-            }
-          } catch (reissueError) {
-            console.error("토큰 재발급 실패:", reissueError);
-            authStore.logout();
-            router.push("/login");
-          }
-        }
-
-      if (isAuthError && !authStore.refreshToken) {
-        console.error("Refresh Token이 없습니다. 다시 로그인하세요.");
-        authStore.logout();
-        router.push("/login");
-      }
-
-      return Promise.reject(error);
-    }
-);
 </script>
 
 <style scoped>
