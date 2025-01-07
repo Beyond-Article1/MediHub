@@ -3,7 +3,7 @@
     <div class="top">
       <h1 class="title">CASE SHARING</h1>
       <div class="search-bar-container">
-        <SearchBar @sort-changed="updateSortOption" />
+        <SearchBar @sort-changed="updateSortOption" @search="handleSearch" />
       </div>
     </div>
     <LineDivider />
@@ -19,6 +19,7 @@
           class="case-section"
           :selectedCategory="selectedCategory"
           :sortOption="sortOption"
+          :searchQuery="searchQuery"
       />
     </div>
   </div>
@@ -33,6 +34,7 @@ import {ref, watch} from "vue";
 
 const selectedCategory = ref(null); // 선택된 카테고리 ID
 const sortOption = ref("latest"); // 기본 정렬 옵션
+const searchQuery = ref(""); // 검색어 추가
 
 // 카테고리 선택 시 데이터 필터링
 const handleCategorySelected = (category) => {
@@ -43,7 +45,12 @@ const updateSortOption = (newSortOption) => {
   sortOption.value = newSortOption;
 };
 
-watch([selectedCategory, sortOption], () => {
+const handleSearch = (query) => {
+
+  searchQuery.value = query;
+};
+
+watch([selectedCategory, sortOption, searchQuery], () => {
 });
 </script>
 

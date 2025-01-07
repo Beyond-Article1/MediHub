@@ -10,7 +10,7 @@
       <tbody>
       <tr
           v-for="(caseItem, index) in paginatedCaseList"
-          :key="index"
+          :key="caseItem.id"
           @click="goToDetail(caseItem.id)"
           class="clickable-row"
       >
@@ -38,9 +38,10 @@ import router from "@/routers/index.js";
 import PaginationComponent from "@/components/common/Pagination.vue";
 
 // Props로 선택된 카테고리 ID 전달받기
-const { selectedCategory, sortOption } = defineProps({
+const { selectedCategory, sortOption, searchQuery } = defineProps({
   selectedCategory: { type: Object, default: null },
   sortOption: { type: String, default: "latest" },
+  searchQuery: { type: String, default: "" }
 });
 
 const totalCases = ref(0);
@@ -53,7 +54,6 @@ const fetchCaseList = async (categoryId) => {
     const url = categoryId
         ? `/case_sharing/part/${categoryId}`
         : `/case_sharing`;
-
 
     const response = await axios.get(url);
     const { success, data } = response.data;
@@ -85,32 +85,69 @@ const fetchCaseList = async (categoryId) => {
   }
 };
 
+const fetchFilteredCaseList = async () => {
+
+  try {
+
+    const response = await axios.get(`/find/caseSharing/${encodeURIComponent(searchQuery)}`);
+
+    const { success, data } = response.data;
+
+    if(success && Array.isArray(data)) {
+
+      caseList.value = data.map((item) => ({
+
+        id: item.caseSharingSeq,
+        title: item.caseSharingTitle,
+        author: `${item.caseAuthor} (${item.caseAuthorRankName || "직급 없음"})`,
+        date: new Date(item.regDate).toLocaleDateString("ko-KR"),
+        views: item.caseSharingViewCount
+      }));
+
+      totalCases.value = caseList.value.length;
+    } else {
+
+      caseList.value = [];
+      totalCases.value = 0;
+    }
+  } catch(error) {
+
+    caseList.value = [];
+    totalCases.value = 0;
+  }
+};
 
 // 정렬 작업 함수
 const applySort = () => {
+  const listToSort = [...caseList.value];
   if (sortOption === "latest") {
-    caseList.value.sort((a, b) => b.id - a.id); // 최신순
-    console.log("정렬 옵션: 최신순 (latest)");
+    listToSort.sort((a, b) => b.id - a.id);
   } else if (sortOption === "views") {
-    caseList.value.sort((a, b) => b.views - a.views); // 조회순
-    console.log("정렬 옵션: 조회순 (views)");
+    listToSort.sort((a, b) => b.views - a.views);
   }
-
+  caseList.value = listToSort; // 정렬된 리스트 저장
 };
 
-// 선택된 카테고리 및 정렬 옵션이 변경될 때 API 호출 및 정렬 처리
+// 선택된 카테고리 변경 시 API 호출 및 데이터 필터링
 watch(
     () => selectedCategory,
     (newCategory) => {
       if (newCategory && typeof newCategory === "object") {
-
-        fetchCaseList(newCategory.id);
+        if (searchQuery.value) {
+          fetchFilteredCaseList(); // 검색어가 있는 경우 필터링된 리스트 요청
+        } else {
+          fetchCaseList(newCategory.id); // 카테고리에 따른 리스트 요청
+        }
         selectedCategoryName.value = newCategory.name;
       } else {
-        fetchCaseList(newCategory);
+        if (searchQuery.value) {
+          fetchFilteredCaseList(); // 검색어가 있는 경우
+        } else {
+          fetchCaseList(newCategory); // 전체 리스트 요청
+        }
         selectedCategoryName.value = "전체";
       }
- },
+    },
     { immediate: true }
 );
 
@@ -119,6 +156,21 @@ watch(
     () => sortOption,
     (newSortOption) => {
       applySort(); // 정렬 강제 적용
+    },
+    { immediate: true }
+);
+
+// 정렬 및 검색어에 따라 리스트 업데이트
+watch(
+    () => searchQuery,
+    (newQuery) => {
+
+      if(newQuery) {
+
+        // 검색어가 있을 경우 필터링된 리스트 요청
+        fetchFilteredCaseList();
+        // 검색어가 없을 경우 전체 리스트 요청
+      } else fetchCaseList(selectedCategory?.id);
     },
     { immediate: true }
 );
@@ -138,21 +190,30 @@ const updatePage = (page) => {
 const goToDetail = (id) => {
   router.push({name: "CaseSharingDetailView", params: {id}});
 };
+
+onMounted(() => {
+
+  // 카테고리 ID가 있을 때만 호출
+  fetchCaseList(selectedCategory?.id);
+});
 </script>
 
 <style scoped>
-.selected-category-info{
+.selected-category-info {
   padding-bottom: 5px;
 }
+
 .case-header {
   font-size: 14px;
   margin-bottom: 10px;
 }
+
 table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 20px;
 }
+
 tr {
   border-bottom: 1px solid #ddd;
   cursor: pointer; /* 클릭 가능한 마우스 커서 추가 */
@@ -162,8 +223,8 @@ tr {
 tr:hover {
   background-color: #f9f9f9; /* 호버 시 배경 색상 변경 */
 }
+
 td {
   padding: 8px;
 }
-
 </style>

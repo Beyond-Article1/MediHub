@@ -232,14 +232,17 @@ onMounted(() => {
 
           <td>
             <div class="keywordList">
-              <span class="keyword"
-                    v-for="(keyword, index) in (boardItem.keywordList && boardItem.keywordList.length > 0 ?
-                    boardItem.keywordList.slice(0, 2) : []
-                    )"
-                    :key="index"
-              >
-                # {{ keyword.keywordName && keyword.keywordName.length > 10 ? keyword.keywordName.slice(0, 10) + '...' : keyword.keywordName }}
-              </span>
+                <span class="keyword"
+                      v-for="(keyword, index) in (boardItem.keywordList && boardItem.keywordList.length > 0 ?
+                      boardItem.keywordList.slice(0, 2) : [])"
+                      :key="index"
+                >
+                  # {{ Array.isArray(props.searchResult) && props.searchResult.length > 0 ?
+                    (keyword.length > 10 ? keyword.slice(0, 10) + '...' : keyword) :
+                    (keyword.keywordName && keyword.keywordName.length > 10 ?
+                        keyword.keywordName.slice(0, 10) + '...' : keyword.keywordName)
+                  }}
+                </span>
             </div>
           </td>
 
