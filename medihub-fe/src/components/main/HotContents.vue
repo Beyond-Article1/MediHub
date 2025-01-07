@@ -2,7 +2,7 @@
 import { ref, onMounted } from "vue";
 import axios from "axios";
 
-import router from "@/router/index.js";
+import router from "@/routers/index.js";
 
 const caseList = ref([]);
 const medicalLifeList = ref([]);

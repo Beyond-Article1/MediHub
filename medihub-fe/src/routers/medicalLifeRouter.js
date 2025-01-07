@@ -2,7 +2,7 @@ import Medical_Life from "@/views/medical_life/Medical_Life.vue";
 import MedicalLifeDetail from "@/views/medical_life/MedicalLifeDetail.vue";
 import MedicalLifeCreate from "@/views/medical_life/MedicalLifeCreate.vue";
 import MedicalLifeEdit from "@/views/medical_life/MedicalLifeEdit.vue";
-import {useAuthStore} from "@/store/authStore.js";
+import {useAuthStore} from "@/stores/authStore.js";
 
 const loginGuard= (to, from, next) => {
     const authStore = useAuthStore();

@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from "vue";
 import axios from "axios";
 import Pagination from "@/components/common/Pagination.vue";
-import router from "@/router/index.js";
+import router from "@/routers/index.js";
 
 const templates = ref([]); // 전체 템플릿 데이터
 const searchQuery = ref(""); // 검색어

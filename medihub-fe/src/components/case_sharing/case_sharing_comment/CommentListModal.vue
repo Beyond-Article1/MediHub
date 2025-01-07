@@ -44,7 +44,7 @@
 <script setup>
 import { ref, computed } from "vue";
 import axios from "axios";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "@/stores/authStore";
 
 const props = defineProps({
   visible: {

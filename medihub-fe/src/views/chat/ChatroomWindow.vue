@@ -1,8 +1,8 @@
 <script setup>
 import { ref, watch, onMounted, nextTick, defineProps, defineEmits } from 'vue';
-import { useAuthStore} from '@/store/authStore';
-import { useWebSocketStore} from '@/store/webSocket';
-import { useChatStore } from '@/store/chatStore.js';
+import { useAuthStore} from '@/stores/authStore';
+import { useWebSocketStore} from '@/stores/webSocket';
+import { useChatStore } from '@/stores/chatStore.js';
 import axios from 'axios';
 import SelectUserModal from '@/components/chat/SelectUserModal.vue';
 import ChatroomNameModal from '@/components/chat/ChatroomNameModal.vue';
@@ -225,7 +225,7 @@ const inviteUsers = async (users) => {
   //console.log('대화상대 초대 버튼 클릭');
   try {
     const response = await axios.post(`/chatroom/${props.room.chatroomSeq}`, {users});
-    console.log('대화상대 초대 성공: ', response.data);
+    // console.log('대화상대 초대 성공: ', response.data);
     alert('대화 상대가 성공적으로 초대되었습니다.');
 
     const chatroomResponse = await axios.get(`/chatroom/${response.data.data}`);
@@ -312,7 +312,7 @@ const handleFileUpload = async (event) => {
     });
     console.log('파일 업로드 성공:', response.data);
     // 메시지 목록에 추가
-    messages.value.push(response.data);
+    // messages.value.push(response.data);
 
     nextTick(() => scrollToBottom());
   } catch (error) {

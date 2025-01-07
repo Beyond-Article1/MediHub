@@ -2,7 +2,7 @@
 import axios from "axios";
 import {computed, onMounted, ref, watch} from "vue";
 import {useRouter} from "vue-router";
-import {useCpCategoryStore} from "@/store/cpCategoryStore.js";
+import {useCpCategoryStore} from "@/stores/cpCategoryStore.js";
 import DropBox from "@/components/common/MultiSelectDropBox.vue";
 
 // vue 설정 변수
@@ -48,9 +48,9 @@ const toggleDropdown = (index) => {
 
 // Pinia 스토어의 selectedDataList 변경 감지
 watch(() => cpCategoryStore.selectedDataList, (newValue) => {
-  console.log("Pinia의 선택된 옵션:", newValue); // Pinia 스토어에서 선택된 데이터 출력
+  // console.log("Pinia의 선택된 옵션:", newValue); // Pinia 스토어에서 선택된 데이터 출력
   newValue.forEach(item => {
-    console.log("카테고리 시퀀스:", item.categorySeq); // 선택된 카테고리 시퀀스 출력
+    // console.log("카테고리 시퀀스:", item.categorySeq); // 선택된 카테고리 시퀀스 출력
   });
 }, {deep: true}); // deep: true를 사용하여 중첩 배열의 변경도 감지
 

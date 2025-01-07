@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import axios from "axios";
 
-import router from "@/router/index.js";
+import router from "@/routers/index.js";
 import BoardEditor from "@/components/anonymousBoard/AnonymousBoardEditor.vue";
 import BoardKeywordInput from "@/components/anonymousBoard/BoardKeywordInput.vue";
 import BoardActionButton from "@/components/anonymousBoard/AnonymousBoardSaveButton.vue";

@@ -2,7 +2,7 @@
 import check from '@/assets/images/check.png';
 import x from '@/assets/images/x.png';
 
-import {useAuthStore} from "@/store/authStore.js";
+import {useAuthStore} from "@/stores/authStore.js";
 import { useRouter } from 'vue-router';
 import axios from "axios";
 
@@ -22,7 +22,6 @@ const closeModal = () => {
 // 읽음처리
 async function readNoti(event, index) {
 
-  console.log('읽음 처리', event.notiSeq);
   const notiSeq = BigInt(event.notiSeq);
 
   await axios.get(`/notify/read`, {
@@ -87,7 +86,6 @@ async function allDeleteNoti() {
 
 // notiurl로 이동
 const moveTo = (event) => {
-  console.log("moveTo 함수 호출, event:", event);
   readNoti(event);
   router.push(event.url);
 }

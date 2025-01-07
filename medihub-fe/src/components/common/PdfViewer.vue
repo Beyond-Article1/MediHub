@@ -79,7 +79,6 @@ watch(currentPage, async () => {
     await loadPage(props.pdfUrl);
     await setMarkerOnPDF();
     // console.log("존재하는 마커");
-    // console.log(existingMarkers.value);
   }
 });
 
@@ -90,7 +89,6 @@ watch(selectedCpVersion, async () => {
     const response = await axios.get(`/cp/${route.params.cpVersionSeq}?cpVersion=${selectedCpVersion.value}`)
 
     if (response.status === 200) {
-      console.log(response.data.data);
       currentPage.value = 1;
       const newUrl = response.data.data.cpUrl;
       await fetchCpOpinionLocationData(response.data.data.cpVersionSeq);
@@ -148,7 +146,7 @@ const handlePdfClick = (event) => {
       console.log("새로운 위치 입니다.");
       addMarker(x, y);
       clickedMarkerData.value = {x, y, cpOpinionLocationSeq: -1};
-      console.log(clickedMarkerData.value);
+      // console.log(clickedMarkerData.value);
       isModalVisible.value = true; // 모달 열기
     }
   }
@@ -323,7 +321,7 @@ function addMarker(x, y) {
 
     existingMarkers.value.push(newPosition);
     console.log("존재하는 마커 리스트에 새로운 좌표 추가됨");
-    console.log(existingMarkers.value);
+    // console.log(existingMarkers.value);
   };
 
   // 이미지 로드 전에 마커 추가 로그 확인
@@ -412,7 +410,7 @@ async function fetchCpOpinionLocationData(cpVersionSeq) {
     if (response.status === 200) {
       cpOpinionLocationList.value = response.data.data;
       console.log("위치 조회 성공");
-      console.log(cpOpinionLocationList.value);
+      // console.log(cpOpinionLocationList.value);
       existingMarkers.value = cpOpinionLocationList.value;
       console.log("존재하는 위치 리스트 정보", existingMarkers.value);
     } else {

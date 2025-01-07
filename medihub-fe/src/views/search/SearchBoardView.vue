@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
 
-import router from "@/router/index.js";
+import router from "@/routers/index.js";
 import LocalDateTimeFormat from '@/components/common/LocalDateTimeFormat.vue';
 import beforeLike from '@/assets/images/like/before-like.png';
 import afterLike from '@/assets/images/like/after-like.png';
@@ -147,7 +147,7 @@ const fetchSearchResultList = async () => {
 
 const sortedResultList = computed(() => {
 
-  return resultList.value.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
+  return resultList.value.slice(0, 5);
 });
 
 const goToList = () => {

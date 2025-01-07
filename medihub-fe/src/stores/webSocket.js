@@ -2,8 +2,8 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { useAuthStore } from '@/store/authStore';
-import { useChatStore } from '@/store/chatStore';
+import { useAuthStore } from '@/stores/authStore';
+import { useChatStore } from '@/stores/chatStore';
 import axios from "axios";
 
 export const useWebSocketStore = defineStore('webSocket', ws => {
@@ -160,6 +160,12 @@ export const useWebSocketStore = defineStore('webSocket', ws => {
         } else {
             console.error(`채팅방 ${chatroomSeq}에 대한 구독 정보가 존재하지 않습니다.`);
         }
+
+        // 해당 채팅방의 수신 메시지 삭제
+        receivedMessages.value = receivedMessages.value.filter(
+            (msg) => msg.chatroomSeq !== chatroomSeq
+        );
+        console.log(`채팅방 ${chatroomSeq}의 메시지 receivedMessages에서 제거.`);
     }
 
     return {

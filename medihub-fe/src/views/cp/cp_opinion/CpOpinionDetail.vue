@@ -1,7 +1,7 @@
 <script setup>
 import {ref, onMounted, computed} from "vue";
 import {useRoute, useRouter} from "vue-router";
-import {useAuthStore} from "@/store/authStore.js";
+import {useAuthStore} from "@/stores/authStore.js";
 
 import axios from "axios";
 

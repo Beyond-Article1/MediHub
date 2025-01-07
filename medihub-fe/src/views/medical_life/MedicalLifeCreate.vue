@@ -5,7 +5,7 @@ import BoardEditor from "@/components/medicallife/MedicalLifeEditor.vue";
 import BoardKeywordInput from "@/components/medicallife/MedicalLifeKeywordinput.vue";
 import BoardActionButton from "@/components/medicallife/MedicalLifeSaveButtion.vue";
 import axios from "axios";
-import router from "@/router/index.js";
+import router from "@/routers/index.js";
 
 const medicalLifeTitle = ref("");
 const keywords = ref([]);

@@ -19,7 +19,7 @@ export const useAuthStore = defineStore('auth', () => {
             profileImage: null,
         }
     );
-
+    
     onMounted(async () => {
 
         const access = localStorage.getItem('accessToken');
@@ -57,9 +57,8 @@ export const useAuthStore = defineStore('auth', () => {
     // JWT 토큰 디코딩 유틸리티 함수
     function decodeToken(token) {
         try {
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            console.log("[AuthStore] Decoded payload: ", payload);
-            return payload;
+            // console.log("[AuthStore] Decoded payload: ", payload);
+            return JSON.parse(atob(token.split('.')[1]));
         } catch (error) {
             console.error("[AuthStore] 디코딩 에러: ", error);
             return null;

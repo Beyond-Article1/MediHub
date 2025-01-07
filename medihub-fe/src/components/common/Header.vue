@@ -106,9 +106,9 @@
 
 <script setup>
 import {ref, nextTick, onMounted, onBeforeUnmount, computed} from 'vue';
-import router from '@/router/index.js';
-import { useAuthStore } from '@/store/authStore.js';
-import { useWebSocketStore } from "@/store/webSocket.js";
+import router from '@/routers/index.js';
+import { useAuthStore } from '@/stores/authStore.js';
+import { useWebSocketStore } from "@/stores/webSocket.js";
 import { EventSourcePolyfill } from "event-source-polyfill";
 import NotificationModal from "@/components/NotificationModal.vue";
 
@@ -261,9 +261,9 @@ const connectSSE = () => {
   }, {withCredentials: true});
 
   eventSource.value.addEventListener("sse", (event) => {
-    console.log("New event: ", event.data);
+    // console.log("New event: ", event.data);
     const parsedData = JSON.parse(event.data);
-    console.log("seq: ", parsedData.notiSeq);
+    // console.log("seq: ", parsedData.notiSeq);
 
 
     // parsedData가 String이거나 undefined인 경우 처리 중단
@@ -277,7 +277,7 @@ const connectSSE = () => {
   });
 
   eventSource.value.addEventListener("newChat", (event) => {
-    console.log("New Chat: ", event.data);
+    // console.log("New Chat: ", event.data);
     webSocketStore.getUserChatrooms();
   })
 
@@ -309,7 +309,7 @@ const disconnectSSE = () => {
 const getNotify = async () => {
   await axios.get('/notify')
       .then(res => {
-        console.log('전체 알림 불러오기: ', res.data.data);
+        // console.log('전체 알림 불러오기: ', res.data.data);
 
         if (res.data.data.length > 0){
           res.data.data.forEach(noti => {
@@ -343,11 +343,13 @@ const markAsReadAll = () => {
   events.value.forEach((noti) => {
     noti.read = true;
   });
+  hasNewNotification.value = false;
 };
 
 // 알림 전체 삭제 처리
 const deleteNotificationAll = () => {
   events.value = [];
+  hasNewNotification.value = false;
 };
 
 // 새 알림 여부 체크
